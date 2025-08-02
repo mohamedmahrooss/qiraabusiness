@@ -14,7 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          author_id: string | null
+          category_id: string | null
+          content_ar: string
+          content_en: string
+          content_type: Database["public"]["Enums"]["content_type"]
+          created_at: string
+          excerpt_ar: string | null
+          excerpt_en: string | null
+          featured_image: string | null
+          id: string
+          is_premium: boolean
+          published_at: string | null
+          status: Database["public"]["Enums"]["article_status"]
+          title_ar: string
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          category_id?: string | null
+          content_ar: string
+          content_en: string
+          content_type?: Database["public"]["Enums"]["content_type"]
+          created_at?: string
+          excerpt_ar?: string | null
+          excerpt_en?: string | null
+          featured_image?: string | null
+          id?: string
+          is_premium?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["article_status"]
+          title_ar: string
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          category_id?: string | null
+          content_ar?: string
+          content_en?: string
+          content_type?: Database["public"]["Enums"]["content_type"]
+          created_at?: string
+          excerpt_ar?: string | null
+          excerpt_en?: string | null
+          featured_image?: string | null
+          id?: string
+          is_premium?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["article_status"]
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          id: string
+          name_ar: string
+          name_en: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          name_ar: string
+          name_en: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          id?: string
+          name_ar?: string
+          name_en?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          payment_id: string | null
+          payment_provider: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_id?: string | null
+          payment_provider?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_id?: string | null
+          payment_provider?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          daily_articles_read: number
+          full_name: string
+          last_reset_date: string
+          monthly_articles_read: number
+          subscription_end_date: string | null
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          subscription_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_articles_read?: number
+          full_name: string
+          last_reset_date?: string
+          monthly_articles_read?: number
+          subscription_end_date?: string | null
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          subscription_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_articles_read?: number
+          full_name?: string
+          last_reset_date?: string
+          monthly_articles_read?: number
+          subscription_end_date?: string | null
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          subscription_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          category_id: string | null
+          cover_image: string | null
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          download_count: number
+          file_url: string | null
+          id: string
+          price: number
+          required_plan: Database["public"]["Enums"]["subscription_plan"]
+          title_ar: string
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          download_count?: number
+          file_url?: string | null
+          id?: string
+          price?: number
+          required_plan?: Database["public"]["Enums"]["subscription_plan"]
+          title_ar: string
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          download_count?: number
+          file_url?: string | null
+          id?: string
+          price?: number
+          required_plan?: Database["public"]["Enums"]["subscription_plan"]
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_articles: {
+        Row: {
+          article_id: string
+          id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_articles_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_reports: {
+        Row: {
+          downloaded_at: string
+          id: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          downloaded_at?: string
+          id?: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          downloaded_at?: string
+          id?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +309,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      article_status: "draft" | "published" | "archived"
+      content_type: "article" | "report" | "brief"
+      payment_status: "pending" | "completed" | "failed" | "refunded"
+      subscription_plan: "free" | "basic" | "pro" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +439,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      article_status: ["draft", "published", "archived"],
+      content_type: ["article", "report", "brief"],
+      payment_status: ["pending", "completed", "failed", "refunded"],
+      subscription_plan: ["free", "basic", "pro", "enterprise"],
+    },
   },
 } as const
