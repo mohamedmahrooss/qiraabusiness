@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe, User, LogIn } from "lucide-react";
 
@@ -44,12 +45,14 @@ const Header = () => {
               <Globe className="h-4 w-4 mr-2" />
               العربية
             </Button>
-            <Button variant="ghost" size="sm">
-              <LogIn className="h-4 w-4 mr-2" />
-              تسجيل الدخول
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/auth">
+                <LogIn className="h-4 w-4 mr-2" />
+                تسجيل الدخول
+              </Link>
             </Button>
-            <Button variant="hero" size="sm">
-              ابدأ مجاناً
+            <Button variant="hero" size="sm" asChild>
+              <Link to="/auth">ابدأ مجاناً</Link>
             </Button>
           </div>
 
@@ -82,12 +85,14 @@ const Header = () => {
                 من نحن
               </a>
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm" className="justify-start">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  تسجيل الدخول
+                <Button variant="ghost" size="sm" className="justify-start" asChild>
+                  <Link to="/auth">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    تسجيل الدخول
+                  </Link>
                 </Button>
-                <Button variant="hero" size="sm">
-                  ابدأ مجاناً
+                <Button variant="hero" size="sm" asChild>
+                  <Link to="/auth">ابدأ مجاناً</Link>
                 </Button>
               </div>
             </nav>
