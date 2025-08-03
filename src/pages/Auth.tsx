@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
-import { authService } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 // Validation schemas
@@ -74,7 +74,11 @@ export default function Auth() {
   const handleLogin = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      await authService.signIn(data.email, data.password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+      if (error) throw error;
       toast({
         title: t.loginSuccess,
         description: t.welcomeUser,
@@ -94,7 +98,17 @@ export default function Auth() {
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      await authService.signUp(data.email, data.password, data.fullName);
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            subscription_plan: 'free'
+          }
+        }
+      });
+      if (error) throw error;
       toast({
         title: t.accountCreated,
         description: t.welcomeUser,
@@ -114,7 +128,13 @@ export default function Auth() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await authService.signInWithGoogle();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      if (error) throw error;
     } catch (error: any) {
       toast({
         title: t.loginError,
