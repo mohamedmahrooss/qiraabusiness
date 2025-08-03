@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Chrome } from "lucide-react";
@@ -354,10 +354,17 @@ export default function Auth() {
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="acceptTerms"
-                    {...registerForm.register('acceptTerms')}
-                    className="mt-1"
+                  <Controller
+                    name="acceptTerms"
+                    control={registerForm.control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="acceptTerms"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="mt-1"
+                      />
+                    )}
                   />
                   <Label htmlFor="acceptTerms" className="text-sm leading-5">
                     {t.agreeToTerms}{' '}
