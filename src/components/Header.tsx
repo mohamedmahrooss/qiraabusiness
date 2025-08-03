@@ -1,10 +1,39 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Globe, User, LogIn } from "lucide-react";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Menu, X, User, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const navigate = useNavigate();
+  const { isRTL } = useLanguage();
+
+  useEffect(() => {
+    // Get current user
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,19 +70,33 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
-              <Globe className="h-4 w-4 mr-2" />
-              العربية
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/auth">
-                <LogIn className="h-4 w-4 mr-2" />
-                تسجيل الدخول
-              </Link>
-            </Button>
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/auth">ابدأ مجاناً</Link>
-            </Button>
+            <LanguageToggle />
+            {user ? (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    {isRTL ? 'لوحة التحكم' : 'Dashboard'}
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {isRTL ? 'تسجيل الخروج' : 'Sign Out'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/auth">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    {isRTL ? 'تسجيل الدخول' : 'Sign In'}
+                  </Link>
+                </Button>
+                <Button variant="hero" size="sm" asChild>
+                  <Link to="/auth">{isRTL ? 'ابدأ مجاناً' : 'Start Free'}</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -85,15 +128,32 @@ const Header = () => {
                 من نحن
               </a>
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm" className="justify-start" asChild>
-                  <Link to="/auth">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    تسجيل الدخول
-                  </Link>
-                </Button>
-                <Button variant="hero" size="sm" asChild>
-                  <Link to="/auth">ابدأ مجاناً</Link>
-                </Button>
+                {user ? (
+                  <>
+                    <Button variant="ghost" size="sm" className="justify-start" asChild>
+                      <Link to="/dashboard">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        {isRTL ? 'لوحة التحكم' : 'Dashboard'}
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {isRTL ? 'تسجيل الخروج' : 'Sign Out'}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="justify-start" asChild>
+                      <Link to="/auth">
+                        <LogIn className="h-4 w-4 mr-2" />
+                        {isRTL ? 'تسجيل الدخول' : 'Sign In'}
+                      </Link>
+                    </Button>
+                    <Button variant="hero" size="sm" asChild>
+                      <Link to="/auth">{isRTL ? 'ابدأ مجاناً' : 'Start Free'}</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
