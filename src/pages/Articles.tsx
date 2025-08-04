@@ -213,8 +213,7 @@ const Articles = () => {
   const totalPages = Math.ceil(totalArticles / ARTICLES_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
@@ -386,7 +385,6 @@ const Articles = () => {
           </>
         )}
       </div>
-    </div>
   );
 };
 
