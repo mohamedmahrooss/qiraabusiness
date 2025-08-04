@@ -52,19 +52,19 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#home" className="text-foreground hover:text-primary transition-colors">
-              الرئيسية
+              {isRTL ? 'الرئيسية' : 'Home'}
             </a>
-            <a href="#briefs" className="text-foreground hover:text-primary transition-colors">
-              التحليلات اليومية
-            </a>
+            <Link to="/articles" className="text-foreground hover:text-primary transition-colors">
+              {isRTL ? 'المقالات' : 'Articles'}
+            </Link>
             <a href="#reports" className="text-foreground hover:text-primary transition-colors">
-              التقارير الاستراتيجية
+              {isRTL ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
             </a>
             <a href="#pricing" className="text-foreground hover:text-primary transition-colors">
-              الباقات
+              {isRTL ? 'الباقات' : 'Pricing'}
             </a>
             <a href="#about" className="text-foreground hover:text-primary transition-colors">
-              من نحن
+              {isRTL ? 'من نحن' : 'About Us'}
             </a>
           </nav>
 
@@ -113,19 +113,19 @@ const Header = () => {
           <div className="md:hidden py-4 border-t border-border">
             <nav className="flex flex-col space-y-4">
               <a href="#home" className="text-foreground hover:text-primary transition-colors">
-                الرئيسية
+                {isRTL ? 'الرئيسية' : 'Home'}
               </a>
-              <a href="#briefs" className="text-foreground hover:text-primary transition-colors">
-                التحليلات اليومية
-              </a>
+              <Link to="/articles" className="text-foreground hover:text-primary transition-colors">
+                {isRTL ? 'المقالات' : 'Articles'}
+              </Link>
               <a href="#reports" className="text-foreground hover:text-primary transition-colors">
-                التقارير الاستراتيجية
+                {isRTL ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
               </a>
               <a href="#pricing" className="text-foreground hover:text-primary transition-colors">
-                الباقات
+                {isRTL ? 'الباقات' : 'Pricing'}
               </a>
               <a href="#about" className="text-foreground hover:text-primary transition-colors">
-                من نحن
+                {isRTL ? 'من نحن' : 'About Us'}
               </a>
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
                 {user ? (
