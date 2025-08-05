@@ -50,7 +50,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>
             <Link to="/" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'الرئيسية' : 'Home'}
             </Link>
@@ -69,18 +69,18 @@ const Header = () => {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
             <LanguageToggle />
             {user ? (
               <>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/dashboard">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    <LayoutDashboard className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     {isRTL ? 'لوحة التحكم' : 'Dashboard'}
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   {isRTL ? 'تسجيل الخروج' : 'Sign Out'}
                 </Button>
               </>
@@ -88,7 +88,7 @@ const Header = () => {
               <>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/auth">
-                    <LogIn className="h-4 w-4 mr-2" />
+                    <LogIn className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     {isRTL ? 'تسجيل الدخول' : 'Sign In'}
                   </Link>
                 </Button>

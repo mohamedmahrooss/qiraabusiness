@@ -149,7 +149,7 @@ const Footer = () => {
             <div className="text-sm text-secondary-foreground/60">
               © 2024 QIRAA. جميع الحقوق محفوظة.
             </div>
-            <div className="flex space-x-6">
+            <div className="flex space-x-6 rtl:space-x-reverse">
               <a href="#privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 سياسة الخصوصية
               </a>
