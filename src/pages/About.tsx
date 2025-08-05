@@ -47,7 +47,7 @@ const About = () => {
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
       <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-6">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-6 leading-tight whitespace-normal break-words px-2">
           {language === 'ar' ? 'من نحن' : 'About Us'}
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
