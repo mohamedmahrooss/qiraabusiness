@@ -1,19 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Facebook, 
-  Twitter, 
-  Linkedin, 
-  Instagram,
-  Youtube
-} from "lucide-react";
-
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
 const Footer = () => {
-  return (
-    <footer className="bg-secondary text-secondary-foreground">
+  return <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -114,10 +103,7 @@ const Footer = () => {
               احصل على آخر التحليلات والتحديثات مباشرة في بريدك الإلكتروني
             </p>
             <div className="flex space-x-2">
-              <Input 
-                placeholder="بريدك الإلكتروني"
-                className="bg-background/10 border-secondary-foreground/20"
-              />
+              <Input placeholder="بريدك الإلكتروني" className="bg-background/10 border-secondary-foreground/20" />
               <Button variant="default" size="sm">
                 اشتراك
               </Button>
@@ -146,9 +132,7 @@ const Footer = () => {
       <div className="border-t border-secondary-foreground/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-secondary-foreground/60">
-              © 2024 QIRAA. جميع الحقوق محفوظة.
-            </div>
+            <div className="text-sm text-secondary-foreground/60">© 2025 QIRAA. جميع الحقوق محفوظة.</div>
             <div className="flex space-x-6 rtl:space-x-reverse">
               <a href="#privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 سياسة الخصوصية
@@ -163,8 +147,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
