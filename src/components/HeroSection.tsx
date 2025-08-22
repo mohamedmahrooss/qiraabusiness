@@ -15,9 +15,7 @@ const HeroSection = () => {
                 <br />
                 للذكاء الاصطناعي
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                بوابتك الذكية لتحليل الأسواق والاستثمارات في منطقة الشرق الأوسط وشمال أفريقيا
-              </p>
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">بوابتك الذكية لتحليل الأسواق و الاستثمارات في منطقة الشرق الأوسط و شمال أفريقيا</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end">
