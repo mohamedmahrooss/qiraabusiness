@@ -50,9 +50,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  الباقات والأسعار
-                </a>
+                <a href="#pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">الباقات و الأسعار</a>
               </li>
               <li>
                 <a href="#about" className="text-secondary-foreground/80 hover:text-primary transition-colors">
@@ -96,10 +94,8 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">اشترك في النشرة</h3>
-            <p className="text-secondary-foreground/80 text-sm">
-              احصل على آخر التحليلات والتحديثات مباشرة في بريدك الإلكتروني
-            </p>
+            <h3 className="text-lg font-semibold">اشترك في النشرة البريدية</h3>
+            <p className="text-secondary-foreground/80 text-sm">احصل على آخر التحليلات و التحديثات مباشرة في بريدك الإلكتروني</p>
             <div className="flex space-x-2">
               <Input placeholder="بريدك الإلكتروني" className="bg-background/10 border-secondary-foreground/20" />
               <Button variant="default" size="sm">
@@ -111,7 +107,7 @@ const Footer = () => {
             <div className="space-y-3 pt-4">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm">info@qiraabusiness.com</span>
+                <span className="text-sm">contact@qiraabusiness.online</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
