@@ -31,7 +31,7 @@ const HeroSection = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
               <div className="text-center lg:text-right">
-                <div className="text-3xl font-bold text-primary">500+</div>
+                <div className="text-3xl font-bold text-primary">1200+</div>
                 <div className="text-sm text-muted-foreground">تحليل يومي</div>
               </div>
               <div className="text-center lg:text-right">
@@ -39,8 +39,8 @@ const HeroSection = () => {
                 <div className="text-sm text-muted-foreground">قطاع استثماري</div>
               </div>
               <div className="text-center lg:text-right">
-                <div className="text-3xl font-bold text-premium">1000+</div>
-                <div className="text-sm text-muted-foreground">عميل راضي</div>
+                <div className="text-3xl font-bold text-premium">500+</div>
+                <div className="text-sm text-muted-foreground">شركة ناشئة</div>
               </div>
               <div className="text-center lg:text-right">
                 <div className="text-3xl font-bold text-secondary">24/7</div>
