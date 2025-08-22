@@ -10,7 +10,7 @@ const Footer = () => {
             <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               QIRAA
             </div>
-            <p className="text-secondary-foreground/80 leading-relaxed">منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الاوسط و شمال افريقيا . من خلال رؤى و تحليلات و تقارير دقية , ستساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات أكثر استنارة و ثقة .</p>
+            <p className="text-secondary-foreground/80 leading-relaxed">منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الاوسط و شمال افريقيا . من خلال رؤى و تحليلات و تقارير دقية , تساعد صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات أكثر استنارة و ثقة .</p>
             <div className="flex space-x-4">
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <Facebook className="h-4 w-4" />
