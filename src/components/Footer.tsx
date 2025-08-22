@@ -95,7 +95,7 @@ const Footer = () => {
           {/* Newsletter */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">اشترك في النشرة البريدية</h3>
-            <p className="text-secondary-foreground/80 text-sm">احصل على آخر التحليلات و التحديثات مباشرة في بريدك الإلكتروني</p>
+            <p className="text-secondary-foreground/80 text-sm">احصل على أحدث الرؤى و التحليلات مباشرة في بريدك الإلكتروني</p>
             <div className="flex space-x-2">
               <Input placeholder="بريدك الإلكتروني" className="bg-background/10 border-secondary-foreground/20" />
               <Button variant="default" size="sm">
