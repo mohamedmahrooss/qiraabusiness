@@ -62,7 +62,7 @@ const Footer = () => {
 
           {/* Support */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">الدعم والمساعدة</h3>
+            <h3 className="text-lg font-semibold">الدعم و المساعدة</h3>
             <ul className="space-y-3">
               <li>
                 <a href="#help" className="text-secondary-foreground/80 hover:text-primary transition-colors">
