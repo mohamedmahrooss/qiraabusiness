@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, Users, Brain, Shield } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
-
 const HeroSection = () => {
-  return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-accent/20 py-20 lg:py-32">
+  return <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-accent/20 py-20 lg:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
@@ -56,11 +54,7 @@ const HeroSection = () => {
           {/* Hero Image */}
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <img 
-                src={heroImage} 
-                alt="QIRAA AI Platform"
-                className="w-full h-auto"
-              />
+              <img src={heroImage} alt="QIRAA AI Platform" className="w-full h-auto" />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
             </div>
             
@@ -90,8 +84,8 @@ const HeroSection = () => {
               <Brain className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">ذكاء اصطناعي متقدم</h3>
-              <p className="text-sm text-muted-foreground">تحليلات دقيقة بتقنية الذكاء الاصطناعي</p>
+              <h3 className="font-semibold">تقارير استراتيجية</h3>
+              <p className="text-sm text-muted-foreground">تحليلات استراتيجية و قطاعية دقيقة</p>
             </div>
           </div>
 
@@ -100,7 +94,7 @@ const HeroSection = () => {
               <TrendingUp className="h-6 w-6 text-success" />
             </div>
             <div>
-              <h3 className="font-semibold">تحليلات يومية</h3>
+              <h3 className="font-semibold">تحليلات لحظية</h3>
               <p className="text-sm text-muted-foreground">موجزات ذكية محدثة باستمرار</p>
             </div>
           </div>
@@ -116,8 +110,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
