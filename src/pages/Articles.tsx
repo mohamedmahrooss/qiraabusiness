@@ -184,6 +184,8 @@ const Articles = () => {
   };
 
   const handleArticleClick = async (articleId: string) => {
+    console.log('Article clicked, ID:', articleId);
+    console.log('Navigating to:', `/articles/${articleId}`);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       

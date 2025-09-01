@@ -38,8 +38,10 @@ const ArticleDetails = () => {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    console.log('ArticleDetails mounted with id:', id);
     const fetchArticle = async () => {
       if (!id) {
+        console.log('No ID found in params');
         setNotFound(true);
         setLoading(false);
         return;
