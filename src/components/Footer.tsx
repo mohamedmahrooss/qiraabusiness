@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Linkedin, Instagram, Music, X } from "lucide-react";
 const Footer = () => {
   return <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -12,20 +12,35 @@ const Footer = () => {
             </div>
             <p className="text-secondary-foreground/80 leading-relaxed">منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الاوسط و شمال افريقيا . من خلال رؤى و تحليلات و تقارير دقية , تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات أكثر استنارة و ثقة .</p>
             <div className="flex space-x-4">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Facebook className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://www.facebook.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                  <Facebook className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Twitter className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://x.com/qiraabusiness" target="_blank" rel="noopener noreferrer">
+                  <X className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Linkedin className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://www.linkedin.com/company/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Instagram className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://www.instagram.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Youtube className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://podcasts.apple.com/eg/podcast/qiraa/id1813550545" target="_blank" rel="noopener noreferrer">
+                  <Music className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                <a href="https://open.spotify.com/show/7fioTcz02yXnrHv2rcBldu" target="_blank" rel="noopener noreferrer">
+                  <Music className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </div>
