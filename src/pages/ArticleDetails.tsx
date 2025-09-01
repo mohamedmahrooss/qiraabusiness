@@ -109,6 +109,19 @@ const ArticleDetails = () => {
     }).format(date);
   };
 
+  const formatContent = (content: string) => {
+    if (!content) return [];
+    
+    // Split content by new lines and filter out empty strings
+    const paragraphs = content.split('\n').filter(paragraph => paragraph.trim() !== '');
+    
+    return paragraphs.map((paragraph, index) => (
+      <p key={index} className="mb-4 leading-relaxed">
+        {paragraph.trim()}
+      </p>
+    ));
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -205,7 +218,6 @@ const ArticleDetails = () => {
       {/* Article Content */}
       <article className="prose prose-lg max-w-none dark:prose-invert">
         <div 
-          dangerouslySetInnerHTML={{ __html: content }}
           className={`
             ${isRTL ? 'text-right' : 'text-left'}
             leading-relaxed text-foreground
@@ -222,7 +234,9 @@ const ArticleDetails = () => {
             prose-a:no-underline
             hover:prose-a:underline
           `}
-        />
+        >
+          {formatContent(content)}
+        </div>
       </article>
 
       {/* Navigation Footer */}
