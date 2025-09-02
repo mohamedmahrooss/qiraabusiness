@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, HelpCircle, Lock, Download, BarChart3, PieChart as PieChartIcon } from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
+import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 
 const QiraaSignals = () => {
   const { isRTL } = useLanguage();
+  const t = useTranslation();
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedMainSector, setSelectedMainSector] = useState("");
   const [selectedSubSector, setSelectedSubSector] = useState("");
@@ -20,19 +21,27 @@ const QiraaSignals = () => {
   const [secondMonth, setSecondMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("2024");
 
-  const countries = ["مصر", "السعودية", "الإمارات", "المغرب", "الولايات المتحدة", "أستراليا", "كندا", "الهند", "لبنان"];
-  const mainSectors = ["النقل", "SaaS", "التكنولوجيا المالية", "الأزياء", "الأثاث", "الرياضة", "الجمال والعناية الشخصية", "الطعام والمشروبات", "الإلكترونيات", "التبريد", "الرعاية الصحية", "الزراعة", "الألعاب"];
+  const countries = isRTL 
+    ? ["مصر", "السعودية", "الإمارات", "المغرب", "الولايات المتحدة", "أستراليا", "كندا", "الهند", "لبنان"]
+    : ["Egypt", "Saudi Arabia", "UAE", "Morocco", "USA", "Australia", "Canada", "India", "Lebanon"];
   
-  const subSectorMap: { [key: string]: string[] } = {
+  const mainSectors = isRTL 
+    ? ["النقل", "SaaS", "التكنولوجيا المالية", "الأزياء", "الأثاث", "الرياضة", "الجمال والعناية الشخصية", "الطعام والمشروبات", "الإلكترونيات", "التبريد", "الرعاية الصحية", "الزراعة", "الألعاب"]
+    : ["Transportation", "SaaS", "Fintech", "Fashion", "Furniture", "Sports", "Beauty & Personal Care", "Food & Beverages", "Electronics", "Cooling", "Health Care", "Agriculture", "Toys"];
+  
+  const subSectorMap: { [key: string]: string[] } = isRTL ? {
     "SaaS": ["الملابس", "الإلكترونيات", "طعام الأطفال", "الوجبات الخفيفة", "المشروبات", "الألعاب", "الأجهزة المنزلية", "الأثاث", "إكسسوارات السيارات", "النظارات", "المجوهرات", "إكسسوارات الأزياء", "الحلويات والمخبوزات"],
     "التكنولوجيا المالية": ["المدفوعات الرقمية", "الاستثمار", "التأمين", "الائتمان"],
     "الأزياء": ["الملابس الرجالية", "الملابس النسائية", "الأحذية", "الحقائب", "الإكسسوارات"],
+  } : {
+    "SaaS": ["Apparel", "Electronics", "Baby Food", "Snacks", "Beverages", "Toys", "Home Appliances", "Furniture", "Car Accessories", "Eye Wear", "Jewelry", "Fashion Accessories", "Desserts & Bakery"],
+    "Fintech": ["Digital Payments", "Investment", "Insurance", "Credit"],
+    "Fashion": ["Men's Clothing", "Women's Clothing", "Shoes", "Bags", "Accessories"],
   };
 
-  const months = [
-    "يناير 2025", "فبراير 2025", "مارس 2025", "أبريل 2025", "مايو 2025", "يونيو 2025",
-    "يوليو 2025", "أغسطس 2025", "سبتمبر 2025", "أكتوبر 2025", "نوفمبر 2025", "ديسمبر 2025"
-  ];
+  const months = isRTL 
+    ? ["يناير 2025", "فبراير 2025", "مارس 2025", "أبريل 2025", "مايو 2025", "يونيو 2025", "يوليو 2025", "أغسطس 2025", "سبتمبر 2025", "أكتوبر 2025", "نوفمبر 2025", "ديسمبر 2025"]
+    : ["January 2025", "February 2025", "March 2025", "April 2025", "May 2025", "June 2025", "July 2025", "August 2025", "September 2025", "October 2025", "November 2025", "December 2025"];
 
   const years = ["2022", "2023", "2024", "2025"];
 
@@ -68,12 +77,12 @@ const QiraaSignals = () => {
   ];
 
   const marketShareData = [
-    { name: "الشركة المختارة", value: 35, color: "#8b5cf6" },
-    { name: "المنافسون", value: 65, color: "#e5e7eb" }
+    { name: t.selectedCompany, value: 35, color: "#8b5cf6" },
+    { name: t.competitors, value: 65, color: "#e5e7eb" }
   ];
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-EG', {
+    return new Intl.NumberFormat(isRTL ? 'ar-EG' : 'en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0
@@ -112,19 +121,19 @@ const QiraaSignals = () => {
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">الشهر الأول:</span>
+            <span className="text-xs text-muted-foreground">{t.firstMonth}</span>
             <span className="text-lg font-bold">
               {currency ? formatCurrency(previousValue) : previousValue.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">الشهر الثاني:</span>
+            <span className="text-xs text-muted-foreground">{t.secondMonth}</span>
             <span className="text-lg font-bold">
               {currency ? formatCurrency(value) : value.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">التغيير:</span>
+            <span className="text-xs text-muted-foreground">{t.change}</span>
             <Badge variant={change > 0 ? "default" : "destructive"}>
               {change > 0 ? "+" : ""}{change}%
             </Badge>
@@ -140,25 +149,25 @@ const QiraaSignals = () => {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            مؤشرات قراءة (QIRAA Signals)
+            {t.qiraaSignalsTitle}
           </h1>
           <h2 className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            بيانات مبيعات حصرية لاتخاذ قرارات استثمارية وتشغيلية أذكى في منطقة الشرق الأوسط وشمال أفريقيا
+            {t.qiraaSignalsSubtitle}
           </h2>
         </div>
 
         {/* Filters Panel */}
         <Card>
           <CardHeader>
-            <CardTitle>لوحة التحكم والفلاتر</CardTitle>
+            <CardTitle>{t.filtersControlPanel}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">الدولة</label>
+                <label className="text-sm font-medium">{t.country}</label>
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر الدولة" />
+                    <SelectValue placeholder={t.selectCountry} />
                   </SelectTrigger>
                   <SelectContent>
                     {countries.map((country) => (
@@ -169,10 +178,10 @@ const QiraaSignals = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">القطاع الرئيسي</label>
+                <label className="text-sm font-medium">{t.mainSector}</label>
                 <Select value={selectedMainSector} onValueChange={setSelectedMainSector}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر القطاع" />
+                    <SelectValue placeholder={t.selectSector} />
                   </SelectTrigger>
                   <SelectContent>
                     {mainSectors.map((sector) => (
@@ -183,10 +192,10 @@ const QiraaSignals = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">القطاع الفرعي</label>
+                <label className="text-sm font-medium">{t.subSector}</label>
                 <Select value={selectedSubSector} onValueChange={setSelectedSubSector}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر القطاع الفرعي" />
+                    <SelectValue placeholder={t.selectSubSector} />
                   </SelectTrigger>
                   <SelectContent>
                     {selectedMainSector && subSectorMap[selectedMainSector]?.map((subSector) => (
@@ -197,15 +206,15 @@ const QiraaSignals = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">اسم الشركة</label>
+                <label className="text-sm font-medium">{t.companyName}</label>
                 <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر الشركة" />
+                    <SelectValue placeholder={t.selectCompany} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sector-average">متوسط أداء القطاع</SelectItem>
-                    <SelectItem value="company1">شركة المثال الأول</SelectItem>
-                    <SelectItem value="company2">شركة المثال الثاني</SelectItem>
+                    <SelectItem value="sector-average">{t.sectorAverage}</SelectItem>
+                    <SelectItem value="company1">{isRTL ? 'شركة المثال الأول' : 'Example Company 1'}</SelectItem>
+                    <SelectItem value="company2">{isRTL ? 'شركة المثال الثاني' : 'Example Company 2'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -216,13 +225,13 @@ const QiraaSignals = () => {
         {/* Data View Toggle */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-center space-x-4 space-x-reverse">
+            <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <span className={`text-sm font-medium ${!isMonthlyView ? 'text-muted-foreground' : ''}`}>
-                نظرة شهرية
+                {t.monthlyView}
               </span>
               <Switch checked={!isMonthlyView} onCheckedChange={(checked) => setIsMonthlyView(!checked)} />
               <span className={`text-sm font-medium ${isMonthlyView ? 'text-muted-foreground' : ''}`}>
-                نظرة سنوية
+                {t.annualView}
               </span>
             </div>
           </CardContent>
@@ -234,15 +243,15 @@ const QiraaSignals = () => {
             {/* Date Selectors */}
             <Card>
               <CardHeader>
-                <CardTitle>اختيار الأشهر للمقارنة</CardTitle>
+                <CardTitle>{t.selectMonthsComparison}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">اختر الشهر الأول:</label>
+                    <label className="text-sm font-medium">{t.selectFirstMonth}</label>
                     <Select value={firstMonth} onValueChange={setFirstMonth}>
                       <SelectTrigger>
-                        <SelectValue placeholder="اختر الشهر الأول" />
+                        <SelectValue placeholder={t.selectFirstMonth} />
                       </SelectTrigger>
                       <SelectContent>
                         {months.map((month) => (
@@ -252,10 +261,10 @@ const QiraaSignals = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">اختر الشهر الثاني للمقارنة:</label>
+                    <label className="text-sm font-medium">{t.selectSecondMonth}</label>
                     <Select value={secondMonth} onValueChange={setSecondMonth}>
                       <SelectTrigger>
-                        <SelectValue placeholder="اختر الشهر الثاني" />
+                        <SelectValue placeholder={t.selectSecondMonth} />
                       </SelectTrigger>
                       <SelectContent>
                         {months.map((month) => (
@@ -271,26 +280,26 @@ const QiraaSignals = () => {
             {/* KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <KPICard
-                title="إجمالي الإيرادات"
+                title={t.totalRevenue}
                 value={monthlyKPIs.totalRevenue.month2}
                 previousValue={monthlyKPIs.totalRevenue.month1}
                 change={monthlyKPIs.totalRevenue.change}
-                tooltip="إجمالي الإيرادات المحققة خلال الشهر بالعملة المحلية"
+                tooltip={t.totalRevenueTooltip}
                 currency={true}
               />
               <KPICard
-                title="إجمالي المبيعات"
+                title={t.totalSales}
                 value={monthlyKPIs.totalSales.month2}
                 previousValue={monthlyKPIs.totalSales.month1}
                 change={monthlyKPIs.totalSales.change}
-                tooltip="عدد المبيعات الإجمالي المحقق خلال الشهر"
+                tooltip={t.totalSalesTooltip}
               />
               <KPICard
-                title="معدل النمو الشهري"
+                title={t.monthlyGrowth}
                 value={monthlyKPIs.monthlyGrowth.month2}
                 previousValue={monthlyKPIs.monthlyGrowth.month1}
                 change={monthlyKPIs.monthlyGrowth.change}
-                tooltip="النسبة المئوية للتغيير في الإيرادات مقارنة بالشهر السابق"
+                tooltip={t.monthlyGrowthTooltip}
               />
             </div>
 
@@ -299,7 +308,7 @@ const QiraaSignals = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  الإيرادات اليومية (دولار أمريكي)
+                  {t.dailyRevenue}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -309,8 +318,8 @@ const QiraaSignals = () => {
                     <XAxis dataKey="day" />
                     <YAxis />
                     <RechartsTooltip />
-                    <Line type="monotone" dataKey="month1" stroke="#8b5cf6" strokeWidth={2} name="الشهر الأول" />
-                    <Line type="monotone" dataKey="month2" stroke="#10b981" strokeWidth={2} name="الشهر الثاني" />
+                    <Line type="monotone" dataKey="month1" stroke="#8b5cf6" strokeWidth={2} name={isRTL ? "الشهر الأول" : "First Month"} />
+                    <Line type="monotone" dataKey="month2" stroke="#10b981" strokeWidth={2} name={isRTL ? "الشهر الثاني" : "Second Month"} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -324,13 +333,13 @@ const QiraaSignals = () => {
             {/* Year Selector */}
             <Card>
               <CardHeader>
-                <CardTitle>اختيار السنة</CardTitle>
+                <CardTitle>{t.selectYear}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="max-w-xs">
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر السنة" />
+                      <SelectValue placeholder={t.selectYearLabel} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((year) => (
@@ -346,7 +355,7 @@ const QiraaSignals = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">إجمالي الإيرادات السنوية</CardTitle>
+                  <CardTitle className="text-sm">{t.totalAnnualRevenue}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(annualSummary.totalRevenue)}</div>
@@ -354,7 +363,7 @@ const QiraaSignals = () => {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">إجمالي المبيعات السنوية</CardTitle>
+                  <CardTitle className="text-sm">{t.totalAnnualSales}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{annualSummary.totalSales.toLocaleString()}</div>
@@ -362,7 +371,7 @@ const QiraaSignals = () => {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">أفضل ربع أداءً</CardTitle>
+                  <CardTitle className="text-sm">{t.bestQuarter}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{annualSummary.bestQuarter}</div>
@@ -370,7 +379,7 @@ const QiraaSignals = () => {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">معدل النمو السنوي</CardTitle>
+                  <CardTitle className="text-sm">{t.yearOverYearGrowth}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">+{annualSummary.yearOverYearGrowth}%</div>
@@ -383,7 +392,7 @@ const QiraaSignals = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  الاتجاه السنوي للإيرادات
+                  {t.annualTrend}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -404,26 +413,26 @@ const QiraaSignals = () => {
         {/* Advanced Features Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">أدوات تحليل متقدمة</CardTitle>
+            <CardTitle className="text-xl">{t.advancedAnalysis}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Company Benchmarking */}
             <div className="border rounded-lg p-6 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
-                مقارنة الشركات
+                {t.companyBenchmarking}
               </h3>
               <p className="text-muted-foreground">
-                اختر ما يصل إلى 3 شركات من نفس القطاع لمقارنة أدائها الشهري أو السنوي جنباً إلى جنب
+                {t.companyBenchmarkingDesc}
               </p>
               <Select>
                 <SelectTrigger className="max-w-md">
-                  <SelectValue placeholder="اختر الشركات للمقارنة" />
+                  <SelectValue placeholder={t.selectCompaniesCompare} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="comp1">شركة المثال الأول</SelectItem>
-                  <SelectItem value="comp2">شركة المثال الثاني</SelectItem>
-                  <SelectItem value="comp3">شركة المثال الثالث</SelectItem>
+                  <SelectItem value="comp1">{isRTL ? 'شركة المثال الأول' : 'Example Company 1'}</SelectItem>
+                  <SelectItem value="comp2">{isRTL ? 'شركة المثال الثاني' : 'Example Company 2'}</SelectItem>
+                  <SelectItem value="comp3">{isRTL ? 'شركة المثال الثالث' : 'Example Company 3'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -432,10 +441,10 @@ const QiraaSignals = () => {
             <div className="border rounded-lg p-6 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <PieChartIcon className="h-5 w-5" />
-                تحليل الحصة السوقية
+                {t.marketShareAnalysis}
               </h3>
               <p className="text-muted-foreground">
-                اكتشف الحصة السوقية المقدرة للشركة داخل قطاعها الفرعي
+                {t.marketShareDesc}
               </p>
               <div className="flex justify-center">
                 <ResponsiveContainer width={300} height={200}>
@@ -462,10 +471,10 @@ const QiraaSignals = () => {
             <div className="border rounded-lg p-6 space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Download className="h-5 w-5" />
-                تصدير البيانات
+                {t.exportData}
               </h3>
               <p className="text-muted-foreground">
-                قم بتنزيل البيانات المحددة كملف CSV لتحليلاتك الخاصة
+                {t.exportDataDesc}
               </p>
               <TooltipProvider>
                 <Tooltip>
@@ -473,11 +482,11 @@ const QiraaSignals = () => {
                     <Button variant="outline" disabled className="flex items-center gap-2">
                       <Lock className="h-4 w-4" />
                       <Download className="h-4 w-4" />
-                      تصدير إلى CSV
+                      {t.exportToCsv}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>ميزة متاحة في الخطة الاحترافية</p>
+                    <p>{t.proFeature}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
