@@ -60,6 +60,9 @@ const Header = () => {
             <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'التقارير' : 'Reports'}
             </Link>
+            <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
+              {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
+            </Link>
             <Link to="/#pricing" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'الباقات' : 'Pricing'}
             </Link>
@@ -120,6 +123,9 @@ const Header = () => {
               </Link>
               <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
                 {isRTL ? 'التقارير' : 'Reports'}
+              </Link>
+              <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
+                {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
               </Link>
               <Link to="/#pricing" className="text-foreground hover:text-primary transition-colors">
                 {isRTL ? 'الباقات' : 'Pricing'}

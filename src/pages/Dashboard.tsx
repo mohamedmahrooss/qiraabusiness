@@ -16,7 +16,8 @@ import {
   BarChart3, 
   TrendingUp,
   AlertCircle,
-  User as UserIcon
+  User as UserIcon,
+  LineChart
 } from "lucide-react";
 
 interface UserProfile {
@@ -336,34 +337,25 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Analytics Preview Card */}
+        {/* QIRAA Signals Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-success" />
-              {isRTL ? 'نشاطك الشخصي' : 'Your Activity'}
+              <LineChart className="h-5 w-5 text-primary" />
+              {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
             </CardTitle>
             <CardDescription>
-              {isRTL ? 'تحليل نمط قراءتك' : 'Analysis of your reading pattern'}
+              {isRTL ? 'بيانات مبيعات حصرية لاتخاذ قرارات أذكى' : 'Exclusive sales data for smarter decisions'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {isRTL ? 'المقالات المقروءة' : 'Articles Read'}
-              </span>
-              <span className="font-medium">{profile.monthly_articles_read}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {isRTL ? 'متوسط القراءة اليومي' : 'Daily Average'}
-              </span>
-              <span className="font-medium">
-                {Math.round(profile.monthly_articles_read / 30 * 10) / 10}
-              </span>
-            </div>
-            <Button variant="outline" size="sm" className="w-full mt-4">
-              {isRTL ? 'عرض التفاصيل' : 'View Details'}
+          <CardContent>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => navigate('/qiraa-signals')}
+            >
+              <LineChart className="h-4 w-4 mr-2" />
+              {isRTL ? 'استكشاف المؤشرات' : 'Explore Signals'}
             </Button>
           </CardContent>
         </Card>
@@ -382,6 +374,10 @@ const Dashboard = () => {
           <Button variant="outline" onClick={() => navigate('/reports')}>
             <FileText className="h-4 w-4 mr-2" />
             {isRTL ? 'تحميل تقرير' : 'Download Report'}
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/qiraa-signals')}>
+            <LineChart className="h-4 w-4 mr-2" />
+            {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
           </Button>
           <Button variant="outline">
             <Calendar className="h-4 w-4 mr-2" />

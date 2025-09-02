@@ -50,25 +50,30 @@ const Footer = () => {
             <h3 className="text-lg font-semibold">روابط سريعة</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#home" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <a href="/" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   الرئيسية
                 </a>
               </li>
               <li>
-                <a href="#briefs" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  التحليلات اليومية
+                <a href="/articles" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  المقالات
                 </a>
               </li>
               <li>
-                <a href="#reports" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <a href="/reports" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   التقارير الاستراتيجية
                 </a>
               </li>
               <li>
-                <a href="#pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">الباقات و الأسعار</a>
+                <a href="/qiraa-signals" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  مؤشرات قراءة
+                </a>
               </li>
               <li>
-                <a href="#about" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <a href="/#pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">الباقات و الأسعار</a>
+              </li>
+              <li>
+                <a href="/about" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   من نحن
                 </a>
               </li>
