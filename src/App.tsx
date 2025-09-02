@@ -11,6 +11,7 @@ import Articles from "./pages/Articles";
 import ArticleDetails from "./pages/ArticleDetails";
 import Reports from "./pages/Reports";
 import About from "./pages/About";
+import QiraaSignals from "./pages/QiraaSignals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
           <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+          <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
