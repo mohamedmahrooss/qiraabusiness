@@ -65,10 +65,10 @@ const Pricing = () => {
         isRTL ? "تحليلات قطاعية متخصصة" : "Specialized sector analysis",
         isRTL ? "دعم مباشر 24/7" : "24/7 direct support",
         isRTL ? "تنبيهات فورية" : "Instant alerts",
-        isRTL ? "🚀 الوصول إلى QIRAA Signals" : "🚀 QIRAA Signals Access",
-        isRTL ? "📊 عرض شهري وسنوي للبيانات" : "📊 Monthly & Annual data views",
-        isRTL ? "📈 رسوم بيانية تفاعلية" : "📈 Interactive charts",
-        isRTL ? "📄 تصدير البيانات CSV" : "📄 CSV data export"
+        isRTL ? "الوصول إلى QIRAA Signals" : "QIRAA Signals Access",
+        isRTL ? "عرض شهري وسنوي للبيانات" : "Monthly & Annual data views",
+        isRTL ? "رسوم بيانية تفاعلية" : "Interactive charts",
+        isRTL ? "تصدير البيانات CSV" : "CSV data export"
       ],
       limitations: [],
       buttonText: t.subscribeToPro,
@@ -83,16 +83,16 @@ const Pricing = () => {
       icon: Building2,
       features: [
         isRTL ? "جميع مزايا الاحترافية" : "All Pro features",
-        isRTL ? "🧠 AI Insights & Forecasting" : "🧠 AI Insights & Forecasting",
-        isRTL ? "🔄 مقارنة حتى 5 شركات" : "🔄 Compare up to 5 companies",
-        isRTL ? "📊 تحليل الحصة السوقية" : "📊 Market Share Analysis",
-        isRTL ? "🌍 مؤشرات متعددة الدول" : "🌍 Multi-country insights",
-        isRTL ? "⚡ تحديث البيانات الأولوي" : "⚡ Priority data refresh",
-        isRTL ? "🔗 واجهة API متقدمة" : "🔗 Advanced API access",
-        isRTL ? "🎯 تقارير مخصصة" : "🎯 Custom reports",
-        isRTL ? "👨‍💼 مدير حساب مخصص" : "👨‍💼 Dedicated account manager",
-        isRTL ? "🎓 تدريب الفريق" : "🎓 Team training",
-        isRTL ? "🔗 تكامل مع أنظمة CRM" : "🔗 CRM integration"
+        isRTL ? "AI Insights & Forecasting" : "AI Insights & Forecasting",
+        isRTL ? "مقارنة حتى 5 شركات" : "Compare up to 5 companies",
+        isRTL ? "تحليل الحصة السوقية" : "Market Share Analysis",
+        isRTL ? "مؤشرات متعددة الدول" : "Multi-country insights",
+        isRTL ? "تحديث البيانات الأولوي" : "Priority data refresh",
+        isRTL ? "واجهة API متقدمة" : "Advanced API access",
+        isRTL ? "تقارير مخصصة" : "Custom reports",
+        isRTL ? "مدير حساب مخصص" : "Dedicated account manager",
+        isRTL ? "تدريب الفريق" : "Team training",
+        isRTL ? "تكامل مع أنظمة CRM" : "CRM integration"
       ],
       limitations: [],
       buttonText: t.contactSales,
@@ -130,7 +130,7 @@ const Pricing = () => {
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isAnnual ? 'translate-x-6' : 'translate-x-1'
+                    isAnnual ? (isRTL ? 'translate-x-1' : 'translate-x-6') : (isRTL ? 'translate-x-6' : 'translate-x-1')
                   }`}
                 />
               </button>

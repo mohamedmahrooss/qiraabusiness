@@ -229,7 +229,7 @@ const QiraaSignals = () => {
               <span className={`text-sm font-medium ${!isMonthlyView ? 'text-muted-foreground' : ''}`}>
                 {t.monthlyView}
               </span>
-              <Switch checked={!isMonthlyView} onCheckedChange={(checked) => setIsMonthlyView(!checked)} />
+              <Switch checked={!isMonthlyView} onCheckedChange={(checked) => setIsMonthlyView(!checked)} className={isRTL ? '[&>span]:data-[state=checked]:translate-x-0 [&>span]:data-[state=unchecked]:translate-x-5' : ''} />
               <span className={`text-sm font-medium ${isMonthlyView ? 'text-muted-foreground' : ''}`}>
                 {t.annualView}
               </span>
