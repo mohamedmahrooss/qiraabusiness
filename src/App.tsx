@@ -12,6 +12,7 @@ import ArticleDetails from "./pages/ArticleDetails";
 import Reports from "./pages/Reports";
 import About from "./pages/About";
 import QiraaSignals from "./pages/QiraaSignals";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => {
           <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />
           <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
+          <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

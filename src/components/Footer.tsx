@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone, MapPin, Facebook, Linkedin, Instagram, Music, X } from "lucide-react";
+import { useLanguage, useTranslation } from "@/hooks/useLanguage";
+import { Link } from "react-router-dom";
 const Footer = () => {
+  const { isRTL } = useLanguage();
+  const t = useTranslation();
   return <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -10,7 +14,12 @@ const Footer = () => {
             <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               QIRAA
             </div>
-            <p className="text-secondary-foreground/80 leading-relaxed">منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الاوسط و شمال افريقيا . من خلال رؤى و تحليلات و تقارير دقية , تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات أكثر استنارة و ثقة .</p>
+            <p className="text-secondary-foreground/80 leading-relaxed">
+              {isRTL ? 
+                "منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط وشمال أفريقيا. من خلال رؤى وتحليلات وتقارير دقيقة، تساعد قراءة صانعي القرار والمستثمرين على رؤية الصورة الكاملة واتخاذ قرارات أكثر استنارة وثقة." :
+                "A market intelligence platform for understanding market dynamics in the Middle East and North Africa region. Through accurate insights, analytics, and reports, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
+              }
+            </p>
             <div className="flex space-x-4">
               <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                 <a href="https://www.facebook.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
@@ -47,66 +56,68 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">روابط سريعة</h3>
+            <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  الرئيسية
-                </a>
+                <Link to="/" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.home}
+                </Link>
               </li>
               <li>
-                <a href="/articles" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  المقالات
-                </a>
+                <Link to="/articles" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.articles}
+                </Link>
               </li>
               <li>
-                <a href="/reports" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  التقارير الاستراتيجية
-                </a>
+                <Link to="/reports" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.reports}
+                </Link>
               </li>
               <li>
-                <a href="/qiraa-signals" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  مؤشرات قراءة
-                </a>
+                <Link to="/qiraa-signals" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.qiraaSignals}
+                </Link>
               </li>
               <li>
-                <a href="/#pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">الباقات و الأسعار</a>
+                <Link to="/pricing" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.pricing}
+                </Link>
               </li>
               <li>
-                <a href="/about" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  من نحن
-                </a>
+                <Link to="/about" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.about}
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Support */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">الدعم و المساعدة</h3>
+            <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
             <ul className="space-y-3">
               <li>
                 <a href="#help" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  مركز المساعدة
+                  {t.helpCenter}
                 </a>
               </li>
               <li>
                 <a href="#contact" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  تواصل معنا
+                  {t.contactUs}
                 </a>
               </li>
               <li>
                 <a href="#api" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  واجهة API
+                  {t.api}
                 </a>
               </li>
               <li>
                 <a href="#privacy" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  سياسة الخصوصية
+                  {t.privacyPolicyFooter}
                 </a>
               </li>
               <li>
                 <a href="#terms" className="text-secondary-foreground/80 hover:text-primary transition-colors">
-                  شروط الاستخدام
+                  {t.termsOfUse}
                 </a>
               </li>
             </ul>
@@ -114,12 +125,12 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">اشترك في النشرة البريدية</h3>
-            <p className="text-secondary-foreground/80 text-sm">احصل على أحدث الرؤى و التحليلات مباشرة في بريدك الإلكتروني</p>
-            <div className="flex space-x-2">
-              <Input placeholder="بريدك الإلكتروني" className="bg-background/10 border-secondary-foreground/20" />
+            <h3 className="text-lg font-semibold">{t.newsletter}</h3>
+            <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
+            <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+              <Input placeholder={t.yourEmail} className="bg-background/10 border-secondary-foreground/20" />
               <Button variant="default" size="sm">
-                اشتراك
+                {t.subscribe}
               </Button>
             </div>
             
@@ -146,16 +157,18 @@ const Footer = () => {
       <div className="border-t border-secondary-foreground/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-secondary-foreground/60">© 2025 QIRAA. جميع الحقوق محفوظة.</div>
-            <div className="flex space-x-6 rtl:space-x-reverse">
+            <div className="text-sm text-secondary-foreground/60">
+              © 2025 QIRAA. {t.allRightsReserved}
+            </div>
+            <div className={`flex ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'}`}>
               <a href="#privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
-                سياسة الخصوصية
+                {t.privacyPolicyFooter}
               </a>
               <a href="#terms" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
-                شروط الاستخدام
+                {t.termsOfUse}
               </a>
               <a href="#cookies" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
-                سياسة الكوكيز
+                {t.cookiePolicy}
               </a>
             </div>
           </div>
