@@ -118,26 +118,26 @@ const Pricing = () => {
             </p>
             
             {/* Pricing Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-8">
-              <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+            <div className={`flex items-center justify-center gap-4 mb-8 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'} ${isRTL ? 'order-3' : 'order-1'}`}>
                 {t.monthlyPricing}
               </span>
               <button
                 onClick={togglePricing}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 order-2 ${
                   isAnnual ? 'bg-primary' : 'bg-gray-200'
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isAnnual ? (isRTL ? 'translate-x-1' : 'translate-x-6') : (isRTL ? 'translate-x-6' : 'translate-x-1')
+                    isAnnual ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
-              <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+              <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'} ${isRTL ? 'order-1' : 'order-3'}`}>
                 {t.annualPricing}
                 {isAnnual && (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className={`${isRTL ? 'mr-2' : 'ml-2'}`}>
                     {isRTL ? "وفر 20%" : "Save 20%"}
                   </Badge>
                 )}
