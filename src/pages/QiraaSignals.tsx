@@ -233,8 +233,8 @@ const QiraaSignals = () => {
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
                     !isMonthlyView 
-                      ? (isRTL ? 'translate-x-1' : 'translate-x-6') 
-                      : (isRTL ? 'translate-x-6' : 'translate-x-1')
+                      ? (isRTL ? 'translate-x-6' : 'translate-x-6') 
+                      : (isRTL ? 'translate-x-1' : 'translate-x-1')
                   }`}
                 />
                 <button
