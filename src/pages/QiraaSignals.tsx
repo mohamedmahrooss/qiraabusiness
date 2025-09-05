@@ -229,7 +229,20 @@ const QiraaSignals = () => {
               <span className={`text-sm font-medium ${!isMonthlyView ? 'text-muted-foreground' : ''}`}>
                 {t.monthlyView}
               </span>
-              <Switch checked={!isMonthlyView} onCheckedChange={(checked) => setIsMonthlyView(!checked)} className={isRTL ? '[&>span]:data-[state=checked]:translate-x-0 [&>span]:data-[state=unchecked]:translate-x-5' : ''} />
+              <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${!isMonthlyView ? 'bg-primary' : 'bg-input'}`}>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
+                    !isMonthlyView 
+                      ? (isRTL ? 'translate-x-1' : 'translate-x-6') 
+                      : (isRTL ? 'translate-x-6' : 'translate-x-1')
+                  }`}
+                />
+                <button
+                  className="absolute inset-0 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  onClick={() => setIsMonthlyView(!isMonthlyView)}
+                  aria-label={isRTL ? "تبديل العرض" : "Toggle view"}
+                />
+              </div>
               <span className={`text-sm font-medium ${isMonthlyView ? 'text-muted-foreground' : ''}`}>
                 {t.annualView}
               </span>
