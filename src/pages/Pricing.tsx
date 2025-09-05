@@ -118,33 +118,44 @@ const Pricing = () => {
             </p>
             
             {/* Pricing Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-8">
-              <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                {isRTL ? "شهري" : "Monthly"}
-              </span>
-              <button
-                onClick={togglePricing}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  isAnnual ? 'bg-primary' : 'bg-gray-200'
-                }`}
-                dir="ltr"
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isRTL 
-                      ? (isAnnual ? 'translate-x-1' : 'translate-x-6')
-                      : (isAnnual ? 'translate-x-6' : 'translate-x-1')
+            <div className="flex items-center justify-center mb-8">
+              <div className="relative flex items-center w-80 justify-center">
+                {/* Left/Right text container with fixed positions */}
+                <div className="absolute left-0 flex items-center">
+                  <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    {isRTL ? "شهري" : "Monthly"}
+                  </span>
+                </div>
+                
+                {/* Center toggle button */}
+                <button
+                  onClick={togglePricing}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                    isAnnual ? 'bg-primary' : 'bg-gray-200'
                   }`}
-                />
-              </button>
-              <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                {isRTL ? "سنوي" : "Annually"}
-                {isAnnual && (
-                  <Badge variant="secondary" className={`${isRTL ? 'mr-2' : 'ml-2'}`}>
-                    {isRTL ? "وفر 20%" : "Save 20%"}
-                  </Badge>
-                )}
-              </span>
+                  dir="ltr"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isRTL 
+                        ? (isAnnual ? 'translate-x-1' : 'translate-x-6')
+                        : (isAnnual ? 'translate-x-6' : 'translate-x-1')
+                    }`}
+                  />
+                </button>
+                
+                {/* Right/Left text container with fixed positions */}
+                <div className="absolute right-0 flex items-center">
+                  <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    {isRTL ? "سنوي" : "Annually"}
+                  </span>
+                  {isAnnual && (
+                    <Badge variant="secondary" className={`${isRTL ? 'mr-2' : 'ml-2'}`}>
+                      {isRTL ? "وفر 20%" : "Save 20%"}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
