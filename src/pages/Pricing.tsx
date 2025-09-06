@@ -119,71 +119,69 @@ const Pricing = () => {
             
             {/* Pricing Toggle */}
             <div className="flex items-center justify-center mb-8">
-              <div className="relative flex items-center gap-4">
-                {isRTL ? (
-                  <>
-                    {/* Arabic layout: شهري on right, سنوي on left */}
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                        سنوي
-                      </span>
-                      {isAnnual && (
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
-                          وفر 20%
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <button
-                      onClick={togglePricing}
-                      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                        isAnnual ? 'bg-primary' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                          isAnnual ? 'translate-x-0.5' : 'translate-x-6'
-                        }`}
-                      />
-                    </button>
-                    
-                    <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      شهري
+              {isRTL ? (
+                /* Arabic layout: شهري on right, سنوي on left */
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                      سنوي
                     </span>
-                  </>
-                ) : (
-                  <>
-                    {/* English layout: Monthly on left, Annually on right */}
-                    <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      Monthly
-                    </span>
-                    
-                    <button
-                      onClick={togglePricing}
-                      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                        isAnnual ? 'bg-primary' : 'bg-gray-300'
+                    {isAnnual && (
+                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
+                        وفر 20%
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={togglePricing}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                      isAnnual ? 'bg-primary' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
+                        isAnnual ? 'translate-x-0.5' : 'translate-x-6'
                       }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                          isAnnual ? 'translate-x-6' : 'translate-x-0.5'
-                        }`}
-                      />
-                    </button>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                        Annually
-                      </span>
-                      {isAnnual && (
-                        <Badge variant="secondary" className="text-xs">
-                          Save 20%
-                        </Badge>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+                    />
+                  </button>
+                  
+                  <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    شهري
+                  </span>
+                </div>
+              ) : (
+                /* English layout: Monthly on left, Annually on right */
+                <div className="flex items-center gap-4">
+                  <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    Monthly
+                  </span>
+                  
+                  <button
+                    onClick={togglePricing}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                      isAnnual ? 'bg-primary' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
+                        isAnnual ? 'translate-x-6' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                      Annually
+                    </span>
+                    {isAnnual && (
+                      <Badge variant="secondary" className="text-xs">
+                        Save 20%
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
