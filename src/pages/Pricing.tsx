@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Crown, Building2, TrendingUp, Zap } from "lucide-react";
+import { Check, Star, Crown, Building2, TrendingUp } from "lucide-react";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 
 const Pricing = () => {
@@ -120,8 +120,9 @@ const Pricing = () => {
             {/* Pricing Toggle */}
             <div className="flex items-center justify-center mb-8">
               {isRTL ? (
-                /* Arabic layout: شهري on right, سنوي on left */
+                /* Arabic layout: شهري على اليمين، سنوي على اليسار */
                 <div className="flex items-center gap-4">
+                  {/* سنوي */}
                   <div className="flex items-center gap-2">
                     <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
                       سنوي
@@ -132,7 +133,8 @@ const Pricing = () => {
                       </Badge>
                     )}
                   </div>
-                  
+
+                  {/* Toggle */}
                   <button
                     onClick={togglePricing}
                     className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
@@ -141,11 +143,12 @@ const Pricing = () => {
                   >
                     <span
                       className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                        isAnnual ? 'translate-x-0.5' : 'translate-x-6'
+                        isAnnual ? 'translate-x-6' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
-                  
+
+                  {/* شهري */}
                   <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
                     شهري
                   </span>
