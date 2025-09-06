@@ -128,7 +128,7 @@ const Pricing = () => {
                         سنوي
                       </span>
                       {isAnnual && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
                           وفر 20%
                         </Badge>
                       )}
@@ -137,12 +137,12 @@ const Pricing = () => {
                     <button
                       onClick={togglePricing}
                       className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                        !isAnnual ? 'bg-primary' : 'bg-gray-300'
+                        isAnnual ? 'bg-primary' : 'bg-gray-300'
                       }`}
                     >
                       <span
                         className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                          !isAnnual ? 'translate-x-6' : 'translate-x-0.5'
+                          isAnnual ? 'translate-x-0.5' : 'translate-x-6'
                         }`}
                       />
                     </button>
