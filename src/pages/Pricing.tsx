@@ -120,7 +120,7 @@ const Pricing = () => {
             {/* Pricing Toggle */}
             <div className="flex items-center justify-center mb-8">
               {isRTL ? (
-                /* Arabic layout: شهري على اليمين، سنوي على اليسار */
+                /* Arabic layout: سنوي يسار، شهري يمين */
                 <div className="flex items-center gap-4">
                   {/* سنوي */}
                   <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ const Pricing = () => {
                   >
                     <span
                       className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                        isAnnual ? 'translate-x-6' : 'translate-x-0.5'
+                        isAnnual ? 'translate-x-0.5' : 'translate-x-6'
                       }`}
                     />
                   </button>
@@ -154,12 +154,12 @@ const Pricing = () => {
                   </span>
                 </div>
               ) : (
-                /* English layout: Monthly on left, Annually on right */
+                /* English layout: Monthly left, Annually right */
                 <div className="flex items-center gap-4">
                   <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
                     Monthly
                   </span>
-                  
+
                   <button
                     onClick={togglePricing}
                     className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
@@ -172,7 +172,7 @@ const Pricing = () => {
                       }`}
                     />
                   </button>
-                  
+
                   <div className="flex items-center gap-2">
                     <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
                       Annually
