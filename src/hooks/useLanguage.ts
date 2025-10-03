@@ -122,6 +122,8 @@ export const translations = {
     totalRevenueTooltip: 'إجمالي الإيرادات المحققة خلال الشهر بالعملة المحلية',
     totalSalesTooltip: 'عدد المبيعات الإجمالي المحقق خلال الشهر',
     monthlyGrowthTooltip: 'النسبة المئوية للتغيير في الإيرادات مقارنة بالشهر السابق',
+    quarterlyRevenue: 'الإيرادات الربع سنوية',
+    exportDataDescription: 'قم بتنزيل البيانات المحددة كملف CSV لتحليلاتك الخاصة',
     
     // Footer translations
     quickLinks: 'روابط سريعة',
@@ -259,6 +261,8 @@ export const translations = {
     totalRevenueTooltip: 'Total revenue achieved during the month in local currency',
     totalSalesTooltip: 'Total number of sales achieved during the month',
     monthlyGrowthTooltip: 'Percentage change in revenue compared to previous month',
+    quarterlyRevenue: 'Quarterly Revenue',
+    exportDataDescription: 'Download selected data as CSV file for your own analysis',
     
     // Footer translations
     quickLinks: 'Quick Links',

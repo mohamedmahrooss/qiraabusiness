@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -106,6 +106,150 @@ export type Database = {
           name_ar?: string
           name_en?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      market_indicators: {
+        Row: {
+          company_name: string | null
+          country: string
+          created_at: string
+          day_1_revenue: number | null
+          day_10_revenue: number | null
+          day_11_revenue: number | null
+          day_12_revenue: number | null
+          day_13_revenue: number | null
+          day_14_revenue: number | null
+          day_15_revenue: number | null
+          day_16_revenue: number | null
+          day_17_revenue: number | null
+          day_18_revenue: number | null
+          day_19_revenue: number | null
+          day_2_revenue: number | null
+          day_20_revenue: number | null
+          day_21_revenue: number | null
+          day_22_revenue: number | null
+          day_23_revenue: number | null
+          day_24_revenue: number | null
+          day_25_revenue: number | null
+          day_26_revenue: number | null
+          day_27_revenue: number | null
+          day_28_revenue: number | null
+          day_29_revenue: number | null
+          day_3_revenue: number | null
+          day_30_revenue: number | null
+          day_31_revenue: number | null
+          day_4_revenue: number | null
+          day_5_revenue: number | null
+          day_6_revenue: number | null
+          day_7_revenue: number | null
+          day_8_revenue: number | null
+          day_9_revenue: number | null
+          id: string
+          main_sector: string
+          market_share_percentage: number | null
+          month: number
+          quarter: string | null
+          quarterly_revenue: number | null
+          sub_sector: string | null
+          total_revenue: number
+          total_sales: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          company_name?: string | null
+          country: string
+          created_at?: string
+          day_1_revenue?: number | null
+          day_10_revenue?: number | null
+          day_11_revenue?: number | null
+          day_12_revenue?: number | null
+          day_13_revenue?: number | null
+          day_14_revenue?: number | null
+          day_15_revenue?: number | null
+          day_16_revenue?: number | null
+          day_17_revenue?: number | null
+          day_18_revenue?: number | null
+          day_19_revenue?: number | null
+          day_2_revenue?: number | null
+          day_20_revenue?: number | null
+          day_21_revenue?: number | null
+          day_22_revenue?: number | null
+          day_23_revenue?: number | null
+          day_24_revenue?: number | null
+          day_25_revenue?: number | null
+          day_26_revenue?: number | null
+          day_27_revenue?: number | null
+          day_28_revenue?: number | null
+          day_29_revenue?: number | null
+          day_3_revenue?: number | null
+          day_30_revenue?: number | null
+          day_31_revenue?: number | null
+          day_4_revenue?: number | null
+          day_5_revenue?: number | null
+          day_6_revenue?: number | null
+          day_7_revenue?: number | null
+          day_8_revenue?: number | null
+          day_9_revenue?: number | null
+          id?: string
+          main_sector: string
+          market_share_percentage?: number | null
+          month: number
+          quarter?: string | null
+          quarterly_revenue?: number | null
+          sub_sector?: string | null
+          total_revenue?: number
+          total_sales?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          company_name?: string | null
+          country?: string
+          created_at?: string
+          day_1_revenue?: number | null
+          day_10_revenue?: number | null
+          day_11_revenue?: number | null
+          day_12_revenue?: number | null
+          day_13_revenue?: number | null
+          day_14_revenue?: number | null
+          day_15_revenue?: number | null
+          day_16_revenue?: number | null
+          day_17_revenue?: number | null
+          day_18_revenue?: number | null
+          day_19_revenue?: number | null
+          day_2_revenue?: number | null
+          day_20_revenue?: number | null
+          day_21_revenue?: number | null
+          day_22_revenue?: number | null
+          day_23_revenue?: number | null
+          day_24_revenue?: number | null
+          day_25_revenue?: number | null
+          day_26_revenue?: number | null
+          day_27_revenue?: number | null
+          day_28_revenue?: number | null
+          day_29_revenue?: number | null
+          day_3_revenue?: number | null
+          day_30_revenue?: number | null
+          day_31_revenue?: number | null
+          day_4_revenue?: number | null
+          day_5_revenue?: number | null
+          day_6_revenue?: number | null
+          day_7_revenue?: number | null
+          day_8_revenue?: number | null
+          day_9_revenue?: number | null
+          id?: string
+          main_sector?: string
+          market_share_percentage?: number | null
+          month?: number
+          quarter?: string | null
+          quarterly_revenue?: number | null
+          sub_sector?: string | null
+          total_revenue?: number
+          total_sales?: number
+          updated_at?: string
+          year?: number
         }
         Relationships: []
       }
