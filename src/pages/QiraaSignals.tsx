@@ -5,56 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, TrendingDown, HelpCircle, Lock, Download, BarChart3, PieChart as PieChartIcon } from "lucide-react";
+import { TrendingUp, TrendingDown, HelpCircle, Lock, Download, BarChart3, PieChart as PieChartIcon, DollarSign, ShoppingCart } from "lucide-react";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
 
-interface MarketIndicator {
-  id: string;
-  country: string;
-  main_sector: string;
-  sub_sector: string | null;
-  company_name: string | null;
-  year: number;
-  month: number;
-  day_1_revenue: number | null;
-  day_2_revenue: number | null;
-  day_3_revenue: number | null;
-  day_4_revenue: number | null;
-  day_5_revenue: number | null;
-  day_6_revenue: number | null;
-  day_7_revenue: number | null;
-  day_8_revenue: number | null;
-  day_9_revenue: number | null;
-  day_10_revenue: number | null;
-  day_11_revenue: number | null;
-  day_12_revenue: number | null;
-  day_13_revenue: number | null;
-  day_14_revenue: number | null;
-  day_15_revenue: number | null;
-  day_16_revenue: number | null;
-  day_17_revenue: number | null;
-  day_18_revenue: number | null;
-  day_19_revenue: number | null;
-  day_20_revenue: number | null;
-  day_21_revenue: number | null;
-  day_22_revenue: number | null;
-  day_23_revenue: number | null;
-  day_24_revenue: number | null;
-  day_25_revenue: number | null;
-  day_26_revenue: number | null;
-  day_27_revenue: number | null;
-  day_28_revenue: number | null;
-  day_29_revenue: number | null;
-  day_30_revenue: number | null;
-  day_31_revenue: number | null;
-  total_revenue: number;
-  total_sales: number;
-  quarter: string | null;
-  quarterly_revenue: number | null;
-  market_share_percentage: number | null;
-}
+type MarketIndicator = Database['public']['Tables']['market_indicators']['Row'] & {
+  store_products?: number;
+};
 
 const QiraaSignals = () => {
   const { isRTL } = useLanguage();
@@ -66,13 +25,14 @@ const QiraaSignals = () => {
   const [isMonthlyView, setIsMonthlyView] = useState(true);
   const [firstMonth, setFirstMonth] = useState("");
   const [secondMonth, setSecondMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("2024");
+  const [selectedYear, setSelectedYear] = useState("2025");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<MarketIndicator[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [mainSectors, setMainSectors] = useState<string[]>([]);
   const [subSectors, setSubSectors] = useState<string[]>([]);
   const [companies, setCompanies] = useState<string[]>([]);
+  const [showRevenue, setShowRevenue] = useState(true);
 
   // جلب البيانات الفريدة للفلاتر
   useEffect(() => {
@@ -98,10 +58,45 @@ const QiraaSignals = () => {
     fetchFilterOptions();
   }, []);
 
+  // Cascading Filters: تحديث القطاعات والقطاعات الفرعية والشركات عند تغيير الدولة
+  useEffect(() => {
+    const fetchCascadingFilters = async () => {
+      if (!selectedCountry) {
+        setMainSectors([]);
+        setSubSectors([]);
+        setCompanies([]);
+        return;
+      }
+
+      try {
+        const { data: indicators, error } = await supabase
+          .from('market_indicators')
+          .select('main_sector, sub_sector, company_name')
+          .eq('country', selectedCountry);
+
+        if (error) throw error;
+
+        if (indicators) {
+          const uniqueSectors = [...new Set(indicators.map(i => i.main_sector))].filter(Boolean);
+          setMainSectors(uniqueSectors);
+          
+          // إعادة تعيين الفلاتر التالية
+          setSelectedMainSector("");
+          setSelectedSubSector("");
+          setSelectedCompany("sector-average");
+        }
+      } catch (error) {
+        console.error('Error fetching cascading filters:', error);
+      }
+    };
+
+    fetchCascadingFilters();
+  }, [selectedCountry]);
+
   // تحديث القطاعات الفرعية عند تغيير القطاع الرئيسي
   useEffect(() => {
     const fetchSubSectors = async () => {
-      if (!selectedMainSector) {
+      if (!selectedMainSector || !selectedCountry) {
         setSubSectors([]);
         return;
       }
@@ -110,6 +105,7 @@ const QiraaSignals = () => {
         const { data: indicators, error } = await supabase
           .from('market_indicators')
           .select('sub_sector')
+          .eq('country', selectedCountry)
           .eq('main_sector', selectedMainSector);
 
         if (error) throw error;
@@ -117,6 +113,10 @@ const QiraaSignals = () => {
         if (indicators) {
           const unique = [...new Set(indicators.map(i => i.sub_sector))].filter(Boolean) as string[];
           setSubSectors(unique);
+          
+          // إعادة تعيين الفلاتر التالية
+          setSelectedSubSector("");
+          setSelectedCompany("sector-average");
         }
       } catch (error) {
         console.error('Error fetching sub sectors:', error);
@@ -124,12 +124,12 @@ const QiraaSignals = () => {
     };
 
     fetchSubSectors();
-  }, [selectedMainSector]);
+  }, [selectedMainSector, selectedCountry]);
 
   // تحديث الشركات عند تغيير القطاع الفرعي
   useEffect(() => {
     const fetchCompanies = async () => {
-      if (!selectedSubSector) {
+      if (!selectedSubSector || !selectedCountry) {
         setCompanies([]);
         return;
       }
@@ -138,6 +138,7 @@ const QiraaSignals = () => {
         const { data: indicators, error } = await supabase
           .from('market_indicators')
           .select('company_name')
+          .eq('country', selectedCountry)
           .eq('sub_sector', selectedSubSector);
 
         if (error) throw error;
@@ -145,6 +146,9 @@ const QiraaSignals = () => {
         if (indicators) {
           const unique = [...new Set(indicators.map(i => i.company_name))].filter(Boolean) as string[];
           setCompanies(unique);
+          
+          // إعادة تعيين الشركة
+          setSelectedCompany("sector-average");
         }
       } catch (error) {
         console.error('Error fetching companies:', error);
@@ -152,7 +156,7 @@ const QiraaSignals = () => {
     };
 
     fetchCompanies();
-  }, [selectedSubSector]);
+  }, [selectedSubSector, selectedCountry]);
 
   // جلب البيانات بناءً على الفلاتر
   useEffect(() => {
@@ -228,28 +232,31 @@ const QiraaSignals = () => {
     }
   };
 
-  // تحويل بيانات الإيرادات اليومية للرسم البياني
-  const getDailyRevenueData = () => {
-    if (!firstMonthData && !secondMonthData) return [];
+  // تحويل بيانات الإيرادات اليومية والمبيعات للرسم البياني
+  const getDailyData = () => {
+    if (!firstMonthData) return [];
 
     const days = [];
     for (let i = 1; i <= 31; i++) {
       const dayKey = `day_${i}_revenue` as keyof MarketIndicator;
-      const month1Value = firstMonthData?.[dayKey] as number | null;
-      const month2Value = secondMonthData?.[dayKey] as number | null;
+      const month1Revenue = firstMonthData?.[dayKey] as number | null;
+      const month2Revenue = secondMonthData?.[dayKey] as number | null;
 
-      if (month1Value !== null || month2Value !== null) {
+      if (month1Revenue !== null || month2Revenue !== null) {
         days.push({
-          day: i.toString(),
-          month1: month1Value || 0,
-          month2: month2Value || 0
+          day: i,
+          month1Revenue: month1Revenue || 0,
+          month2Revenue: month2Revenue || 0,
+          // تقدير المبيعات اليومية (يمكن تعديله حسب البيانات الفعلية)
+          month1Sales: month1Revenue ? Math.round(month1Revenue / 100) : 0,
+          month2Sales: month2Revenue ? Math.round(month2Revenue / 100) : 0,
         });
       }
     }
     return days;
   };
 
-  const dailyRevenueData = getDailyRevenueData();
+  const dailyData = getDailyData();
 
   // البيانات السنوية
   const getAnnualData = () => {
@@ -301,11 +308,9 @@ const QiraaSignals = () => {
     }).format(amount);
   };
 
-  const KPICard = ({ title, value, previousValue, change, tooltip, currency = false }: {
+  const KPICard = ({ title, value, tooltip, currency = false }: {
     title: string;
     value: number;
-    previousValue: number;
-    change: number;
     tooltip: string;
     currency?: boolean;
   }) => (
@@ -324,30 +329,104 @@ const QiraaSignals = () => {
             </Tooltip>
           </TooltipProvider>
         </CardTitle>
-        {change > 0 ? (
-          <TrendingUp className="h-4 w-4 text-green-600" />
-        ) : change < 0 ? (
-          <TrendingDown className="h-4 w-4 text-red-600" />
-        ) : null}
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">{t.firstMonth}</span>
-            <span className="text-lg font-bold">
-              {currency ? formatCurrency(previousValue) : previousValue.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">{t.secondMonth}</span>
-            <span className="text-lg font-bold">
-              {currency ? formatCurrency(value) : value.toLocaleString()}
-            </span>
-          </div>
+        <div className="text-2xl font-bold">
+          {currency ? formatCurrency(value) : value.toLocaleString()}
         </div>
       </CardContent>
     </Card>
   );
+
+  // Custom Tooltip للرسم البياني
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card border border-border rounded-lg p-4 shadow-lg">
+          <p className="font-semibold mb-2">
+            {isRTL ? `اليوم ${label}` : `Day ${label}`}
+          </p>
+          
+          {showRevenue ? (
+            <>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                  <span className="text-sm">
+                    {isRTL ? 'الشهر الأول' : 'First Month'}:
+                  </span>
+                  <span className="font-bold">{formatCurrency(payload[0]?.value || 0)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ShoppingCart className="h-3 w-3" />
+                  <span>{isRTL ? 'المبيعات' : 'Sales'}:</span>
+                  <span>{Math.round((payload[0]?.value || 0) / 100).toLocaleString()}</span>
+                </div>
+              </div>
+              
+              {payload[1] && (
+                <>
+                  <div className="border-t border-border my-2"></div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm">
+                        {isRTL ? 'الشهر الثاني' : 'Second Month'}:
+                      </span>
+                      <span className="font-bold">{formatCurrency(payload[1]?.value || 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <ShoppingCart className="h-3 w-3" />
+                      <span>{isRTL ? 'المبيعات' : 'Sales'}:</span>
+                      <span>{Math.round((payload[1]?.value || 0) / 100).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                  <span className="text-sm">
+                    {isRTL ? 'الشهر الأول' : 'First Month'}:
+                  </span>
+                  <span className="font-bold">{(payload[0]?.value || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <DollarSign className="h-3 w-3" />
+                  <span>{isRTL ? 'الإيرادات' : 'Revenue'}:</span>
+                  <span>{formatCurrency((payload[0]?.value || 0) * 100)}</span>
+                </div>
+              </div>
+              
+              {payload[1] && (
+                <>
+                  <div className="border-t border-border my-2"></div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm">
+                        {isRTL ? 'الشهر الثاني' : 'Second Month'}:
+                      </span>
+                      <span className="font-bold">{(payload[1]?.value || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <DollarSign className="h-3 w-3" />
+                      <span>{isRTL ? 'الإيرادات' : 'Revenue'}:</span>
+                      <span>{formatCurrency((payload[1]?.value || 0) * 100)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-background p-6" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -385,7 +464,11 @@ const QiraaSignals = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t.mainSector}</label>
-                <Select value={selectedMainSector} onValueChange={setSelectedMainSector}>
+                <Select 
+                  value={selectedMainSector} 
+                  onValueChange={setSelectedMainSector}
+                  disabled={!selectedCountry}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t.selectSector} />
                   </SelectTrigger>
@@ -399,7 +482,11 @@ const QiraaSignals = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t.subSector}</label>
-                <Select value={selectedSubSector} onValueChange={setSelectedSubSector}>
+                <Select 
+                  value={selectedSubSector} 
+                  onValueChange={setSelectedSubSector}
+                  disabled={!selectedMainSector}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t.selectSubSector} />
                   </SelectTrigger>
@@ -413,7 +500,11 @@ const QiraaSignals = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t.companyName}</label>
-                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <Select 
+                  value={selectedCompany} 
+                  onValueChange={setSelectedCompany}
+                  disabled={!selectedSubSector}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder={t.selectCompany} />
                   </SelectTrigger>
@@ -425,6 +516,15 @@ const QiraaSignals = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            
+            {/* Disclaimer */}
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+              <p className="text-xs text-muted-foreground">
+                {isRTL 
+                  ? "ملاحظة: هذه المبيعات والإيرادات تقديرية وتعكس مبيعات الموقع الإلكتروني فقط."
+                  : "Note: These sales and revenues are estimates and reflect online store sales only."}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -505,43 +605,124 @@ const QiraaSignals = () => {
               </CardContent>
             </Card>
 
-            {/* KPIs - حذف بطاقة معدل النمو الشهري */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <KPICard
-                title={t.totalRevenue}
-                value={monthlyKPIs.totalRevenue.month2}
-                previousValue={monthlyKPIs.totalRevenue.month1}
-                change={monthlyKPIs.totalRevenue.change}
-                tooltip={t.totalRevenueTooltip}
-                currency={true}
-              />
-              <KPICard
-                title={t.totalSales}
-                value={monthlyKPIs.totalSales.month2}
-                previousValue={monthlyKPIs.totalSales.month1}
-                change={monthlyKPIs.totalSales.change}
-                tooltip={t.totalSalesTooltip}
-              />
-            </div>
+            {/* KPIs - عرض فوري للشهر الأول */}
+            {firstMonthData && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <KPICard
+                  title={t.totalRevenue}
+                  value={firstMonthData.total_revenue}
+                  tooltip={t.totalRevenueTooltip}
+                  currency={true}
+                />
+                <KPICard
+                  title={t.totalSales}
+                  value={firstMonthData.total_sales}
+                  tooltip={t.totalSalesTooltip}
+                />
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {isRTL ? "المنتجات المتاحة" : "Store Products"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {firstMonthData.store_products?.toLocaleString() || 0}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
-            {/* Daily Revenue Chart */}
-            {dailyRevenueData.length > 0 && (
+            {/* Toggle بين الإيرادات والمبيعات */}
+            {dailyData.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    {t.dailyRevenue}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      {showRevenue 
+                        ? (isRTL ? "الإيرادات اليومية" : "Daily Revenue")
+                        : (isRTL ? "المبيعات اليومية" : "Daily Sales")}
+                    </CardTitle>
+                    
+                    {/* أزرار التبديل */}
+                    <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <Button
+                        variant={showRevenue ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setShowRevenue(true)}
+                        className="gap-2"
+                      >
+                        <DollarSign className="h-4 w-4" />
+                        {isRTL ? "الإيرادات" : "Revenue"}
+                      </Button>
+                      <Button
+                        variant={!showRevenue ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setShowRevenue(false)}
+                        className="gap-2"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        {isRTL ? "المبيعات" : "Sales"}
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={dailyRevenueData}>
+                    <LineChart data={dailyData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="day" />
                       <YAxis />
-                      <RechartsTooltip />
-                      <Line type="monotone" dataKey="month1" stroke="#8b5cf6" strokeWidth={2} name={isRTL ? "الشهر الأول" : "First Month"} />
-                      <Line type="monotone" dataKey="month2" stroke="#10b981" strokeWidth={2} name={isRTL ? "الشهر الثاني" : "Second Month"} />
+                      <RechartsTooltip content={<CustomTooltip />} />
+                      {showRevenue ? (
+                        <>
+                          <Line 
+                            type="monotone" 
+                            dataKey="month1Revenue" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2} 
+                            name={isRTL ? "الشهر الأول" : "First Month"}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                          {secondMonthData && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="month2Revenue" 
+                              stroke="#10b981" 
+                              strokeWidth={2} 
+                              name={isRTL ? "الشهر الثاني" : "Second Month"}
+                              dot={{ r: 4 }}
+                              activeDot={{ r: 6 }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Line 
+                            type="monotone" 
+                            dataKey="month1Sales" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2} 
+                            name={isRTL ? "الشهر الأول" : "First Month"}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                          {secondMonthData && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="month2Sales" 
+                              stroke="#10b981" 
+                              strokeWidth={2} 
+                              name={isRTL ? "الشهر الثاني" : "Second Month"}
+                              dot={{ r: 4 }}
+                              activeDot={{ r: 6 }}
+                            />
+                          )}
+                        </>
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -575,7 +756,7 @@ const QiraaSignals = () => {
             </Card>
 
             {/* Annual Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm">{t.totalAnnualRevenue}</CardTitle>
@@ -600,6 +781,18 @@ const QiraaSignals = () => {
                   <div className="text-2xl font-bold">{annualData.bestQuarter}</div>
                 </CardContent>
               </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">{isRTL ? "المنتجات المتاحة" : "Store Products"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {data.filter(d => d.year === parseInt(selectedYear))
+                      .reduce((sum, d) => sum + (d.store_products || 0), 0)
+                      .toLocaleString()}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Quarterly Revenue Chart */}
@@ -608,19 +801,23 @@ const QiraaSignals = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
-                    {t.quarterlyRevenue}
+                    {t.quarterlyRevenue} (USD)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={annualData.quarterlyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="quarter" />
-                      <YAxis />
-                      <RechartsTooltip />
-                      <Bar dataKey="revenue" fill="#8b5cf6" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="w-full" style={{ maxWidth: '100%' }}>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={annualData.quarterlyData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="quarter" />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value: number) => formatCurrency(value)}
+                        />
+                        <Bar dataKey="revenue" fill="hsl(var(--primary))" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
             )}
