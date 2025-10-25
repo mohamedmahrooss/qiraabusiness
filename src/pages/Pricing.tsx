@@ -3,7 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Building2, TrendingUp } from "lucide-react";
-import { useLanguage, useTranslation } from "@/hooks/useLanguage";
+
+// Mock translation hook for demo
+const useLanguage = () => ({ isRTL: true }); // Toggle this to test
+const useTranslation = () => ({
+  choosePlan: "اختر الباقة المناسبة",
+  pricingSubtitle: "خطط تسعير مرنة لجميع احتياجاتك",
+  freePlan: "مجاني",
+  basicPlan: "أساسي",
+  proPlan: "احترافي",
+  enterprisePlan: "مؤسسات",
+  freePlanDesc: "للبدء والتجربة",
+  basicPlanDesc: "للأفراد والمستثمرين",
+  proPlanDesc: "للمحترفين والمحللين",
+  enterprisePlanDesc: "للشركات والمؤسسات",
+  getStarted: "ابدأ مجاناً",
+  subscribeNow: "اشترك الآن",
+  subscribeToPro: "اشترك في الاحترافية",
+  contactSales: "تواصل مع المبيعات",
+  mostPopular: "الأكثر شعبية",
+  moneyBackGuarantee: "ضمان استرجاع المال خلال 30 يوم",
+  noSetupFees: "بدون رسوم تفعيل",
+  cancelAnytime: "إلغاء في أي وقت",
+  instantSupport: "دعم فوري"
+});
 
 const Pricing = () => {
   const { isRTL } = useLanguage();
@@ -72,7 +95,7 @@ const Pricing = () => {
       ],
       limitations: [],
       buttonText: t.subscribeToPro,
-      variant: "premium" as const,
+      variant: "default" as const,
       popular: true
     },
     {
@@ -96,7 +119,7 @@ const Pricing = () => {
       ],
       limitations: [],
       buttonText: t.contactSales,
-      variant: "hero" as const,
+      variant: "default" as const,
       popular: false
     }
   ];
@@ -106,82 +129,91 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <section className="py-20 bg-muted/30">
+    <div className="min-h-screen bg-gray-50" dir={isRTL ? "rtl" : "ltr"}>
+      <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
               {t.choosePlan}
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               {t.pricingSubtitle}
             </p>
             
-            {/* Pricing Toggle */}
+            {/* Pricing Toggle - الكود المُصلح تماماً */}
             <div className="flex items-center justify-center mb-8">
               {isRTL ? (
-                /* Arabic layout: سنوي يسار، شهري يمين */
-                <div className="flex items-center gap-4">
-                  {/* سنوي */}
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      سنوي
-                    </span>
-                    {isAnnual && (
-                      <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
-                        وفر 20%
-                      </Badge>
-                    )}
-                  </div>
+                /* النسخة العربية - الترتيب: شهري (يمين) - زر - سنوي (يسار) */
+                <div className="flex items-center gap-3">
+                  {/* شهري - على اليمين */}
+                  <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
+                    شهري
+                  </span>
 
-                  {/* Toggle */}
+                  {/* Toggle Button - RTL */}
                   <button
                     onClick={togglePricing}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                      isAnnual ? 'bg-primary' : 'bg-gray-300'
+                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isAnnual ? 'bg-blue-600' : 'bg-gray-300'
                     }`}
+                    aria-label="Toggle pricing"
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                        isAnnual ? 'translate-x-0.5' : 'translate-x-6'
-                      }`}
+                      style={{
+                        transform: isAnnual ? 'translateX(-32px)' : 'translateX(2px)'
+                      }}
+                      className="inline-block h-5 w-5 rounded-full bg-white transition-transform duration-300 ease-in-out shadow-md"
                     />
                   </button>
 
-                  {/* شهري */}
-                  <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                    شهري
-                  </span>
+                  {/* سنوي - على اليسار مع الباج */}
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
+                      سنوي
+                    </span>
+                    <div className={`transition-all duration-300 ${isAnnual ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+                      {isAnnual && (
+                        <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200 px-2 py-0.5">
+                          وفر 20%
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
-                /* English layout: Monthly left, Annually right */
-                <div className="flex items-center gap-4">
-                  <span className={`text-sm ${!isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                /* النسخة الإنجليزية - الترتيب: Monthly (left) - Toggle - Annually (right) */
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
                     Monthly
                   </span>
 
+                  {/* Toggle Button - LTR */}
                   <button
                     onClick={togglePricing}
-                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                      isAnnual ? 'bg-primary' : 'bg-gray-300'
+                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      isAnnual ? 'bg-blue-600' : 'bg-gray-300'
                     }`}
+                    aria-label="Toggle pricing"
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                        isAnnual ? 'translate-x-6' : 'translate-x-0.5'
-                      }`}
+                      style={{
+                        transform: isAnnual ? 'translateX(32px)' : 'translateX(2px)'
+                      }}
+                      className="inline-block h-5 w-5 rounded-full bg-white transition-transform duration-300 ease-in-out shadow-md"
                     />
                   </button>
 
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm ${isAnnual ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
                       Annually
                     </span>
-                    {isAnnual && (
-                      <Badge variant="secondary" className="text-xs">
-                        Save 20%
-                      </Badge>
-                    )}
+                    <div className={`transition-all duration-300 ${isAnnual ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+                      {isAnnual && (
+                        <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200 px-2 py-0.5">
+                          Save 20%
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -197,53 +229,53 @@ const Pricing = () => {
               return (
                 <Card 
                   key={index} 
-                  className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : 'border-border'} hover:shadow-xl transition-all duration-300`}
+                  className={`relative bg-white ${plan.popular ? 'border-2 border-blue-500 shadow-xl scale-105' : 'border border-gray-200'} hover:shadow-2xl transition-all duration-300 rounded-xl`}
                 >
                   {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1">
                       {t.mostPopular}
                     </Badge>
                   )}
                   
                   <CardHeader className="text-center pb-4">
                     <div className={`w-12 h-12 mx-auto rounded-lg flex items-center justify-center mb-4 ${
-                      plan.popular ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      plan.popular ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
                     }`}>
                       <IconComponent className="h-6 w-6" />
                     </div>
                     
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <CardDescription className="text-sm">{plan.description}</CardDescription>
+                    <CardTitle className="text-xl font-bold text-gray-900">{plan.name}</CardTitle>
+                    <CardDescription className="text-sm text-gray-600">{plan.description}</CardDescription>
                     
                     <div className="mt-4">
-                      <span className="text-3xl font-bold">
+                      <span className="text-4xl font-bold text-gray-900">
                         ${price}
                       </span>
-                      <span className="text-muted-foreground">
+                      <span className="text-gray-600 text-base">
                         /{period}
                       </span>
                     </div>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
+                        <div key={featureIndex} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-gray-700">{feature}</span>
                         </div>
                       ))}
                     </div>
                     
                     {plan.limitations.length > 0 && (
-                      <div className="pt-4 border-t border-border">
-                        <p className="text-xs text-muted-foreground mb-2">
+                      <div className="pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-2 font-medium">
                           {isRTL ? "القيود:" : "Limitations:"}
                         </p>
                         {plan.limitations.map((limitation, limitIndex) => (
-                          <div key={limitIndex} className={`flex items-start ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                            <span className="text-xs text-muted-foreground">•</span>
-                            <span className="text-xs text-muted-foreground">{limitation}</span>
+                          <div key={limitIndex} className="flex items-start gap-2 mb-1">
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-gray-500">{limitation}</span>
                           </div>
                         ))}
                       </div>
@@ -251,7 +283,14 @@ const Pricing = () => {
                   </CardContent>
 
                   <CardFooter>
-                    <Button variant={plan.variant} className="w-full" size="lg">
+                    <Button 
+                      className={`w-full font-medium ${
+                        plan.popular 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                      }`}
+                      size="lg"
+                    >
                       {plan.buttonText}
                     </Button>
                   </CardFooter>
@@ -260,22 +299,22 @@ const Pricing = () => {
             })}
           </div>
 
-          <div className="text-center mt-12">
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center mt-16">
+            <p className="text-gray-600 mb-6 text-lg">
               {t.moneyBackGuarantee}
             </p>
-            <div className={`flex justify-center ${isRTL ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>
-              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-                <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm">{t.noSetupFees}</span>
+            <div className="flex justify-center gap-8 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="text-sm text-gray-700">{t.noSetupFees}</span>
               </div>
-              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-                <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm">{t.cancelAnytime}</span>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="text-sm text-gray-700">{t.cancelAnytime}</span>
               </div>
-              <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-                <Check className="h-4 w-4 text-green-500" />
-                <span className="text-sm">{t.instantSupport}</span>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="text-sm text-gray-700">{t.instantSupport}</span>
               </div>
             </div>
           </div>
