@@ -3,30 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Building2, TrendingUp } from "lucide-react";
-
-// Mock translation hook for demo
-const useLanguage = () => ({ isRTL: true }); // Toggle this to test
-const useTranslation = () => ({
-  choosePlan: "اختر الباقة المناسبة",
-  pricingSubtitle: "خطط تسعير مرنة لجميع احتياجاتك",
-  freePlan: "مجاني",
-  basicPlan: "أساسي",
-  proPlan: "احترافي",
-  enterprisePlan: "مؤسسات",
-  freePlanDesc: "للبدء والتجربة",
-  basicPlanDesc: "للأفراد والمستثمرين",
-  proPlanDesc: "للمحترفين والمحللين",
-  enterprisePlanDesc: "للشركات والمؤسسات",
-  getStarted: "ابدأ مجاناً",
-  subscribeNow: "اشترك الآن",
-  subscribeToPro: "اشترك في الاحترافية",
-  contactSales: "تواصل مع المبيعات",
-  mostPopular: "الأكثر شعبية",
-  moneyBackGuarantee: "ضمان استرجاع المال خلال 30 يوم",
-  noSetupFees: "بدون رسوم تفعيل",
-  cancelAnytime: "إلغاء في أي وقت",
-  instantSupport: "دعم فوري"
-});
+import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 
 const Pricing = () => {
   const { isRTL } = useLanguage();
@@ -147,7 +124,7 @@ const Pricing = () => {
                 <div className="flex items-center gap-3">
                   {/* شهري - على اليمين */}
                   <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-                    شهري
+                    {t.monthlyPricing}
                   </span>
 
                   {/* Toggle Button - RTL */}
@@ -169,22 +146,23 @@ const Pricing = () => {
                   {/* سنوي - على اليسار مع الباج */}
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-                      سنوي
+                      {t.annualPricing}
                     </span>
                     <div className={`transition-all duration-300 ${isAnnual ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
                       {isAnnual && (
                         <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200 px-2 py-0.5">
-                          وفر 20%
+                          {isRTL ? "وفر 20%" : "Save 20%"}
                         </Badge>
                       )}
                     </div>
                   </div>
                 </div>
               ) : (
-                /* النسخة الإنجليزية - الترتيب: Monthly (left) - Toggle - Annually (right) */
+                /* النسخة الإنجليزية - الترتيب: Monthly (يسار) - Toggle - Annually (يمين) */
                 <div className="flex items-center gap-3">
+                  {/* Monthly - على اليسار */}
                   <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-                    Monthly
+                    {t.monthlyPricing}
                   </span>
 
                   {/* Toggle Button - LTR */}
@@ -203,14 +181,15 @@ const Pricing = () => {
                     />
                   </button>
 
+                  {/* Annually - على اليمين مع الباج */}
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-blue-600' : 'text-gray-500'}`}>
-                      Annually
+                      {t.annualPricing}
                     </span>
                     <div className={`transition-all duration-300 ${isAnnual ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
                       {isAnnual && (
                         <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200 px-2 py-0.5">
-                          Save 20%
+                          {isRTL ? "وفر 20%" : "Save 20%"}
                         </Badge>
                       )}
                     </div>
