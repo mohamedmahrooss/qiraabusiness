@@ -10,6 +10,7 @@ import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import MainLayout from "@/components/layout/MainLayout";
 
 type MarketIndicator = Database['public']['Tables']['market_indicators']['Row'] & {
   store_products?: number;
@@ -429,7 +430,8 @@ const QiraaSignals = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <MainLayout>
+      <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -878,7 +880,8 @@ const QiraaSignals = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 };
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Building2, TrendingUp } from "lucide-react";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
+import MainLayout from "@/components/layout/MainLayout";
 
 const Pricing = () => {
   const { isRTL } = useLanguage();
@@ -106,8 +107,9 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={isRTL ? "rtl" : "ltr"}>
-      <section className="py-20">
+    <MainLayout>
+      <div className="min-h-screen bg-gray-50">
+        <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
@@ -299,7 +301,8 @@ const Pricing = () => {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </MainLayout>
   );
 };
 
