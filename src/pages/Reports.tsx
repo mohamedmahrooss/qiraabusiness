@@ -72,7 +72,7 @@ const Reports = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -109,7 +109,7 @@ const Reports = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -131,7 +131,7 @@ const Reports = () => {
 
   if (!reports || reports.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -155,7 +155,7 @@ const Reports = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
           {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
