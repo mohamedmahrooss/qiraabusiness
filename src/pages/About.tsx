@@ -1,7 +1,6 @@
 import { useLanguage } from "@/hooks/useLanguage";
 import { Eye, Target, Heart, Lightbulb, Shield, Users, Globe, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import MainLayout from "@/components/layout/MainLayout";
 
 const About = () => {
   const { language } = useLanguage();
@@ -45,8 +44,7 @@ const About = () => {
   ];
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div className="text-center mb-16">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-6 leading-tight whitespace-normal break-words px-2">
@@ -151,8 +149,7 @@ const About = () => {
           </p>
         </div>
       </div>
-      </div>
-    </MainLayout>
+    </div>
   );
 };
 

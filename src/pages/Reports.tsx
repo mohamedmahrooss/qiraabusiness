@@ -1,7 +1,6 @@
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,8 +72,7 @@ const Reports = () => {
 
   if (isLoading) {
     return (
-      <MainLayout>
-        <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -105,15 +103,13 @@ const Reports = () => {
             </Card>
           ))}
         </div>
-        </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <MainLayout>
-        <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -129,15 +125,13 @@ const Reports = () => {
             {language === 'ar' ? 'يرجى المحاولة مرة أخرى لاحقاً' : 'Please try again later'}
           </div>
         </div>
-        </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (!reports || reports.length === 0) {
     return (
-      <MainLayout>
-        <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
             {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -156,14 +150,12 @@ const Reports = () => {
             {language === 'ar' ? 'لا توجد تقارير متاحة حالياً' : 'No reports available at the moment'}
           </div>
         </div>
-        </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-16" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4 leading-tight whitespace-normal break-words px-2">
           {language === 'ar' ? 'التقارير الاستراتيجية' : 'Strategic Reports'}
@@ -237,8 +229,7 @@ const Reports = () => {
           </Card>
         ))}
       </div>
-      </div>
-    </MainLayout>
+    </div>
   );
 };
 
