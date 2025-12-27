@@ -529,28 +529,32 @@ const QiraaSignals = () => {
           </CardContent>
         </Card>
 
-        {/* Data View Toggle */}
+        {/* Data View Toggle - الكود المُعدّل */}
         <Card>
           <CardContent className="pt-6">
-            <div className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
-              <span className={`text-sm font-medium ${!isMonthlyView ? 'text-muted-foreground' : ''}`}>
+            <div className="flex items-center justify-center gap-4">
+              <span className={`text-sm font-medium transition-colors ${!isMonthlyView ? 'text-muted-foreground' : 'text-primary'}`}>
                 {t.monthlyView}
               </span>
-              <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${!isMonthlyView ? 'bg-primary' : 'bg-input'}`}>
+              
+              <button
+                onClick={() => setIsMonthlyView(!isMonthlyView)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+                  !isMonthlyView ? 'bg-primary' : 'bg-input'
+                }`}
+                aria-label={isRTL ? "تبديل العرض" : "Toggle view"}
+              >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-                    !isMonthlyView 
-                      ? (isRTL ? 'translate-x-6' : 'translate-x-6') 
-                      : (isRTL ? 'translate-x-1' : 'translate-x-1')
-                  }`}
+                  style={{
+                    transform: isRTL 
+                      ? (!isMonthlyView ? 'translateX(-30px)' : 'translateX(2px)')
+                      : (!isMonthlyView ? 'translateX(26px)' : 'translateX(2px)')
+                  }}
+                  className="inline-block h-4 w-4 rounded-full bg-background transition-transform duration-300 ease-in-out shadow-sm"
                 />
-                <button
-                  className="absolute inset-0 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onClick={() => setIsMonthlyView(!isMonthlyView)}
-                  aria-label={isRTL ? "تبديل العرض" : "Toggle view"}
-                />
-              </div>
-              <span className={`text-sm font-medium ${isMonthlyView ? 'text-muted-foreground' : ''}`}>
+              </button>
+              
+              <span className={`text-sm font-medium transition-colors ${isMonthlyView ? 'text-muted-foreground' : 'text-primary'}`}>
                 {t.annualView}
               </span>
             </div>
