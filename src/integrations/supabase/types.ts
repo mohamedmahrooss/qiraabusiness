@@ -151,6 +151,7 @@ export type Database = {
           month: number
           quarter: string | null
           quarterly_revenue: number | null
+          store_products: number
           sub_sector: string | null
           total_revenue: number
           total_sales: number
@@ -198,6 +199,7 @@ export type Database = {
           month: number
           quarter?: string | null
           quarterly_revenue?: number | null
+          store_products?: number
           sub_sector?: string | null
           total_revenue?: number
           total_sales?: number
@@ -245,6 +247,7 @@ export type Database = {
           month?: number
           quarter?: string | null
           quarterly_revenue?: number | null
+          store_products?: number
           sub_sector?: string | null
           total_revenue?: number
           total_sales?: number
