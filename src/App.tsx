@@ -7,6 +7,7 @@ import MainLayout from "./components/layout/MainLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Articles from "./pages/Articles";
 import ArticleDetails from "./pages/ArticleDetails";
 import Reports from "./pages/Reports";
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/login" element={<Auth />} />
           <Route path="/register" element={<Auth />} />
           <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/admin" element={<MainLayout><AdminDashboard /></MainLayout>} />
           <Route path="/articles" element={<MainLayout><Articles /></MainLayout>} />
           <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
           <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
