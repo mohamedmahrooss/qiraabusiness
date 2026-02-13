@@ -40,14 +40,9 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              QIRAA
-            </div>
-            <div className="hidden md:block ml-2 text-sm text-muted-foreground">
-              AI Market Intelligence
-            </div>
-          </div>
+          <Link to="/" className="flex items-center">
+            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-8" />
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className={`hidden md:flex items-center ${isRTL ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>

@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Articles from "./pages/Articles";
 import ArticleDetails from "./pages/ArticleDetails";
 import Reports from "./pages/Reports";
+import ReportDetails from "./pages/ReportDetails";
 import About from "./pages/About";
 import QiraaSignals from "./pages/QiraaSignals";
 import Pricing from "./pages/Pricing";
@@ -34,6 +35,7 @@ const App = () => {
           <Route path="/articles" element={<MainLayout><Articles /></MainLayout>} />
           <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
           <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+          <Route path="/reports/:id" element={<MainLayout><ReportDetails /></MainLayout>} />
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />
           <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
           <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
