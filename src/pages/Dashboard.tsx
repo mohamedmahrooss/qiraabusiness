@@ -43,10 +43,10 @@ const Dashboard = () => {
   // Get subscription plan details
   const getSubscriptionDetails = (plan: string) => {
     const limits = {
-      free: { daily: 3, monthly: 10 },
+      free: { daily: 3, monthly: 20 },
       basic: { daily: 10, monthly: 50 },
-      pro: { daily: 25, monthly: 150 },
-      enterprise: { daily: -1, monthly: -1 } // Unlimited
+      pro: { daily: -1, monthly: -1 },
+      enterprise: { daily: -1, monthly: -1 }
     };
     
     const planNames = {

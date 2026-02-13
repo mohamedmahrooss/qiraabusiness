@@ -25,7 +25,8 @@ const Pricing = () => {
       ],
       limitations: [
         isRTL ? "لا يشمل التقارير الاستراتيجية" : "No strategic reports",
-        isRTL ? "لا يشمل QIRAA Signals" : "No QIRAA Signals access"
+        isRTL ? "لا يشمل مؤشرات قراءة" : "No QIRAA Signals access",
+        isRTL ? "3 تحليلات يومية فقط و 20 شهرياً" : "Limited to 3 daily & 20 monthly analyses"
       ],
       buttonText: t.getStarted,
       variant: "outline" as const,
@@ -34,19 +35,17 @@ const Pricing = () => {
     {
       name: t.basicPlan,
       nameEn: "Basic", 
-      price: { monthly: 2.5, annual: 24 },
+      price: { monthly: 5, annual: 48 },
       description: t.basicPlanDesc,
       icon: TrendingUp,
       features: [
         isRTL ? "10 تحليلات يومية" : "10 daily analyses",
-        isRTL ? "مقالات غير محدودة" : "Unlimited articles",
-        isRTL ? "أرشيف المحتوى" : "Content archive",
         isRTL ? "فلترة حسب القطاعات" : "Sector filtering",
         isRTL ? "دعم أولوية" : "Priority support"
       ],
       limitations: [
         isRTL ? "لا يشمل التقارير الاستراتيجية" : "No strategic reports",
-        isRTL ? "لا يشمل QIRAA Signals" : "No QIRAA Signals access"
+        isRTL ? "لا يشمل مؤشرات قراءة" : "No QIRAA Signals access"
       ],
       buttonText: t.subscribeNow,
       variant: "default" as const,
@@ -55,20 +54,20 @@ const Pricing = () => {
     {
       name: t.proPlan,
       nameEn: "Pro",
-      price: { monthly: 9, annual: 86 },
+      price: { monthly: 19, annual: 182 },
       description: t.proPlanDesc,
       icon: Crown,
       features: [
         isRTL ? "تحليلات غير محدودة" : "Unlimited analyses",
         isRTL ? "جميع التقارير الاستراتيجية" : "All strategic reports",
-        isRTL ? "تحميل المحتوى كـ PDF" : "PDF downloads",
         isRTL ? "تحليلات قطاعية متخصصة" : "Specialized sector analysis",
         isRTL ? "دعم مباشر 24/7" : "24/7 direct support",
         isRTL ? "تنبيهات فورية" : "Instant alerts",
-        isRTL ? "الوصول إلى QIRAA Signals" : "QIRAA Signals Access",
+        isRTL ? "الوصول إلى مؤشرات قراءة" : "QIRAA Signals Access",
         isRTL ? "عرض شهري وسنوي للبيانات" : "Monthly & Annual data views",
         isRTL ? "رسوم بيانية تفاعلية" : "Interactive charts",
-        isRTL ? "تصدير البيانات CSV" : "CSV data export"
+        isRTL ? "تصدير البيانات CSV" : "CSV data export",
+        isRTL ? "🧠 عقل قراءة - مساعد ذكي" : "🧠 QIRAA Mind - AI Assistant"
       ],
       limitations: [],
       buttonText: t.subscribeToPro,
@@ -83,15 +82,13 @@ const Pricing = () => {
       icon: Building2,
       features: [
         isRTL ? "جميع مزايا الاحترافية" : "All Pro features",
-        isRTL ? "AI Insights & Forecasting" : "AI Insights & Forecasting",
+        isRTL ? "رؤى وتنبؤات الذكاء الاصطناعي" : "AI Insights & Forecasting",
         isRTL ? "مقارنة حتى 5 شركات" : "Compare up to 5 companies",
         isRTL ? "تحليل الحصة السوقية" : "Market Share Analysis",
         isRTL ? "مؤشرات متعددة الدول" : "Multi-country insights",
         isRTL ? "تحديث البيانات الأولوي" : "Priority data refresh",
         isRTL ? "واجهة API متقدمة" : "Advanced API access",
         isRTL ? "تقارير مخصصة" : "Custom reports",
-        isRTL ? "مدير حساب مخصص" : "Dedicated account manager",
-        isRTL ? "تدريب الفريق" : "Team training",
         isRTL ? "تكامل مع أنظمة CRM" : "CRM integration"
       ],
       limitations: [],

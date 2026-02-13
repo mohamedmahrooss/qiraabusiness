@@ -1,13 +1,14 @@
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Calendar, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+
 
 interface Report {
   id: string;
@@ -30,6 +31,7 @@ interface Report {
 }
 
 const Reports = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
 
   const { data: reports, isLoading, error } = useQuery({
@@ -87,20 +89,13 @@ const Reports = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="h-full">
-              <CardHeader>
-                <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-2/3" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-10 w-full mb-4" />
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="rounded-xl border border-border overflow-hidden">
+              <Skeleton className="h-64 w-full" />
+              <div className="p-5 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -168,65 +163,51 @@ const Reports = () => {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {reports.map((report) => (
-          <Card key={report.id} className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
-            {report.cover_image && (
-              <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                <img 
-                  src={report.cover_image} 
+          <div
+            key={report.id}
+            className="group cursor-pointer rounded-xl overflow-hidden border border-border bg-card hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate(`/reports/${report.id}`)}
+          >
+            {/* Cover Image - Full Display */}
+            <div className="relative overflow-hidden bg-muted">
+              {report.cover_image ? (
+                <img
+                  src={report.cover_image}
                   alt={language === 'ar' ? report.title_ar : report.title_en}
-                  className="w-full h-full object-cover"
+                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-              </div>
-            )}
-            
-            <CardHeader className="flex-grow">
-              <div className="flex justify-between items-start gap-2 mb-2">
-                {report.categories && (
-                  <Badge variant="secondary" className="shrink-0">
-                    {language === 'ar' ? report.categories.name_ar : report.categories.name_en}
-                  </Badge>
-                )}
-                <div className={`flex items-center text-xs text-muted-foreground ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-                  <Calendar className={`h-3 w-3 ${language === 'ar' ? 'ml-1' : 'mr-1'}`} />
-                  {formatDate(report.created_at)}
+              ) : (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <FileText className="h-16 w-16 text-muted-foreground" />
                 </div>
-              </div>
-              
-              <CardTitle className="line-clamp-2 leading-tight">
-                {language === 'ar' ? report.title_ar : report.title_en}
-              </CardTitle>
-              
-              {(report.description_ar || report.description_en) && (
-                <CardDescription className="line-clamp-3 leading-relaxed">
-                  {language === 'ar' ? report.description_ar : report.description_en}
-                </CardDescription>
               )}
-              
-              <div className={`flex items-center justify-between text-sm text-muted-foreground pt-2 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-                <span>
-                  {language === 'ar' ? `${report.download_count} تحميل` : `${report.download_count} downloads`}
-                </span>
-                {report.price > 0 && (
-                  <span className="font-semibold">
-                    ${report.price}
-                  </span>
-                )}
-              </div>
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              <Button 
-                className="w-full" 
-                onClick={() => report.file_url && window.open(report.file_url, '_blank')}
-                disabled={!report.file_url}
+              {report.categories && (
+                <Badge variant="secondary" className="absolute top-3 left-3">
+                  {language === 'ar' ? report.categories.name_ar : report.categories.name_en}
+                </Badge>
+              )}
+            </div>
+
+            {/* Report Name */}
+            <div className="p-5 space-y-3">
+              <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                {language === 'ar' ? report.title_ar : report.title_en}
+              </h3>
+
+              <Button
+                className="w-full gap-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/reports/${report.id}`);
+                }}
               >
-                <ExternalLink className={`h-4 w-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                <ExternalLink className="h-4 w-4" />
                 {language === 'ar' ? 'عرض التقرير' : 'View Report'}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>

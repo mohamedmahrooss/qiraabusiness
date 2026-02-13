@@ -35,7 +35,7 @@ const HeroSection = () => {
                 <div className="text-sm text-muted-foreground">تحليل شهري</div>
               </div>
               <div className="text-center lg:text-right">
-                <div className="text-3xl font-bold text-success">50+</div>
+              <div className="text-3xl font-bold text-success">20+</div>
                 <div className="text-sm text-muted-foreground">قطاع استثماري</div>
               </div>
               <div className="text-center lg:text-right">
