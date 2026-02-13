@@ -300,6 +300,7 @@ export type Database = {
           created_at: string
           daily_articles_read: number
           full_name: string
+          has_qiraa_mind: boolean
           last_reset_date: string
           monthly_articles_read: number
           subscription_end_date: string | null
@@ -312,6 +313,7 @@ export type Database = {
           created_at?: string
           daily_articles_read?: number
           full_name: string
+          has_qiraa_mind?: boolean
           last_reset_date?: string
           monthly_articles_read?: number
           subscription_end_date?: string | null
@@ -324,6 +326,7 @@ export type Database = {
           created_at?: string
           daily_articles_read?: number
           full_name?: string
+          has_qiraa_mind?: boolean
           last_reset_date?: string
           monthly_articles_read?: number
           subscription_end_date?: string | null
@@ -448,14 +451,39 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       article_status: "draft" | "published" | "archived"
       content_type: "article" | "report" | "brief"
       payment_status: "pending" | "completed" | "failed" | "refunded"
@@ -587,6 +615,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       article_status: ["draft", "published", "archived"],
       content_type: ["article", "report", "brief"],
       payment_status: ["pending", "completed", "failed", "refunded"],
