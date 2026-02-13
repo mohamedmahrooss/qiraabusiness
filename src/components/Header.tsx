@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Menu, X, User, LogIn, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, LogIn, LogOut, LayoutDashboard, Shield } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { isRTL } = useLanguage();
 
@@ -18,6 +19,14 @@ const Header = () => {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
+      if (session?.user) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin");
+        setIsAdmin(!!(roles && roles.length > 0));
+      }
     };
 
     getUser();
@@ -71,6 +80,14 @@ const Header = () => {
             <LanguageToggle />
             {user ? (
               <>
+                {isAdmin && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/admin">
+                      <Shield className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {isRTL ? 'لوحة المشرف' : 'Admin'}
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/dashboard">
                     <LayoutDashboard className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
