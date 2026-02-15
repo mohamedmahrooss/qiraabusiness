@@ -67,7 +67,7 @@ const Pricing = () => {
         isRTL ? "عرض شهري وسنوي للبيانات" : "Monthly & Annual data views",
         isRTL ? "رسوم بيانية تفاعلية" : "Interactive charts",
         isRTL ? "تصدير البيانات CSV" : "CSV data export",
-        isRTL ? "🧠 عقل قراءة - مساعد ذكي" : "🧠 QIRAA Mind - AI Assistant"
+        isRTL ? "عقل قراءة - مساعد ذكي" : "QIRAA Mind - AI Assistant"
       ],
       limitations: [],
       buttonText: t.subscribeToPro,

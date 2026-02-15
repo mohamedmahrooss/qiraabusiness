@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-8" />
+            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-14" />
             <p className="text-secondary-foreground/80 leading-relaxed">
               {isRTL ? 
                 "منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط وشمال أفريقيا. من خلال رؤى وتحليلات وتقارير دقيقة، تساعد قراءة صانعي القرار والمستثمرين على رؤية الصورة الكاملة واتخاذ قرارات أكثر استنارة وثقة." :
