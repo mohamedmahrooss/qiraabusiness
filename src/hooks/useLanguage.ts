@@ -49,8 +49,8 @@ export const translations = {
     signInHere: 'سجل دخولك هنا',
     createAccount: 'أنشئ حسابك هنا',
     welcomeBack: 'مرحباً بعودتك',
-    joinQiraa: 'انضم إلى قيراء',
-    accessPlatform: 'قم بالدخول للوصول إلى منصة قيراء للتحليلات الذكية',
+    joinQiraa: 'انضم إلى قراءة',
+    accessPlatform: 'قم بالدخول للوصول إلى منصة قراءة للتحليلات الذكية',
     createNewAccount: 'أنشئ حساباً جديداً للاستفادة من خدماتنا المتميزة',
     
     // Validation messages
@@ -61,7 +61,7 @@ export const translations = {
     nameRequired: 'الاسم الكامل مطلوب',
     
     // Success messages
-    welcomeUser: 'مرحباً بك في قيراء!',
+    welcomeUser: 'مرحباً بك في قراءة!',
     accountCreated: 'تم إنشاء حسابك بنجاح',
     loginSuccess: 'تم تسجيل الدخول بنجاح',
     

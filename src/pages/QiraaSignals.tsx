@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import QiraaMind from "@/components/QiraaMind";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -883,10 +882,6 @@ const QiraaSignals = () => {
           </CardContent>
         </Card>
 
-        {/* QIRAA Mind Section */}
-        <div className="mt-12">
-          <QiraaMind />
-        </div>
       </div>
     </div>
   );
