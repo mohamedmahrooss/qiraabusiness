@@ -40,11 +40,6 @@ const HeroSection = () => {
                   <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button size="xl" variant="outline" className="text-lg border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                <Link to="/pricing">
-                  استعرض الباقات
-                </Link>
-              </Button>
             </div>
           </div>
 

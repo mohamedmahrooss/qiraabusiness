@@ -67,6 +67,9 @@ const Header = () => {
             <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
             </Link>
+            <Link to="/qiraa-mind" className="text-foreground hover:text-primary transition-colors">
+              {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
+            </Link>
             <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'الباقات' : 'Pricing'}
             </Link>
@@ -138,6 +141,9 @@ const Header = () => {
               </Link>
               <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
                 {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
+              </Link>
+              <Link to="/qiraa-mind" className="text-foreground hover:text-primary transition-colors">
+                {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
               </Link>
               <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
                 {isRTL ? 'الباقات' : 'Pricing'}

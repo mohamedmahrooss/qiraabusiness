@@ -337,6 +337,48 @@ export type Database = {
         }
         Relationships: []
       }
+      qiraa_mind_documents: {
+        Row: {
+          content: string
+          created_at: string
+          document_type: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          source_month: string | null
+          source_year: number | null
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_month?: string | null
+          source_year?: number | null
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_month?: string | null
+          source_year?: number | null
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           category_id: string | null
