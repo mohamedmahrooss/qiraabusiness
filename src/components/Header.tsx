@@ -1,21 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Menu, X, User, LogIn, LogOut, LayoutDashboard, Shield } from "lucide-react";
+import { Menu, X, LogIn, LogOut, LayoutDashboard, Shield, ChevronDown, BarChart3, Brain } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [signalsOpen, setSignalsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isRTL } = useLanguage();
 
   useEffect(() => {
-    // Get current user
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
@@ -28,15 +29,21 @@ const Header = () => {
         setIsAdmin(!!(roles && roles.length > 0));
       }
     };
-
     getUser();
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
     });
-
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setSignalsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSignOut = async () => {
@@ -64,12 +71,58 @@ const Header = () => {
             <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'التقارير' : 'Reports'}
             </Link>
-            <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
-              {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
-            </Link>
-            <Link to="/qiraa-mind" className="text-foreground hover:text-primary transition-colors">
-              {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
-            </Link>
+
+            {/* QIRAA Signals Dropdown */}
+            <div
+              ref={dropdownRef}
+              className="relative"
+              onMouseEnter={() => setSignalsOpen(true)}
+              onMouseLeave={() => setSignalsOpen(false)}
+            >
+              <button
+                onClick={() => setSignalsOpen(!signalsOpen)}
+                className="flex items-center gap-1 text-foreground hover:text-primary transition-colors"
+              >
+                {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
+                <ChevronDown className={`h-4 w-4 transition-transform ${signalsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {signalsOpen && (
+                <div className={`absolute top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl py-2 z-50 ${isRTL ? 'right-0' : 'left-0'}`}>
+                  <Link
+                    to="/qiraa-signals"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
+                    onClick={() => setSignalsOpen(false)}
+                  >
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-medium text-foreground text-sm">
+                        {isRTL ? 'مؤشرات المبيعات' : 'Sales Intelligence'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {isRTL ? 'لوحة البيانات والرسوم البيانية' : 'Dashboard & Charts'}
+                      </div>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/qiraa-mind"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
+                    onClick={() => setSignalsOpen(false)}
+                  >
+                    <Brain className="h-5 w-5 text-emerald-500" />
+                    <div>
+                      <div className="font-medium text-foreground text-sm">
+                        {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {isRTL ? 'المحلل الاستراتيجي الذكي' : 'AI Strategic Analyst'}
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
+
             <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'الباقات' : 'Pricing'}
             </Link>
@@ -118,10 +171,7 @@ const Header = () => {
           </div>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
+          <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
@@ -130,32 +180,42 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <nav className="flex flex-col space-y-4">
-              <Link to="/" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'الرئيسية' : 'Home'}
               </Link>
-              <Link to="/articles" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/articles" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'المقالات' : 'Articles'}
               </Link>
-              <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/reports" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'التقارير' : 'Reports'}
               </Link>
-              <Link to="/qiraa-signals" className="text-foreground hover:text-primary transition-colors">
-                {isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}
-              </Link>
-              <Link to="/qiraa-mind" className="text-foreground hover:text-primary transition-colors">
-                {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
-              </Link>
-              <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
+              
+              {/* Mobile QIRAA Signals submenu */}
+              <div className="space-y-2">
+                <span className="text-foreground font-medium">{isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}</span>
+                <div className={`${isRTL ? 'pr-4' : 'pl-4'} space-y-2`}>
+                  <Link to="/qiraa-signals" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    <BarChart3 className="h-4 w-4" />
+                    {isRTL ? 'مؤشرات المبيعات' : 'Sales Intelligence'}
+                  </Link>
+                  <Link to="/qiraa-mind" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    <Brain className="h-4 w-4" />
+                    {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
+                  </Link>
+                </div>
+              </div>
+
+              <Link to="/pricing" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'الباقات' : 'Pricing'}
               </Link>
-              <Link to="/about" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/about" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'من نحن' : 'About'}
               </Link>
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
                 {user ? (
                   <>
                     <Button variant="ghost" size="sm" className="justify-start" asChild>
-                      <Link to="/dashboard">
+                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         {isRTL ? 'لوحة التحكم' : 'Dashboard'}
                       </Link>
@@ -168,13 +228,13 @@ const Header = () => {
                 ) : (
                   <>
                     <Button variant="ghost" size="sm" className="justify-start" asChild>
-                      <Link to="/auth">
+                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                         <LogIn className="h-4 w-4 mr-2" />
                         {isRTL ? 'تسجيل الدخول' : 'Sign In'}
                       </Link>
                     </Button>
                     <Button variant="hero" size="sm" asChild>
-                      <Link to="/auth">{isRTL ? 'ابدأ مجاناً' : 'Start Free'}</Link>
+                      <Link to="/auth" onClick={() => setIsMenuOpen(false)}>{isRTL ? 'ابدأ مجاناً' : 'Start Free'}</Link>
                     </Button>
                   </>
                 )}

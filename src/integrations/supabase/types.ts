@@ -342,6 +342,7 @@ export type Database = {
           content: string
           created_at: string
           document_type: string | null
+          file_path: string | null
           file_url: string | null
           id: string
           is_active: boolean | null
@@ -355,6 +356,7 @@ export type Database = {
           content: string
           created_at?: string
           document_type?: string | null
+          file_path?: string | null
           file_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -368,6 +370,7 @@ export type Database = {
           content?: string
           created_at?: string
           document_type?: string | null
+          file_path?: string | null
           file_url?: string | null
           id?: string
           is_active?: boolean | null

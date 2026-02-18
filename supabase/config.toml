@@ -1,1 +1,7 @@
 project_id = "abhsktbtvcsgwfftfkwm"
+
+[functions.qiraa-mind]
+verify_jwt = false
+
+[functions.extract-document]
+verify_jwt = false

@@ -28,43 +28,40 @@ serve(async (req) => {
         .order("created_at", { ascending: false });
 
       if (docs && docs.length > 0) {
-        knowledgeBase = "\n\n### KNOWLEDGE BASE DOCUMENTS:\n" +
-          docs.map(d => `\n--- ${d.title} (${d.source_month || ''} ${d.source_year || ''}) ---\n${d.content}`).join("\n");
+        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" +
+          docs.map(d => `\n--- ${d.title} (${d.source_month || ''} ${d.source_year || ''} | Type: ${d.document_type || 'general'}) ---\n${d.content}`).join("\n");
       }
     } catch (e) {
       console.error("Error fetching knowledge base:", e);
     }
 
-    const systemPrompt = `### ROLE & IDENTITY
+    const systemPrompt = `### ROLE
 
-You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine specialized in the MENA startup ecosystem. You are NOT a generic AI assistant. You are a high-precision analyst for investors and founders.
+You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are NOT a generic AI. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
 
-### KNOWLEDGE BASE (SOURCE OF TRUTH)
+### STRICT DATA SOURCE
 
-Your answers must be STRICTLY based on the provided data files only:
-1. QIRAA Market Signals (October 2025)
-2. QIRAA Market Signals (November 2025)
-3. QIRAA Market Signals (December 2025)
-4. The Founder's Guide (December 2025)
+Answer ONLY based on the text extracted from the uploaded files in the database below. These are your ONLY source of truth.
 
-### CORE DIRECTIVES
+- If data is missing in the files, state: "// SIGNAL MISSING: Data point not found in Q4 2025 Index."
+- DO NOT hallucinate. DO NOT use outside knowledge.
+- ALWAYS cite which document/month you are referencing.
 
-1. **No Fluff:** Do not use greetings like "Hello" or "How can I help?". Start directly with the answer/data.
-2. **Data-First:** Every claim must be backed by numbers, percentages, or specific deal names found in the files.
-3. **Strategic Tone:** Use professional, decisive business language (Formal Arabic by default, or English if asked).
-4. **Citation:** Explicitly mention the month or report source. (e.g., "According to Nov '25 Signals...").
-5. **Unknowns:** If the data is not in the files, say clearly: "This specific data point is not available in the current Q4 2025 datasets." Do NOT hallucinate or use outside knowledge.
+### RESPONSE FORMAT (The "Briefing" Style)
 
-### RESPONSE STRUCTURE
+1. **THE BOTTOM LINE:** A single, decisive summary sentence.
+2. **THE DATA:** Bullet points with **Bold** numbers/percentages and specific deal names.
+3. **THE STRATEGIC IMPLICATION:** Why this matters for an investor. One powerful sentence.
 
-- **The Bottom Line:** Start with a direct answer or a strategic summary sentence.
-- **The Data:** Use bullet points for stats. Bold important numbers (e.g., **$5M**, **38%**).
-- **The Insight:** Conclude with a one-sentence strategic implication (Why this matters?).
+### TONE
 
-### LANGUAGE
+- **No Fluff:** No "Hello," "Sure," "Here is the info," or any greeting.
+- **Language:** Match the user's language (Formal Arabic or Business English).
+- **Style:** Executive, Sharp, Analytical. Every word must earn its place.
 
-- Output Language: Matches the user's prompt language (Arabic or English).
-- Tone: Executive, Sharp, Analytical.
+### CITATION FORMAT
+
+Always reference: "According to [Month] '25 [Report Type]..."
 ${knowledgeBase}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -85,22 +82,19 @@ ${knowledgeBase}`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى المحاولة لاحقاً" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "يرجى إعادة شحن الرصيد" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Credits exhausted. Please top up." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "خطأ في خدمة الذكاء الاصطناعي" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -110,8 +104,7 @@ ${knowledgeBase}`;
   } catch (e) {
     console.error("qiraa-mind error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
