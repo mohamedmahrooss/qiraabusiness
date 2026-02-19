@@ -112,26 +112,20 @@ const QiraaMindPage = () => {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="min-h-screen" style={{ background: "#000000" }}>
-      {/* Technical grid overlay */}
-      <div className="fixed inset-0 opacity-[0.06] pointer-events-none" style={{
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)`,
-        backgroundSize: "60px 60px",
-      }} />
-
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-2">
-          <div className="inline-flex items-center gap-2 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-4" style={{ background: "rgba(16,185,129,0.05)" }}>
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-emerald-400 text-xs font-mono tracking-wider uppercase">
+          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-4 bg-primary/5">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-primary text-xs font-mono tracking-wider uppercase">
               {isRTL ? "نشط • Q4 2025" : "LIVE • Q4 2025 INDEX"}
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
             QIRAA MIND
           </h1>
-          <p className="text-gray-400 text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <p className="text-muted-foreground text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             {isRTL
               ? "محرك ذكاء سوقي استراتيجي • بيانات Q4 2025 • MENA"
               : "Strategic Market Intelligence Engine • Q4 2025 Data • MENA"
@@ -139,47 +133,43 @@ const QiraaMindPage = () => {
           </p>
         </div>
 
-        {/* Search Bar - Center Stage */}
+        {/* Search Bar */}
         <div className={`${hasMessages ? "mb-6" : "mt-16 mb-8"} transition-all duration-500`}>
-          <form
-            onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-            className="relative"
-          >
-            <div className="relative border border-gray-800 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.02)" }}>
+          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
+            <div className="relative border border-border rounded-2xl overflow-hidden bg-card shadow-sm">
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isRTL ? "...اسأل QIRAA MIND عن تحركات السوق" : "Ask QIRAA MIND about market signals..."}
                 disabled={isLoading}
-                className="w-full bg-transparent text-white placeholder-gray-500 px-6 py-5 text-lg outline-none"
+                className="w-full bg-transparent text-foreground placeholder-muted-foreground px-6 py-5 text-lg outline-none"
                 style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
               />
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30"
+                className="absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-primary hover:bg-primary/90"
                 style={{
                   right: isRTL ? "auto" : "12px",
                   left: isRTL ? "12px" : "auto",
-                  background: "linear-gradient(135deg, #10b981, #059669)",
                 }}
               >
-                {isLoading ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Send className="h-5 w-5 text-white" />}
+                {isLoading ? <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" /> : <Send className="h-5 w-5 text-primary-foreground" />}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Power Queries - Only show when no messages */}
+        {/* Power Queries */}
         {!hasMessages && (
           <div className="flex flex-wrap justify-center gap-3 mb-16">
             {powerQueries.map((q) => (
               <button
                 key={q.label}
                 onClick={() => sendMessage(q.query)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-800 text-gray-400 text-sm hover:border-emerald-500/40 hover:text-emerald-400 transition-all"
-                style={{ background: "rgba(255,255,255,0.02)", fontFamily: "'Inter', sans-serif" }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-muted-foreground text-sm hover:border-primary/40 hover:text-primary transition-all bg-card"
+                style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 <q.icon className="h-4 w-4" />
                 {q.label}
@@ -188,32 +178,32 @@ const QiraaMindPage = () => {
           </div>
         )}
 
-        {/* Output Area - Intelligence Briefs */}
+        {/* Output Area */}
         {hasMessages && (
-          <div ref={outputRef} className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 pb-4 custom-scrollbar">
+          <div ref={outputRef} className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 pb-4">
             {messages.map((msg, i) => (
               <div key={i}>
                 {msg.role === "user" ? (
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", fontFamily: "monospace" }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold bg-primary/10 text-primary" style={{ fontFamily: "monospace" }}>
                       Q
                     </div>
-                    <p className="text-gray-300 text-sm pt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <p className="text-foreground text-sm pt-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
                       {msg.content}
                     </p>
                   </div>
                 ) : (
-                  <div className="border border-gray-800/60 rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.015)" }}>
+                  <div className="border border-border rounded-2xl p-6 bg-card">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-emerald-400 text-xs font-mono uppercase tracking-wider">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      <span className="text-primary text-xs font-mono uppercase tracking-wider">
                         {isRTL ? "موجز استخباراتي" : "INTELLIGENCE BRIEF"}
                       </span>
                       {isLoading && i === messages.length - 1 && (
-                        <Loader2 className="h-3 w-3 text-emerald-500 animate-spin" />
+                        <Loader2 className="h-3 w-3 text-primary animate-spin" />
                       )}
                     </div>
-                    <div className="prose prose-invert prose-sm max-w-none prose-headings:font-mono prose-headings:text-emerald-400 prose-strong:text-white prose-li:text-gray-300 prose-p:text-gray-300" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <div className="prose prose-sm max-w-none prose-headings:font-mono prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground prose-p:text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
                       <ReactMarkdown>{msg.content || "..."}</ReactMarkdown>
                     </div>
                   </div>
@@ -222,23 +212,7 @@ const QiraaMindPage = () => {
             ))}
           </div>
         )}
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-gray-500 text-xs font-mono">
-            {isRTL
-              ? "النموذج: Google Gemini 3 Flash • البوابة: Lovable AI Gateway • البيانات: Q4 2025"
-              : "Model: Google Gemini 3 Flash • Gateway: Lovable AI Gateway • Data: Q4 2025"
-            }
-          </p>
-        </div>
       </div>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-      `}</style>
     </div>
   );
 };

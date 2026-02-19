@@ -69,8 +69,8 @@ const Home = () => {
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {isRTL 
-                  ? "تحليلات استراتيجية متعمقة لكل صفقة مع خطوات عملية لرواد الأعمال وإشارات استثمارية واضحة"
-                  : "Deep strategic analysis of each deal with actionable steps for founders and clear investment signals"
+                  ? "تحليلات استراتيجية متعمقة لكل صفقة مع خطوات عملية لرواد الأعمال والشركات الناشئة وإشارات استثمارية واضحة"
+                  : "Deep strategic analysis of each deal with actionable steps for founders, startups, and clear investment signals"
                 }
               </p>
             </div>
@@ -81,7 +81,7 @@ const Home = () => {
                 <Globe className="h-7 w-7 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">
-                {isRTL ? "تغطية إقليمية واسعة" : "Broad Regional Coverage"}
+                {isRTL ? "الشرق الأوسط وشمال أفريقيا" : "Middle East & North Africa"}
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {isRTL 
@@ -97,12 +97,12 @@ const Home = () => {
                 <Users className="h-7 w-7 text-success" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">
-                {isRTL ? "عقل قراءة - مساعد ذكي" : "QIRAA Mind - AI Assistant"}
+                {isRTL ? "عقل قراءة" : "QIRAA Mind"}
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {isRTL 
-                  ? "محلل استراتيجي مدعوم بالذكاء الاصطناعي يجيب على أسئلتك حول تحركات السوق والفرص الاستثمارية"
-                  : "AI-powered strategic analyst answering your questions about market movements and investment opportunities"
+                  ? "محلل استراتيجي مدعوم ببيانات قراءة يجيب على أسئلتك حول تحركات السوق والفرص الاستثمارية"
+                  : "Strategic analyst powered by QIRAA data answering your questions about market movements and investment opportunities"
                 }
               </p>
             </div>
@@ -117,8 +117,8 @@ const Home = () => {
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {isRTL 
-                  ? "جميع البيانات مصدرها مصادر موثوقة ومعتمدة مع تحديث مستمر لضمان دقة المعلومات"
-                  : "All data sourced from verified and accredited sources with continuous updates for accuracy"
+                  ? "جميع البيانات من مصادر موثوقة ومعتمدة مع تحديث مستمر لضمان دقة المعلومات"
+                  : "All data from verified and accredited sources with continuous updates for accuracy"
                 }
               </p>
             </div>
