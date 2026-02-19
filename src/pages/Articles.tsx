@@ -219,12 +219,12 @@ const Articles = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
-            {language === 'ar' ? 'المقالات' : 'Articles'}
+            {language === 'ar' ? 'التحليلات اللحظية' : 'Real-Time Analyses'}
           </h1>
           <p className="text-muted-foreground">
             {language === 'ar' 
-              ? 'اكتشف آخر التحليلات والمقالات في عالم الأعمال والاستثمار' 
-              : 'Discover the latest analysis and articles in business and investment'}
+              ? 'اكتشف آخر التحليلات اللحظية في عالم الأعمال والاستثمار' 
+              : 'Discover the latest real-time analyses in business and investment'}
           </p>
         </div>
 
@@ -234,7 +234,7 @@ const Articles = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder={language === 'ar' ? 'البحث في المقالات...' : 'Search articles...'}
+              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analyses...'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
@@ -283,7 +283,7 @@ const Articles = () => {
         ) : articles.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
-              {language === 'ar' ? 'لم يتم العثور على مقالات' : 'No articles found'}
+              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analyses found'}
             </div>
             <Button variant="outline" onClick={() => {
               setSearchTerm('');

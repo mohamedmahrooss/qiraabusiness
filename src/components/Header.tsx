@@ -12,6 +12,7 @@ const Header = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isRTL } = useLanguage();
@@ -66,7 +67,7 @@ const Header = () => {
               {isRTL ? 'الرئيسية' : 'Home'}
             </Link>
             <Link to="/articles" className="text-foreground hover:text-primary transition-colors">
-              {isRTL ? 'المقالات' : 'Articles'}
+              {isRTL ? 'التحليلات' : 'Analyses'}
             </Link>
             <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'التقارير' : 'Reports'}
@@ -76,8 +77,8 @@ const Header = () => {
             <div
               ref={dropdownRef}
               className="relative"
-              onMouseEnter={() => setSignalsOpen(true)}
-              onMouseLeave={() => setSignalsOpen(false)}
+              onMouseEnter={() => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); setSignalsOpen(true); }}
+              onMouseLeave={() => { closeTimerRef.current = setTimeout(() => setSignalsOpen(false), 250); }}
             >
               <button
                 onClick={() => setSignalsOpen(!signalsOpen)}
@@ -184,7 +185,7 @@ const Header = () => {
                 {isRTL ? 'الرئيسية' : 'Home'}
               </Link>
               <Link to="/articles" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                {isRTL ? 'المقالات' : 'Articles'}
+                {isRTL ? 'التحليلات' : 'Analyses'}
               </Link>
               <Link to="/reports" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'التقارير' : 'Reports'}
