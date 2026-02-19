@@ -112,10 +112,10 @@ const QiraaMindPage = () => {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="min-h-screen" style={{ background: "#050505" }}>
+    <div className="min-h-screen" style={{ background: "#000000" }}>
       {/* Technical grid overlay */}
-      <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+      <div className="fixed inset-0 opacity-[0.06] pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)`,
         backgroundSize: "60px 60px",
       }} />
 
@@ -131,7 +131,7 @@ const QiraaMindPage = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
             QIRAA MIND
           </h1>
-          <p className="text-gray-500 text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <p className="text-gray-400 text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             {isRTL
               ? "محرك ذكاء سوقي استراتيجي • بيانات Q4 2025 • MENA"
               : "Strategic Market Intelligence Engine • Q4 2025 Data • MENA"
@@ -152,7 +152,7 @@ const QiraaMindPage = () => {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isRTL ? "...اسأل QIRAA MIND عن تحركات السوق" : "Ask QIRAA MIND about market signals..."}
                 disabled={isLoading}
-                className="w-full bg-transparent text-white placeholder-gray-600 px-6 py-5 text-lg outline-none"
+                className="w-full bg-transparent text-white placeholder-gray-500 px-6 py-5 text-lg outline-none"
                 style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
               />
               <button
@@ -225,7 +225,7 @@ const QiraaMindPage = () => {
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-gray-700 text-xs font-mono">
+          <p className="text-gray-500 text-xs font-mono">
             {isRTL
               ? "النموذج: Google Gemini 3 Flash • البوابة: Lovable AI Gateway • البيانات: Q4 2025"
               : "Model: Google Gemini 3 Flash • Gateway: Lovable AI Gateway • Data: Q4 2025"

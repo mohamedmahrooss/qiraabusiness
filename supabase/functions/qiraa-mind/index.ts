@@ -20,6 +20,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let knowledgeBase = "";
+    const MAX_KB_CHARS = 800000; // ~200K tokens, safe limit
     try {
       const { data: docs } = await supabase
         .from("qiraa_mind_documents")
@@ -28,8 +29,20 @@ serve(async (req) => {
         .order("created_at", { ascending: false });
 
       if (docs && docs.length > 0) {
-        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" +
-          docs.map(d => `\n--- ${d.title} (${d.source_month || ''} ${d.source_year || ''} | Type: ${d.document_type || 'general'}) ---\n${d.content}`).join("\n");
+        let totalChars = 0;
+        const truncatedDocs: string[] = [];
+        for (const d of docs) {
+          const entry = `\n--- ${d.title} (${d.source_month || ''} ${d.source_year || ''} | Type: ${d.document_type || 'general'}) ---\n${d.content}`;
+          if (totalChars + entry.length > MAX_KB_CHARS) {
+            const remaining = MAX_KB_CHARS - totalChars;
+            if (remaining > 500) truncatedDocs.push(entry.slice(0, remaining) + "\n[TRUNCATED]");
+            break;
+          }
+          truncatedDocs.push(entry);
+          totalChars += entry.length;
+        }
+        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" + truncatedDocs.join("\n");
+        console.log(`Knowledge base: ${docs.length} docs, ${totalChars} chars loaded`);
       }
     } catch (e) {
       console.error("Error fetching knowledge base:", e);
@@ -71,7 +84,7 @@ ${knowledgeBase}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
