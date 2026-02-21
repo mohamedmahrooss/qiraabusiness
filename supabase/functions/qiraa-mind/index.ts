@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-auth-token",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-auth-token",
 };
 
 serve(async (req) => {
@@ -11,113 +11,88 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured in Supabase Secrets");
 
-    // Fetch knowledge base documents from DB
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    let knowledgeBase = "";
-    const MAX_KB_CHARS = 800000; // ~200K tokens, safe limit
-    try {
-      const { data: docs } = await supabase
-        .from("qiraa_mind_documents")
-        .select("title, content, source_month, source_year, document_type")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+    // 1. جلب أحدث الملفات النشطة من الجدول
+    const { data: docs, error: dbError } = await supabase
+      .from("qiraa_mind_documents")
+      .select("file_url, title")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(3);
 
-      if (docs && docs.length > 0) {
-        let totalChars = 0;
-        const truncatedDocs: string[] = [];
-        for (const d of docs) {
-          const entry = `\n--- ${d.title} (${d.source_month || ''} ${d.source_year || ''} | Type: ${d.document_type || 'general'}) ---\n${d.content}`;
-          if (totalChars + entry.length > MAX_KB_CHARS) {
-            const remaining = MAX_KB_CHARS - totalChars;
-            if (remaining > 500) truncatedDocs.push(entry.slice(0, remaining) + "\n[TRUNCATED]");
-            break;
-          }
-          truncatedDocs.push(entry);
-          totalChars += entry.length;
-        }
-        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" + truncatedDocs.join("\n");
-        console.log(`Knowledge base: ${docs.length} docs, ${totalChars} chars loaded`);
+    if (dbError) throw dbError;
+
+    // 2. تحويل ملفات الـ PDF إلى صيغة يفهمها Gemini (Base64)
+    const fileParts = await Promise.all((docs || []).map(async (doc) => {
+      try {
+        const res = await fetch(doc.file_url);
+        const arrayBuffer = await res.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        return {
+          inlineData: { data: base64, mimeType: "application/pdf" }
+        };
+      } catch (e) {
+        console.error(`Failed to load file: ${doc.title}`, e);
+        return null;
       }
-    } catch (e) {
-      console.error("Error fetching knowledge base:", e);
-    }
+    }));
 
-    const systemPrompt = `### ROLE
+    const validFileParts = fileParts.filter(part => part !== null);
 
-You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are NOT a generic AI. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
+    // 3. بناء الرسالة الموجهة لـ Gemini
+    const systemInstruction = `You are "QIRAA MIND," a Strategic Market Intelligence Engine for MENA.
+    STRICT RULES:
+    1. Use ONLY the provided PDF documents to answer.
+    2. Be extremely precise with percentages and numbers from tables.
+    3. Format: BOTTOM LINE (1 sentence), THE DATA (bullet points), STRATEGIC IMPLICATION (1 sentence).
+    4. Language: If the user asks in Arabic, respond in Professional Arabic.
+    5. No fluff or greetings.`;
 
-### STRICT DATA SOURCE
+    const lastUserMessage = messages[messages.length - 1].content;
 
-Answer ONLY based on the text extracted from the uploaded files in the database below. These are your ONLY source of truth.
-
-- If data is missing in the files, state: "// SIGNAL MISSING: Data point not found in Q4 2025 Index."
-- DO NOT hallucinate. DO NOT use outside knowledge.
-- ALWAYS cite which document/month you are referencing.
-
-### RESPONSE FORMAT (The "Briefing" Style)
-
-1. **THE BOTTOM LINE:** A single, decisive summary sentence.
-2. **THE DATA:** Bullet points with **Bold** numbers/percentages and specific deal names.
-3. **THE STRATEGIC IMPLICATION:** Why this matters for an investor. One powerful sentence.
-
-### TONE
-
-- **No Fluff:** No "Hello," "Sure," "Here is the info," or any greeting.
-- **Language:** Match the user's language (Formal Arabic or Business English).
-- **Style:** Executive, Sharp, Analytical. Every word must earn its place.
-
-### CITATION FORMAT
-
-Always reference: "According to [Month] '25 [Report Type]..."
-${knowledgeBase}`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // 4. الاتصال المباشر بـ Gemini API لدعم الـ Streaming
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: systemInstruction },
+              ...validFileParts,
+              { text: lastUserMessage }
+            ]
+          }
         ],
-        stream: true,
+        generationConfig: {
+          temperature: 0.1,
+          topP: 0.95,
+        }
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Credits exhausted. Please top up." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const errorText = await response.text();
+      throw new Error(`Gemini API Error: ${errorText}`);
     }
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
+
   } catch (e) {
-    console.error("qiraa-mind error:", e);
+    console.error("Error in qiraa-mind function:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
