@@ -14,19 +14,18 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // جلب الملفات - تأكد من جلب ملفات PDF فقط لتجنب خطأ الـ MimeType
+    // جلب ملفات الـ PDF فقط
     const { data: docs } = await supabase
       .from("qiraa_mind_documents")
       .select("file_url, title")
       .eq("is_active", true)
-      .ilike('file_url', '%.pdf') // جلب ملفات الـ PDF فقط
+      .ilike('file_url', '%.pdf') 
       .order("created_at", { ascending: false })
       .limit(2);
 
     const fileParts = await Promise.all((docs || []).map(async (doc) => {
       try {
         const res = await fetch(doc.file_url);
-        if (!res.ok) return null;
         const arrayBuffer = await res.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
         return { inlineData: { data: base64, mimeType: "application/pdf" } };
@@ -35,8 +34,8 @@ serve(async (req) => {
 
     const validFileParts = fileParts.filter(p => p !== null);
 
-    // الرابط المصحح لنسخة Gemini 1.5 Pro
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?key=${GEMINI_API_KEY}`;
+    // الرابط المجاني 100% والمستقر (استخدام gemini-1.5-flash)
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${GEMINI_API_KEY}`;
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -45,18 +44,21 @@ serve(async (req) => {
         contents: [{
           role: "user",
           parts: [
-            { text: "أنت خبير في تحليل البيانات. أجب بدقة من الملفات المرفقة فقط وباللغة العربية." },
+            { text: "أنت خبير في تحليل البيانات الاستراتيجية. أجب بدقة شديدة من الملفات المرفقة فقط. اهتم جداً بالنسب المئوية والأرقام الموجودة في الجداول. لغة الرد: العربية الفصحى." },
             ...validFileParts,
             { text: messages[messages.length - 1].content }
           ]
         }],
-        generationConfig: { temperature: 0.1 }
+        generationConfig: { 
+          temperature: 0.1,
+          topP: 0.95 
+        }
       }),
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(JSON.stringify(errorData));
+        const errorData = await response.text();
+        throw new Error(errorData);
     }
 
     return new Response(response.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
