@@ -12,87 +12,55 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured in Supabase Secrets");
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // 1. جلب أحدث الملفات النشطة من الجدول
-    const { data: docs, error: dbError } = await supabase
+    // جلب الملفات - تأكد من جلب ملفات PDF فقط لتجنب خطأ الـ MimeType
+    const { data: docs } = await supabase
       .from("qiraa_mind_documents")
       .select("file_url, title")
       .eq("is_active", true)
+      .ilike('file_url', '%.pdf') // جلب ملفات الـ PDF فقط
       .order("created_at", { ascending: false })
-      .limit(3);
+      .limit(2);
 
-    if (dbError) throw dbError;
-
-    // 2. تحويل ملفات الـ PDF إلى صيغة يفهمها Gemini (Base64)
     const fileParts = await Promise.all((docs || []).map(async (doc) => {
       try {
         const res = await fetch(doc.file_url);
+        if (!res.ok) return null;
         const arrayBuffer = await res.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-        return {
-          inlineData: { data: base64, mimeType: "application/pdf" }
-        };
-      } catch (e) {
-        console.error(`Failed to load file: ${doc.title}`, e);
-        return null;
-      }
+        return { inlineData: { data: base64, mimeType: "application/pdf" } };
+      } catch (e) { return null; }
     }));
 
-    const validFileParts = fileParts.filter(part => part !== null);
+    const validFileParts = fileParts.filter(p => p !== null);
 
-    // 3. بناء الرسالة الموجهة لـ Gemini
-    const systemInstruction = `You are "QIRAA MIND," a Strategic Market Intelligence Engine for MENA.
-    STRICT RULES:
-    1. Use ONLY the provided PDF documents to answer.
-    2. Be extremely precise with percentages and numbers from tables.
-    3. Format: BOTTOM LINE (1 sentence), THE DATA (bullet points), STRATEGIC IMPLICATION (1 sentence).
-    4. Language: If the user asks in Arabic, respond in Professional Arabic.
-    5. No fluff or greetings.`;
+    // الرابط المصحح لنسخة Gemini 1.5 Pro
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?key=${GEMINI_API_KEY}`;
 
-    const lastUserMessage = messages[messages.length - 1].content;
-
-    // 4. الاتصال المباشر بـ Gemini API لدعم الـ Streaming
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:streamGenerateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: systemInstruction },
-              ...validFileParts,
-              { text: lastUserMessage }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          topP: 0.95,
-        }
+        contents: [{
+          role: "user",
+          parts: [
+            { text: "أنت خبير في تحليل البيانات. أجب بدقة من الملفات المرفقة فقط وباللغة العربية." },
+            ...validFileParts,
+            { text: messages[messages.length - 1].content }
+          ]
+        }],
+        generationConfig: { temperature: 0.1 }
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini API Error: ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-
+    return new Response(response.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (e) {
-    console.error("Error in qiraa-mind function:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 });
