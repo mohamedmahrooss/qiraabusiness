@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Send, Loader2, Zap, TrendingUp, Globe, Leaf } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
@@ -25,13 +25,13 @@ const QiraaMindPage = () => {
   const powerQueries = isRTL
     ? [
         { label: "تحليل اتجاهات Q4", query: "حلل أبرز اتجاهات الاستثمار في الربع الأخير من 2025 في منطقة الشرق الأوسط وشمال أفريقيا", icon: TrendingUp },
-        { label: "مصر vs السعودية", query: "قارن بين بيئة الاستثمار في الشركات الناشئة في مصر والسعودية خلال Q4 2025", icon: Globe },
+        { label: "فرص توريد العمالة", query: "بناءً على التمويلات والتوسعات الأخيرة، ما هي الشركات التي من المرجح أن تحتاج لتوظيف وتوريد عمالة قريباً؟", icon: Globe },
         { label: "أبرز صفقات AgriTech", query: "ما هي أبرز صفقات واستثمارات التكنولوجيا الزراعية في المنطقة؟", icon: Leaf },
         { label: "FinTech في المنطقة", query: "ما هو وضع قطاع التكنولوجيا المالية في الشرق الأوسط وشمال أفريقيا في الربع الأخير من 2025؟", icon: Zap },
       ]
     : [
         { label: "Analyze Q4 Trends", query: "Analyze the top investment trends in MENA region during Q4 2025", icon: TrendingUp },
-        { label: "Egypt vs KSA", query: "Compare startup investment environments in Egypt vs Saudi Arabia during Q4 2025", icon: Globe },
+        { label: "Hiring Opportunities", query: "Based on recent funding and expansions, which companies are likely to need hiring and labor supply soon?", icon: Globe },
         { label: "Top AgriTech Deals", query: "What are the top AgriTech deals and investments in the MENA region?", icon: Leaf },
         { label: "FinTech Overview", query: "What is the state of FinTech in MENA during Q4 2025?", icon: Zap },
       ];
@@ -59,50 +59,53 @@ const QiraaMindPage = () => {
         body: JSON.stringify({ messages: newMessages }),
       });
 
-      if (!resp.ok || !resp.body) {
+      if (!resp.ok) {
         const errData = await resp.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to get response");
+        throw new Error(errData.error || "Failed to get response from Qiraa Mind Engine");
       }
+
+      if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
-      let textBuffer = "";
       let assistantContent = "";
 
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
 
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          const line = textBuffer.slice(0, newlineIndex).trim();
-          textBuffer = textBuffer.slice(newlineIndex + 1);
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
 
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6);
-          if (payload === "[DONE]") break;
+        for (const line of lines) {
+          if (line.trim() === "" || line.startsWith(":")) continue;
+          if (line.startsWith("data: ")) {
+            const dataStr = line.substring(6);
+            if (dataStr === "[DONE]") break;
 
-          try {
-            const parsed = JSON.parse(payload);
-            const delta = parsed.choices?.[0]?.delta?.content;
-            if (delta) {
-              assistantContent += delta;
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: "assistant", content: assistantContent };
-                return updated;
-              });
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices?.[0]?.delta?.content || "";
+              if (delta) {
+                assistantContent += delta;
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = { role: "assistant", content: assistantContent };
+                  return updated;
+                });
+              }
+            } catch {
+              // Ignore partial JSON chunks during stream
             }
-          } catch { /* partial JSON */ }
+          }
         }
       }
     } catch (error: any) {
-      setMessages(prev => [
-        ...prev.filter(m => !(m.role === "assistant" && m.content === "")),
-        { role: "assistant", content: `// ERROR: ${error.message || "Connection failed"}` }
+      setMessages((prev) => [
+        ...prev.filter((m) => !(m.role === "assistant" && m.content === "")),
+        { role: "assistant", content: `**خطأ في النظام:** ${error.message || "فشل الاتصال بمحرك التحليل"}` },
       ]);
     } finally {
       setIsLoading(false);
@@ -119,7 +122,7 @@ const QiraaMindPage = () => {
           <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-4 bg-primary/5">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-primary text-xs font-mono tracking-wider uppercase">
-              {isRTL ? "نشط • Q4 2025" : "LIVE • Q4 2025 INDEX"}
+              {isRTL ? "نشط • محرك التحليل الاستراتيجي" : "LIVE • STRATEGIC ENGINE"}
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
@@ -127,8 +130,8 @@ const QiraaMindPage = () => {
           </h1>
           <p className="text-muted-foreground text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
             {isRTL
-              ? "محرك ذكاء سوقي استراتيجي • بيانات Q4 2025 • MENA"
-              : "Strategic Market Intelligence Engine • Q4 2025 Data • MENA"
+              ? "استنتاج استراتيجي • بيانات Q4 2025 • مدعوم بـ Qwen-72B"
+              : "Strategic Reasoning • Q4 2025 Data • Powered by Qwen-72B"
             }
           </p>
         </div>
@@ -141,7 +144,7 @@ const QiraaMindPage = () => {
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isRTL ? "...اسأل QIRAA MIND عن تحركات السوق" : "Ask QIRAA MIND about market signals..."}
+                placeholder={isRTL ? "...اسأل QIRAA عن التوصيات والفرص الخفية" : "Ask QIRAA for strategic recommendations..."}
                 disabled={isLoading}
                 className="w-full bg-transparent text-foreground placeholder-muted-foreground px-6 py-5 text-lg outline-none"
                 style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
@@ -197,7 +200,7 @@ const QiraaMindPage = () => {
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 rounded-full bg-primary" />
                       <span className="text-primary text-xs font-mono uppercase tracking-wider">
-                        {isRTL ? "موجز استخباراتي" : "INTELLIGENCE BRIEF"}
+                        {isRTL ? "توصية استراتيجية مُستنتجة" : "STRATEGIC INFERENCE"}
                       </span>
                       {isLoading && i === messages.length - 1 && (
                         <Loader2 className="h-3 w-3 text-primary animate-spin" />
