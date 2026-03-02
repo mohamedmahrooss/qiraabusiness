@@ -11,58 +11,72 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const HF_TOKEN = Deno.env.get("HF_TOKEN")!;
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // جلب ملفات الـ PDF فقط
+    // 1. استرجاع أحدث وأهم البيانات المستخرجة (RAG Context)
     const { data: docs } = await supabase
       .from("qiraa_mind_documents")
-      .select("file_url, title")
+      .select("title, content")
       .eq("is_active", true)
-      .ilike('file_url', '%.pdf') 
       .order("created_at", { ascending: false })
-      .limit(2);
+      .limit(5);
 
-    const fileParts = await Promise.all((docs || []).map(async (doc) => {
-      try {
-        const res = await fetch(doc.file_url);
-        const arrayBuffer = await res.arrayBuffer();
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-        return { inlineData: { data: base64, mimeType: "application/pdf" } };
-      } catch (e) { return null; }
-    }));
+    let contextData = "البيانات المرجعية (Knowledge Base):\n\n";
+    if (docs && docs.length > 0) {
+      docs.forEach((doc, index) => {
+        contextData += `--- ملف: ${doc.title} ---\n${doc.content}\n\n`;
+      });
+    } else {
+      contextData += "لا توجد بيانات متاحة حالياً.\n";
+    }
 
-    const validFileParts = fileParts.filter(p => p !== null);
+    // 2. صياغة برومبت النظام الاستراتيجي (The Brain)
+    const systemPrompt = `أنت "Qiraa Mind"، مستشار ذكاء سوقي استراتيجي ومهندس تحليلات خبير للشركات الناشئة في الشرق الأوسط (MENA).
+مهمتك:
+1. الإجابة بدقة متناهية بناءً على البيانات المرجعية المرفقة فقط.
+2. الاستنتاج الاستراتيجي (Strategic Deduction): لا تكتفِ بالبحث النصي. إذا سأل المستخدم عن "فرص توظيف"، ابحث عن الشركات التي حصلت على "تمويل" أو أعلنت عن "توسع"، واستنتج أن هذه الشركات تحتاج لتوظيف، واذكر ذلك صراحة للمستخدم كتوصية قوية.
+3. التحدث بلغة أعمال (Business Arabic) رصينة وحازمة ومباشرة.
+4. اذكر الأرقام والنسب والإحصائيات بدقة تامة كما وردت.
+5. لا تهلوس (Zero Hallucination). إذا لم تكن المعلومة موجودة أو لا يمكن استنتاجها منطقياً من البيانات، قل "لا توجد بيانات كافية في التقرير الحالي".
 
-    // الرابط المجاني 100% والمستقر (استخدام gemini-1.5-flash)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${GEMINI_API_KEY}`;
+${contextData}`;
 
-    const response = await fetch(apiUrl, {
+    // 3. ترتيب الرسائل للنموذج
+    const formattedMessages = [
+      { role: "system", content: systemPrompt },
+      ...messages
+    ];
+
+    // 4. استدعاء نموذج Qwen2.5-72B-Instruct عبر HuggingFace
+    const hfResponse = await fetch("https://router.huggingface.co/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${HF_TOKEN}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        contents: [{
-          role: "user",
-          parts: [
-            { text: "أنت خبير في تحليل البيانات الاستراتيجية. أجب بدقة شديدة من الملفات المرفقة فقط. اهتم جداً بالنسب المئوية والأرقام الموجودة في الجداول. لغة الرد: العربية الفصحى." },
-            ...validFileParts,
-            { text: messages[messages.length - 1].content }
-          ]
-        }],
-        generationConfig: { 
-          temperature: 0.1,
-          topP: 0.95 
-        }
+        model: "Qwen/Qwen2.5-72B-Instruct:novita",
+        messages: formattedMessages,
+        stream: true,
+        temperature: 0.2,
+        top_p: 0.9,
       }),
     });
 
-    if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData);
+    if (!hfResponse.ok) {
+      const errorData = await hfResponse.text();
+      throw new Error(`HF API Error: ${errorData}`);
     }
 
-    return new Response(response.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+    // 5. إرجاع الـ Stream مباشرة للواجهة الأمامية
+    return new Response(hfResponse.body, { 
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" } 
+    });
+
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e.message }), { 
+      status: 500, headers: corsHeaders 
+    });
   }
 });
