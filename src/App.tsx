@@ -15,6 +15,7 @@ import ReportDetails from "./pages/ReportDetails";
 import About from "./pages/About";
 import QiraaSignals from "./pages/QiraaSignals";
 import QiraaMindPage from "./pages/QiraaMindPage";
+import BillingPage from "./pages/BillingPage";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />
           <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
           <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
+          <Route path="/billing" element={<MainLayout><BillingPage /></MainLayout>} />
           <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

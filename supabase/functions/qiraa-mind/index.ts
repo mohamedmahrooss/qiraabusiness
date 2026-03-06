@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-auth-token",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-auth-token",
 };
 
 serve(async (req) => {
@@ -11,72 +11,161 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const HF_TOKEN = Deno.env.get("HF_TOKEN")!;
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const userToken = req.headers.get("x-auth-token");
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. استرجاع أحدث وأهم البيانات المستخرجة (RAG Context)
-    const { data: docs } = await supabase
-      .from("qiraa_mind_documents")
-      .select("title, content")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(5);
+    // 1. التحقق من هوية المستخدم ورصيد الأسئلة
+    let userId: string | null = null;
+    if (userToken) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser(userToken);
+        if (user) {
+            userId = user.id;
+            const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
+            if (!profile || profile.qiraa_mind_tokens <= 0) {
+                return new Response(JSON.stringify({ error: "Insufficient tokens" }), { status: 402, headers: corsHeaders });
+            }
+        }
+    }
 
-    let contextData = "البيانات المرجعية (Knowledge Base):\n\n";
-    if (docs && docs.length > 0) {
-      docs.forEach((doc, index) => {
-        contextData += `--- ملف: ${doc.title} ---\n${doc.content}\n\n`;
+    // 2. تحليل لغة السؤال الأخير
+    const lastUserMessage = messages[messages.length - 1].content;
+    const isArabic = /[\u0600-\u06FF]/.test(lastUserMessage);
+    const contentColumn = isArabic ? "content_ar" : "content_en";
+
+    // 3. تحديد النطاق الزمني (آخر 3 أشهر فقط)
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const dateString = threeMonthsAgo.toISOString();
+
+    // 4. سحب المقالات/التحليلات من جدول articles
+    let knowledgeBase = "";
+    const MAX_KB_CHARS = 800000; 
+    try {
+      const { data: articles } = await supabase
+        .from("articles")
+        .select(`${contentColumn}, published_at`)
+        .gte("published_at", dateString)
+        .order("published_at", { ascending: false });
+
+      if (articles && articles.length > 0) {
+        let totalChars = 0;
+        const truncatedDocs: string[] = [];
+        for (const art of articles) {
+          const textContent = (art as any)[contentColumn];
+          if (!textContent) continue;
+
+          const entry = `\n--- [تاريخ النشر: ${new Date(art.published_at!).toLocaleDateString()}] ---\n${textContent}`;
+          if (totalChars + entry.length > MAX_KB_CHARS) {
+            const remaining = MAX_KB_CHARS - totalChars;
+            if (remaining > 500) truncatedDocs.push(entry.slice(0, remaining) + "\n[TRUNCATED]");
+            break;
+          }
+          truncatedDocs.push(entry);
+          totalChars += entry.length;
+        }
+        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" + truncatedDocs.join("\n");
+      } else {
+        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\nلا توجد تحليلات متاحة في آخر 3 أشهر بهذه اللغة.";
+      }
+    } catch (e) {
+      console.error("Error fetching articles:", e);
+    }
+
+    // 5. البرومبت النظامي
+    const systemPrompt = `### ROLE
+
+You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are NOT a generic AI. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
+
+### STRICT DATA SOURCE
+
+Answer ONLY based on the text extracted from the uploaded files in the database below. These are your ONLY source of truth.
+
+- If data is missing in the files, state: "// SIGNAL MISSING: Data point not found in recent Index."
+- DO NOT hallucinate. DO NOT use outside knowledge.
+- ALWAYS cite which date/month you are referencing.
+
+### RESPONSE FORMAT (The "Briefing" Style)
+
+1. **THE BOTTOM LINE:** A single, decisive summary sentence.
+2. **THE DATA:** Bullet points with **Bold** numbers/percentages and specific deal names.
+3. **THE STRATEGIC IMPLICATION:** Why this matters for an investor or founder. One powerful sentence.
+
+### TONE
+
+- **No Fluff:** No "Hello," "Sure," "Here is the info," or any greeting.
+- **Language:** Match the user's language (Formal Arabic or Business English).
+- **Style:** Executive, Sharp, Analytical. Every word must earn its place.
+
+${knowledgeBase}`;
+
+    // 6. نظام شلال المفاتيح (50 Keys Fallback)
+    let aiResponse: Response | null = null;
+
+    for (let i = 1; i <= 50; i++) {
+      const apiKey = Deno.env.get(`LOVABLE_API_KEY_${i}`);
+      if (!apiKey) continue;
+
+      try {
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...messages,
+            ],
+            stream: true,
+          }),
+        });
+
+        if (response.status === 402 || response.status === 429) {
+          console.warn(`Key LOVABLE_API_KEY_${i} exhausted. Moving to next...`);
+          continue; 
+        }
+
+        if (response.ok) {
+          aiResponse = response;
+          break;
+        } else {
+           const t = await response.text();
+           throw new Error(`API Error: ${response.status} - ${t}`);
+        }
+      } catch (err) {
+         console.error(`Error with Key ${i}:`, err);
+         continue;
+      }
+    }
+
+    if (!aiResponse) {
+      return new Response(JSON.stringify({ error: "All API Keys are exhausted or unavailable. Please contact admin." }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    } else {
-      contextData += "لا توجد بيانات متاحة حالياً.\n";
     }
 
-    // 2. صياغة برومبت النظام الاستراتيجي (The Brain)
-    const systemPrompt = `أنت "Qiraa Mind"، مستشار ذكاء سوقي استراتيجي ومهندس تحليلات خبير للشركات الناشئة في الشرق الأوسط (MENA).
-مهمتك:
-1. الإجابة بدقة متناهية بناءً على البيانات المرجعية المرفقة فقط.
-2. الاستنتاج الاستراتيجي (Strategic Deduction): لا تكتفِ بالبحث النصي. إذا سأل المستخدم عن "فرص توظيف"، ابحث عن الشركات التي حصلت على "تمويل" أو أعلنت عن "توسع"، واستنتج أن هذه الشركات تحتاج لتوظيف، واذكر ذلك صراحة للمستخدم كتوصية قوية.
-3. التحدث بلغة أعمال (Business Arabic) رصينة وحازمة ومباشرة.
-4. اذكر الأرقام والنسب والإحصائيات بدقة تامة كما وردت.
-5. لا تهلوس (Zero Hallucination). إذا لم تكن المعلومة موجودة أو لا يمكن استنتاجها منطقياً من البيانات، قل "لا توجد بيانات كافية في التقرير الحالي".
-
-${contextData}`;
-
-    // 3. ترتيب الرسائل للنموذج
-    const formattedMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages
-    ];
-
-    // 4. استدعاء نموذج Qwen2.5-72B-Instruct عبر HuggingFace
-    const hfResponse = await fetch("https://router.huggingface.co/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "Qwen/Qwen2.5-72B-Instruct:novita",
-        messages: formattedMessages,
-        stream: true,
-        temperature: 0.2,
-        top_p: 0.9,
-      }),
-    });
-
-    if (!hfResponse.ok) {
-      const errorData = await hfResponse.text();
-      throw new Error(`HF API Error: ${errorData}`);
+    // 7. خصم التوكن من المستخدم بعد نجاح الاتصال
+    if (userId) {
+        const { data: currentProfile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
+        if (currentProfile) {
+            await supabase.from('profiles').update({ qiraa_mind_tokens: currentProfile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
+        }
     }
 
-    // 5. إرجاع الـ Stream مباشرة للواجهة الأمامية
-    return new Response(hfResponse.body, { 
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" } 
+    // 8. إعادة البث (Stream) للعميل
+    return new Response(aiResponse.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
 
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), { 
-      status: 500, headers: corsHeaders 
+    console.error("qiraa-mind error:", e);
+    return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

@@ -303,6 +303,7 @@ export type Database = {
           has_qiraa_mind: boolean
           last_reset_date: string
           monthly_articles_read: number
+          qiraa_mind_tokens: number
           subscription_end_date: string | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           subscription_start_date: string | null
@@ -316,6 +317,7 @@ export type Database = {
           has_qiraa_mind?: boolean
           last_reset_date?: string
           monthly_articles_read?: number
+          qiraa_mind_tokens?: number
           subscription_end_date?: string | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           subscription_start_date?: string | null
@@ -329,6 +331,7 @@ export type Database = {
           has_qiraa_mind?: boolean
           last_reset_date?: string
           monthly_articles_read?: number
+          qiraa_mind_tokens?: number
           subscription_end_date?: string | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           subscription_start_date?: string | null
@@ -379,6 +382,33 @@ export type Database = {
           title?: string
           updated_at?: string
           uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      qiraa_mind_history: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          session_id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+          user_id?: string
         }
         Relationships: []
       }
