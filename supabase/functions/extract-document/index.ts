@@ -3,107 +3,141 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) throw new Error("Missing authorization");
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const HF_TOKEN = Deno.env.get("HF_TOKEN")!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify admin
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) throw new Error("Unauthorized");
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin");
+    if (!roles || roles.length === 0) throw new Error("Admin access required");
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const title = formData.get("title") as string;
     const sourceMonth = formData.get("source_month") as string;
     const sourceYear = formData.get("source_year") as string;
+    const documentType = formData.get("document_type") as string;
 
-    if (!file) throw new Error("No file uploaded");
+    if (!file || !title) throw new Error("File and title are required");
 
-    // 1. رفع الملف إلى Storage
+    // Upload file to storage
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = `documents/${fileName}`;
+    const arrayBuffer = await file.arrayBuffer();
+    const fileBytes = new Uint8Array(arrayBuffer);
+
     const { error: uploadError } = await supabase.storage
       .from("qiraa-knowledge-base")
-      .upload(filePath, file);
+      .upload(filePath, fileBytes, { contentType: file.type });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
 
-    // 2. الحصول على الرابط العام
-    const { data: { publicUrl } } = supabase.storage
-      .from("qiraa-knowledge-base")
-      .getPublicUrl(filePath);
+    let extractedText = "";
 
-    // 3. قراءة الملف لاستخراجه باستخدام Qwen-VL
-    let extractedContent = "";
-    
-    try {
-      const hfResponse = await fetch("https://router.huggingface.co/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HF_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "Qwen/Qwen2.5-VL-72B-Instruct:hyperbolic",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "استخرج كل النصوص والجداول من هذا المستند بدقة متناهية. حول الجداول إلى صيغة Markdown. لا تضف أي تعليقات من عندك، فقط البيانات الموجودة."
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: publicUrl }
-                }
-              ]
-            }
-          ],
-          stream: false
-        })
-      });
+    if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+      const base64 = btoa(String.fromCharCode(...fileBytes));
+      let extractionSuccess = false;
 
-      if (hfResponse.ok) {
-        const hfData = await hfResponse.json();
-        extractedContent = hfData.choices[0]?.message?.content || "لم يتم استخراج محتوى.";
-      } else {
-        const errText = await hfResponse.text();
-        console.error("HF Vision API Error:", errText);
-        extractedContent = `[تم الرفع بنجاح - تعذر الاستخراج التلقائي. الخطأ: ${errText}]`;
+      for (let i = 1; i <= 50; i++) {
+        const apiKey = Deno.env.get(`LOVABLE_API_KEY_${i}`);
+        if (!apiKey) continue;
+
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: "Extract ALL text content from this PDF document. Return ONLY the raw text, preserving the structure. Do not summarize or modify anything." },
+                  { type: "image_url", image_url: { url: `data:application/pdf;base64,${base64}` } }
+                ]
+              }
+            ],
+          }),
+        });
+
+        if (aiResponse.status === 402 || aiResponse.status === 429) {
+           console.warn(`Extraction Key ${i} exhausted. Trying next...`);
+           continue;
+        }
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          extractedText = aiData.choices?.[0]?.message?.content || "";
+          extractionSuccess = true;
+          break;
+        }
       }
-    } catch (visionError) {
-      console.error("Vision Model Catch:", visionError);
-      extractedContent = "[فشل الاتصال بنموذج الرؤية أثناء الاستخراج]";
+      
+      if (!extractionSuccess) {
+         extractedText = `[تم الرفع بنجاح. فشل الاستخراج، جميع المفاتيح نفدت أو غير متاحة]`;
+      }
+      
+    } else {
+      try {
+        const decoder = new TextDecoder("utf-8");
+        extractedText = decoder.decode(fileBytes);
+        if (extractedText.includes("\x00") || extractedText.length < 10) {
+          extractedText = `[Document uploaded: ${file.name}. Content extraction pending manual review.]`;
+        }
+      } catch {
+        extractedText = `[Document uploaded: ${file.name}]`;
+      }
     }
 
-    // 4. حفظ البيانات مع المحتوى المستخرج في قاعدة البيانات
+    if (!extractedText || extractedText.length < 50) {
+      extractedText = `[Document: ${file.name} uploaded successfully. Please paste the text content manually.]`;
+    }
+
+    // Insert document record
     const { data: doc, error: insertError } = await supabase
       .from("qiraa_mind_documents")
       .insert({
         title,
-        file_url: publicUrl,
-        file_path: filePath,
-        source_month: sourceMonth,
+        content: extractedText,
+        source_month: sourceMonth || null,
         source_year: sourceYear ? parseInt(sourceYear) : null,
-        content: extractedContent,
-        is_active: true
+        document_type: documentType || "market_signals",
+        file_path: filePath,
+        uploaded_by: user.id,
       })
-      .select().single();
+      .select()
+      .single();
 
-    if (insertError) throw insertError;
+    if (insertError) throw new Error(`Insert failed: ${insertError.message}`);
 
     return new Response(JSON.stringify({ success: true, document: doc }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 400, headers: corsHeaders,
+  } catch (e: any) {
+    console.error("extract-document error:", e);
+    return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

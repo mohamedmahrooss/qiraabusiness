@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Zap, Crown, Plus, Brain } from "lucide-react";
+import { Check, Zap, Crown, Plus, Brain, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BillingPage = () => {
@@ -13,7 +13,6 @@ const BillingPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tokens, setTokens] = useState(0);
-  const [usedTokens, setUsedTokens] = useState(0);
   const [loading, setLoading] = useState<string | null>(null);
   const [plan, setPlan] = useState("free");
 
@@ -38,8 +37,8 @@ const BillingPage = () => {
     fetchProfile();
   }, []);
 
-  const handleMockPurchase = async (packageName: string, tokenAmount: number, price: number) => {
-    setLoading(packageName);
+  const handleMockPurchase = async (packageId: string, tokenAmount: number, price: number) => {
+    setLoading(packageId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("Not authenticated");
@@ -57,12 +56,11 @@ const BillingPage = () => {
         .update({ qiraa_mind_tokens: currentTokens + tokenAmount } as any)
         .eq("user_id", session.user.id);
 
-      // Record payment
       await supabase.from("payments").insert({
         user_id: session.user.id,
         amount: price,
-        subscription_plan: packageName === "personal" ? "pro" : packageName === "enterprise" ? "enterprise" : "pro",
-        payment_status: "completed",
+        subscription_plan: packageId === "personal" ? "pro" as const : packageId === "enterprise" ? "enterprise" as const : "pro" as const,
+        payment_status: "completed" as const,
         payment_provider: "mock",
       });
 
@@ -88,7 +86,7 @@ const BillingPage = () => {
       price: 19,
       tokens: 50,
       icon: Brain,
-      color: "from-blue-500 to-cyan-500",
+      gradient: "from-blue-500 to-cyan-500",
       features: isRTL
         ? ["50 سؤال لـ QIRAA Mind", "تحليلات استراتيجية", "تقارير مفصلة"]
         : ["50 QIRAA Mind queries", "Strategic analyses", "Detailed reports"],
@@ -99,7 +97,7 @@ const BillingPage = () => {
       price: 65,
       tokens: 250,
       icon: Crown,
-      color: "from-primary to-amber-500",
+      gradient: "from-amber-500 to-orange-500",
       popular: true,
       features: isRTL
         ? ["250 سؤال لـ QIRAA Mind", "دعم ذو أولوية", "تحليلات متقدمة", "تقارير حصرية"]
@@ -111,7 +109,7 @@ const BillingPage = () => {
       price: 15,
       tokens: 100,
       icon: Plus,
-      color: "from-emerald-500 to-teal-500",
+      gradient: "from-emerald-500 to-teal-500",
       features: isRTL
         ? ["100 سؤال إضافي", "لا تنتهي صلاحيتها", "تُضاف فوراً لرصيدك"]
         : ["100 additional queries", "Credits never expire", "Added instantly"],
@@ -127,7 +125,7 @@ const BillingPage = () => {
             {isRTL ? "الباقات والاشتراكات" : "Billing & Subscriptions"}
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            {isRTL ? "اختر الباقة المناسبة لاحتياجاتك واستفد من تحليلات QIRAA Mind الاستراتيجية" : "Choose the right plan for your needs and unlock QIRAA Mind strategic insights"}
+            {isRTL ? "اختر الباقة المناسبة لاحتياجاتك واستفد من تحليلات QIRAA Mind الاستراتيجية" : "Choose the right plan and unlock QIRAA Mind strategic insights"}
           </p>
         </div>
 
@@ -156,12 +154,12 @@ const BillingPage = () => {
           {plans.map((p) => (
             <Card key={p.id} className={`relative overflow-hidden transition-all hover:shadow-xl ${p.popular ? "border-primary ring-2 ring-primary/20 scale-[1.02]" : "border-border"}`}>
               {p.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-amber-500 text-primary-foreground text-xs text-center py-1 font-semibold">
+                <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-xs text-center py-1 font-semibold">
                   {isRTL ? "الأكثر شعبية" : "MOST POPULAR"}
                 </div>
               )}
               <CardHeader className={`${p.popular ? "pt-10" : "pt-6"}`}>
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center mb-4`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${p.gradient} flex items-center justify-center mb-4`}>
                   <p.icon className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle className="text-xl">{p.name}</CardTitle>
@@ -188,7 +186,7 @@ const BillingPage = () => {
                   onClick={() => handleMockPurchase(p.id, p.tokens, p.price)}
                 >
                   {loading === p.id ? (
-                    <Loader2Icon />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : p.id === "topup" ? (
                     isRTL ? "شراء التوكنات" : "Buy Tokens"
                   ) : (
@@ -203,10 +201,5 @@ const BillingPage = () => {
     </div>
   );
 };
-
-// Small loader for button
-const Loader2Icon = () => <Loader2 className="h-4 w-4 animate-spin" />;
-
-import { Loader2 } from "lucide-react";
 
 export default BillingPage;
