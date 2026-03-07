@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import { 
   Calendar, 
   BookOpen, 
@@ -17,7 +18,8 @@ import {
   TrendingUp,
   AlertCircle,
   User as UserIcon,
-  LineChart
+  LineChart,
+  Zap
 } from "lucide-react";
 
 interface UserProfile {
@@ -27,6 +29,7 @@ interface UserProfile {
   subscription_end_date: string | null;
   daily_articles_read: number;
   monthly_articles_read: number;
+  qiraa_mind_tokens: number;
 }
 
 const Dashboard = () => {
@@ -234,6 +237,26 @@ const Dashboard = () => {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Token Balance Card */}
+        <Card className="border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Zap className="h-5 w-5 text-primary" />
+              {isRTL ? 'رصيد QIRAA Mind' : 'QIRAA Mind Balance'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-2 mb-3">
+              <span className="text-4xl font-bold text-foreground font-mono">{profile.qiraa_mind_tokens || 0}</span>
+              <span className="text-muted-foreground text-sm mb-1">{isRTL ? 'سؤال متبقي' : 'queries remaining'}</span>
+            </div>
+            <Progress value={Math.min(((profile.qiraa_mind_tokens || 0) / Math.max(profile.qiraa_mind_tokens || 0, 50)) * 100, 100)} className="h-2.5 mb-2" />
+            <Button size="sm" variant="outline" className="w-full mt-2" onClick={() => navigate('/pricing')}>
+              {isRTL ? 'شراء توكنز إضافية' : 'Buy More Tokens'}
+            </Button>
           </CardContent>
         </Card>
 
