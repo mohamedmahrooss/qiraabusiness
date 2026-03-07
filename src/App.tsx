@@ -15,7 +15,7 @@ import ReportDetails from "./pages/ReportDetails";
 import About from "./pages/About";
 import QiraaSignals from "./pages/QiraaSignals";
 import QiraaMindPage from "./pages/QiraaMindPage";
-import BillingPage from "./pages/BillingPage";
+
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
