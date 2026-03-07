@@ -127,9 +127,6 @@ const Header = () => {
             <Link to="/pricing" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'الباقات' : 'Pricing'}
             </Link>
-            <Link to="/billing" className="text-foreground hover:text-primary transition-colors">
-              {isRTL ? 'الاشتراكات' : 'Billing'}
-            </Link>
             <Link to="/about" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'من نحن' : 'About'}
             </Link>
@@ -211,9 +208,6 @@ const Header = () => {
 
               <Link to="/pricing" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'الباقات' : 'Pricing'}
-              </Link>
-              <Link to="/billing" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                {isRTL ? 'الاشتراكات' : 'Billing'}
               </Link>
               <Link to="/about" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'من نحن' : 'About'}

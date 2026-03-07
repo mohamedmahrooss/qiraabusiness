@@ -43,7 +43,7 @@ const App = () => {
           <Route path="/about" element={<MainLayout><About /></MainLayout>} />
           <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
           <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
-          <Route path="/billing" element={<MainLayout><BillingPage /></MainLayout>} />
+          <Route path="/billing" element={<MainLayout><Pricing /></MainLayout>} />
           <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
