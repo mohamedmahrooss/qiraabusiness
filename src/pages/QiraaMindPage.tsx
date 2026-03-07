@@ -1,23 +1,89 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check } from "lucide-react";
+import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
+const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => void }) => {
+  const features = isRTL
+    ? [
+        { icon: Brain, title: "تحليل استراتيجي بالذكاء الاصطناعي", desc: "محرك تحليل مبني على بيانات المنصة الحية لتقديم رؤى دقيقة للمستثمرين والمؤسسين" },
+        { icon: Shield, title: "بيانات موثوقة ومحدثة", desc: "جميع الإجابات مستندة حصرياً على تحليلات المنصة المنشورة في آخر 3 أشهر" },
+        { icon: BarChart3, title: "تقارير تنفيذية احترافية", desc: "إجابات بأسلوب الموجز الاستراتيجي مع أرقام دقيقة وتوصيات عملية" },
+        { icon: Sparkles, title: "أسئلة ذكية جاهزة", desc: "استعلامات سريعة معدّة مسبقاً لتحليل القطاعات والاتجاهات والصفقات" },
+      ]
+    : [
+        { icon: Brain, title: "AI-Powered Strategic Analysis", desc: "An analysis engine built on live platform data to deliver precise insights for investors and founders" },
+        { icon: Shield, title: "Trusted & Up-to-Date Data", desc: "All answers are based exclusively on platform analyses published in the last 3 months" },
+        { icon: BarChart3, title: "Executive-Grade Reports", desc: "Responses in strategic briefing style with precise figures and actionable recommendations" },
+        { icon: Sparkles, title: "Ready-Made Power Queries", desc: "Pre-built quick queries to analyze sectors, trends, and deals instantly" },
+      ];
+
+  return (
+    <div className="min-h-[calc(100vh-5rem)] bg-background flex items-center justify-center">
+      <div className="max-w-4xl w-full mx-auto px-4 py-16 text-center">
+        <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-6 bg-primary/5">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-primary text-xs font-mono tracking-wider uppercase">
+            {isRTL ? "مستشار ذكاء الاعمال الاستراتيجي" : "STRATEGIC BUSINESS INTELLIGENCE ADVISOR"}
+          </span>
+        </div>
+
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+          {isRTL ? "عقل قراءة" : "QIRAA MIND"}
+        </h1>
+
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-10">
+          {isRTL
+            ? "سجّل دخولك للوصول إلى محرك التحليل الاستراتيجي المدعوم بالذكاء الاصطناعي"
+            : "Sign in to access the AI-powered strategic analysis engine"}
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-12 text-start">
+          {features.map((f, i) => (
+            <div key={i} className="flex items-start gap-4 p-5 rounded-2xl border border-border bg-card">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <f.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-1">{f.title}</h3>
+                <p className="text-sm text-muted-foreground">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button size="lg" onClick={onLogin} className="text-base px-8">
+            {isRTL ? "تسجيل الدخول" : "Sign In"}
+          </Button>
+          <Button size="lg" variant="outline" onClick={onLogin} className="text-base px-8">
+            {isRTL ? "إنشاء حساب جديد" : "Create Account"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const QiraaMindPage = () => {
   const { isRTL } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tokensLeft, setTokensLeft] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -27,7 +93,6 @@ const QiraaMindPage = () => {
     }
   }, [messages]);
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -35,20 +100,23 @@ const QiraaMindPage = () => {
     }
   }, [input]);
 
-  // Fetch tokens
+  // Check auth & fetch tokens
   useEffect(() => {
-    const fetchTokens = async () => {
+    const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('qiraa_mind_tokens')
-          .eq('user_id', session.user.id)
-          .single();
-        if (data) setTokensLeft((data as any).qiraa_mind_tokens);
+      if (!session?.user) {
+        setIsAuthenticated(false);
+        return;
       }
+      setIsAuthenticated(true);
+      const { data } = await supabase
+        .from('profiles')
+        .select('qiraa_mind_tokens')
+        .eq('user_id', session.user.id)
+        .single();
+      if (data) setTokensLeft((data as any).qiraa_mind_tokens);
     };
-    fetchTokens();
+    check();
   }, [isLoading]);
 
   const saveMessageToHistory = async (role: string, content: string) => {
@@ -107,7 +175,6 @@ const QiraaMindPage = () => {
     setInput("");
     setIsLoading(true);
 
-    // Save user message to history
     await saveMessageToHistory("user", messageText);
 
     try {
@@ -168,7 +235,6 @@ const QiraaMindPage = () => {
         }
       }
 
-      // Save assistant response to history
       if (assistantContent) {
         await saveMessageToHistory("assistant", assistantContent);
       }
@@ -183,6 +249,20 @@ const QiraaMindPage = () => {
     }
   };
 
+  // Show loading while checking auth
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show landing page for unauthenticated users
+  if (!isAuthenticated) {
+    return <QiraaMindLanding isRTL={isRTL} onLogin={() => navigate("/auth")} />;
+  }
+
   const hasMessages = messages.length > 0;
 
   return (
@@ -190,20 +270,15 @@ const QiraaMindPage = () => {
       <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col">
         {/* Header */}
         <div className="text-center mb-4">
-          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-3 bg-primary/5">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+            {isRTL ? "عقل قراءة" : "QIRAA MIND"}
+          </h1>
+          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 bg-primary/5">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-primary text-xs font-mono tracking-wider uppercase">
-              {isRTL ? "مستشار الذكاء الاستراتيجي" : "STRATEGIC AI ADVISOR"}
+              {isRTL ? "مستشار ذكاء الاعمال الاستراتيجي" : "STRATEGIC BUSINESS INTELLIGENCE ADVISOR"}
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
-            QIRAA MIND
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-2xl mx-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {isRTL
-              ? "تحليل شامل مقيد ببيانات المنصة الحية • مدعوم بـ AI"
-              : "Comprehensive Analysis tied to Live Data • Powered by AI"}
-          </p>
           {tokensLeft !== null && (
             <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-mono text-muted-foreground">
               {isRTL ? `الرصيد المتبقي: ${tokensLeft} سؤال` : `Tokens left: ${tokensLeft}`}
@@ -211,24 +286,7 @@ const QiraaMindPage = () => {
           )}
         </div>
 
-        {/* Power Queries */}
-        {!hasMessages && (
-          <div className="flex flex-wrap justify-center gap-3 mb-8 mt-8">
-            {powerQueries.map((q) => (
-              <button
-                key={q.label}
-                onClick={() => sendMessage(q.query)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-muted-foreground text-sm hover:border-primary/40 hover:text-primary transition-all bg-card"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                <q.icon className="h-4 w-4" />
-                {q.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Messages Area - takes remaining space */}
+        {/* Messages Area */}
         {hasMessages && (
           <div ref={outputRef} className="flex-1 overflow-y-auto space-y-6 pb-4">
             {messages.map((msg, i) => (
@@ -278,7 +336,7 @@ const QiraaMindPage = () => {
           </div>
         )}
 
-        {/* Input Area - pinned to bottom */}
+        {/* Input Area */}
         <div className={`${hasMessages ? "mt-4" : "mt-auto"} mb-2`}>
           <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
             <div className="relative border border-border rounded-2xl overflow-hidden bg-card shadow-sm">
@@ -292,7 +350,7 @@ const QiraaMindPage = () => {
                     sendMessage();
                   }
                 }}
-                placeholder={isRTL ? "...اسأل QIRAA عن التوصيات وقوائم الشركات" : "Ask QIRAA for recommendations and company lists..."}
+                placeholder={isRTL ? "...اسأل عقل قراءة عن التوصيات وقوائم الشركات" : "Ask QIRAA MIND for recommendations and company lists..."}
                 disabled={isLoading}
                 rows={1}
                 className="w-full bg-transparent text-foreground placeholder-muted-foreground px-6 py-4 pr-14 text-base outline-none resize-none max-h-[200px]"
@@ -311,6 +369,23 @@ const QiraaMindPage = () => {
               </button>
             </div>
           </form>
+
+          {/* Power Queries - below input */}
+          {!hasMessages && (
+            <div className="flex flex-wrap justify-center gap-3 mt-4">
+              {powerQueries.map((q) => (
+                <button
+                  key={q.label}
+                  onClick={() => sendMessage(q.query)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-muted-foreground text-sm hover:border-primary/40 hover:text-primary transition-all bg-card"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  <q.icon className="h-4 w-4" />
+                  {q.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
