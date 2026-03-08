@@ -52,13 +52,13 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-20 max-w-5xl mx-auto">
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-premium">1200+</div>
+              <div className="text-4xl font-bold text-primary-foreground">1200+</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "تحليل شهري" : "Monthly Analyses"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-success">20+</div>
+              <div className="text-4xl font-bold text-primary-foreground">20+</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "قطاع استثماري" : "Investment Sectors"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
@@ -66,8 +66,12 @@ const HeroSection = () => {
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "بيانات شركة ناشئة" : "Startup Data Points"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-primary-glow">24/7</div>
+              <div className="text-4xl font-bold text-primary-foreground">24/7</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "متابعة مستمرة" : "Continuous Tracking"}</div>
+            </div>
+            <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6 col-span-2 md:col-span-1">
+              <div className="text-4xl font-bold text-primary-foreground">55+</div>
+              <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "قطاع فرعي" : "Sub-sectors"}</div>
             </div>
           </div>
         </div>

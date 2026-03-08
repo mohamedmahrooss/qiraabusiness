@@ -194,6 +194,24 @@ const ArticleDetails = () => {
     );
   }
 
+  if (limitReached) {
+    return (
+      <div className="container mx-auto px-4 py-16 max-w-2xl text-center">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-10">
+          <h1 className="text-2xl font-bold text-destructive mb-4">
+            {language === 'ar' ? 'لقد وصلت إلى حد الاستخدام الشهري' : 'You have reached your monthly usage limit'}
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {language === 'ar' ? 'يرجى ترقية باقتك للاستمرار في قراءة التحليلات' : 'Please upgrade your plan to continue reading analyses'}
+          </p>
+          <Button onClick={() => navigate('/pricing')}>
+            {language === 'ar' ? 'ترقية الباقة' : 'Upgrade Plan'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (notFound || !article) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">

@@ -177,15 +177,15 @@ const Footer = () => {
               © 2025 QIRAA. {t.allRightsReserved}
             </div>
             <div className={`flex ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'}`}>
-              <a href="#privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              <Link to="/privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.privacyPolicyFooter}
-              </a>
-              <a href="#terms" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              </Link>
+              <Link to="/terms" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.termsOfUse}
-              </a>
-              <a href="#cookies" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              </Link>
+              <Link to="/cookies" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.cookiePolicy}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
