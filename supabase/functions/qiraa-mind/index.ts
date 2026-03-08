@@ -22,13 +22,20 @@ serve(async (req) => {
 
     // 1. التحقق من هوية المستخدم ورصيد الأسئلة
     let userId: string | null = null;
+    let isAdmin = false;
     if (userToken) {
         const { data: { user } } = await supabase.auth.getUser(userToken);
         if (user) {
             userId = user.id;
-            const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
-            if (!profile || profile.qiraa_mind_tokens <= 0) {
-                return new Response(JSON.stringify({ error: "Insufficient tokens" }), { status: 402, headers: corsHeaders });
+            // Check if admin — admins bypass token limits
+            const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin');
+            isAdmin = !!(roles && roles.length > 0);
+
+            if (!isAdmin) {
+                const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
+                if (!profile || profile.qiraa_mind_tokens <= 0) {
+                    return new Response(JSON.stringify({ error: "Insufficient tokens" }), { status: 402, headers: corsHeaders });
+                }
             }
         }
     }
