@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, user_file } = await req.json();
     const userToken = req.headers.get("x-auth-token");
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -27,7 +27,6 @@ serve(async (req) => {
         const { data: { user } } = await supabase.auth.getUser(userToken);
         if (user) {
             userId = user.id;
-            // Check if admin — admins bypass token limits
             const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin');
             isAdmin = !!(roles && roles.length > 0);
 
@@ -54,7 +53,7 @@ serve(async (req) => {
     let totalChars = 0;
     const MAX_KB_CHARS = 800000; 
 
-    // 4. سحب المقالات اللحظية (Articles)
+    // 4. سحب المقالات اللحظية (Articles) — PRIORITY 1: DB sources first
     try {
       const { data: articles } = await supabase
         .from("articles")
@@ -77,7 +76,7 @@ serve(async (req) => {
       }
     } catch (e) { console.error("Error fetching articles:", e); }
 
-    // 5. سحب المستندات والتقارير المرفوعة يدوياً (qiraa_mind_documents)
+    // 5. سحب المستندات والتقارير المرفوعة يدوياً (qiraa_mind_documents) — PRIORITY 2
     try {
       const { data: staticDocs } = await supabase
         .from("qiraa_mind_documents")
@@ -97,16 +96,86 @@ serve(async (req) => {
       }
     } catch (e) { console.error("Error fetching documents:", e); }
 
+    // 6. ملف المستخدم المرفق — PRIORITY 3 (lowest, after DB sources)
+    if (user_file && user_file.content) {
+      let userFileText = "";
+      const fileContent = user_file.content as string;
+      const fileName = user_file.name || "unknown";
+
+      // Check if it's a base64-encoded file (PDF/DOCX)
+      if (fileContent.startsWith("[BASE64_FILE:")) {
+        // Extract the base64 content after the header
+        const headerEnd = fileContent.indexOf("]");
+        const base64Data = fileContent.slice(headerEnd + 1);
+        const headerInfo = fileContent.slice(1, headerEnd);
+        const fileType = headerInfo.split(":")[2] || "";
+
+        // For PDFs, use AI to extract text
+        if (fileType.includes("pdf")) {
+          try {
+            const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                  {
+                    role: "user",
+                    content: [
+                      { type: "text", text: "Extract ALL text content from this PDF document. Return ONLY the raw text, preserving the structure. Do not summarize." },
+                      { type: "image_url", image_url: { url: `data:application/pdf;base64,${base64Data}` } }
+                    ]
+                  }
+                ],
+              }),
+            });
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              userFileText = aiData.choices?.[0]?.message?.content || `[فشل استخراج نص الـ PDF: ${fileName}]`;
+            }
+          } catch (e) {
+            console.error("PDF extraction error:", e);
+            userFileText = `[فشل استخراج نص الـ PDF: ${fileName}]`;
+          }
+        } else {
+          userFileText = `[ملف ثنائي مرفق: ${fileName} - النوع غير مدعوم للاستخراج التلقائي]`;
+        }
+      } else {
+        // Plain text content
+        userFileText = fileContent;
+      }
+
+      // Append user file ONLY if there's room left
+      if (userFileText && totalChars + userFileText.length < MAX_KB_CHARS) {
+        knowledgeBase += `\n=== USER-UPLOADED FILE (Lower Priority - Unverified) ===\n`;
+        knowledgeBase += `[File: ${fileName}]\n${userFileText}\n`;
+        totalChars += userFileText.length;
+      } else if (userFileText) {
+        // Truncate to fit remaining space
+        const remaining = MAX_KB_CHARS - totalChars - 200;
+        if (remaining > 500) {
+          knowledgeBase += `\n=== USER-UPLOADED FILE (Lower Priority - Unverified - TRUNCATED) ===\n`;
+          knowledgeBase += `[File: ${fileName}]\n${userFileText.slice(0, remaining)}\n[... TRUNCATED]\n`;
+          totalChars = MAX_KB_CHARS;
+        }
+      }
+    }
+
     if (totalChars === 0) {
         knowledgeBase = "لا توجد بيانات متاحة للإجابة.";
     }
 
-    // 6. البرومبت النظامي 
+    // 7. البرومبت النظامي 
     const systemPrompt = `### ROLE
 You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
 
 ### STRICT DATA SOURCE
-Answer ONLY based on the text extracted from the database below (which includes live articles and static reports).
+Answer ONLY based on the text extracted from the database below (which includes live articles, static reports, and optionally a user-uploaded file).
+- Database sources (articles & static documents) are TRUSTED and take PRIORITY.
+- User-uploaded files are SECONDARY and UNVERIFIED. Use them as supplementary context only. If they conflict with database sources, prefer database sources.
 - If data is missing, state: "// SIGNAL MISSING: Data point is out of my role."
 - DO NOT hallucinate. DO NOT use outside knowledge.
 - For Arabic queries, answer in Business Arabic. For English, use Business English.
@@ -130,7 +199,7 @@ Answer ONLY based on the text extracted from the database below (which includes 
 ### KNOWLEDGE BASE:
 ${knowledgeBase}`;
 
-    // 7. الاتصال بمحرك Lovable AI Gateway بمفتاح واحد
+    // 8. الاتصال بمحرك Lovable AI Gateway
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -153,7 +222,7 @@ ${knowledgeBase}`;
       return new Response(JSON.stringify({ error: "Gateway error" }), { status: 500, headers: corsHeaders });
     }
 
-    // 8. خصم التوكن بعد نجاح الاتصال (الأدمن معفى)
+    // 9. خصم التوكن بعد نجاح الاتصال (الأدمن معفى)
     if (userId && !isAdmin) {
         const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
         if (profile) {
