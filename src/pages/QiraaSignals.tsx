@@ -643,8 +643,7 @@ const QiraaSignals = () => {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
+                    <CardTitle>
                       {showRevenue 
                         ? (isRTL ? "الإيرادات اليومية" : "Daily Revenue")
                         : (isRTL ? "المبيعات اليومية" : "Daily Sales")}
