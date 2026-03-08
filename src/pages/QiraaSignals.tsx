@@ -864,8 +864,7 @@ const QiraaSignals = () => {
             <div className="pt-6 border-t">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Download className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">
                     {t.exportData}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
