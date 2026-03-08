@@ -122,14 +122,19 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#privacy" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <Link to="/privacy" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.privacyPolicyFooter}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#terms" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <Link to="/terms" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.termsOfUse}
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.cookiePolicy}
+                </Link>
               </li>
             </ul>
           </div>
