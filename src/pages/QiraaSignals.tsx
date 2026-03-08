@@ -836,8 +836,7 @@ const QiraaSignals = () => {
           <CardContent className="space-y-6">
             {/* Market Share */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5" />
+              <h3 className="text-lg font-semibold mb-4">
                 {t.marketShareAnalysis}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
