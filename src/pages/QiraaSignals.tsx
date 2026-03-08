@@ -643,8 +643,7 @@ const QiraaSignals = () => {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
+                    <CardTitle>
                       {showRevenue 
                         ? (isRTL ? "الإيرادات اليومية" : "Daily Revenue")
                         : (isRTL ? "المبيعات اليومية" : "Daily Sales")}
@@ -803,8 +802,7 @@ const QiraaSignals = () => {
             {annualData.quarterlyData.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
+                  <CardTitle>
                     {t.quarterlyRevenue} (USD)
                   </CardTitle>
                 </CardHeader>
@@ -836,8 +834,7 @@ const QiraaSignals = () => {
           <CardContent className="space-y-6">
             {/* Market Share */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5" />
+              <h3 className="text-lg font-semibold mb-4">
                 {t.marketShareAnalysis}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -865,8 +862,7 @@ const QiraaSignals = () => {
             <div className="pt-6 border-t">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Download className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">
                     {t.exportData}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">

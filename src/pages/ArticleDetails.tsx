@@ -37,6 +37,15 @@ const ArticleDetails = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const [limitReached, setLimitReached] = useState(false);
+
+  const PLAN_LIMITS: Record<string, { daily: number; monthly: number }> = {
+    free: { daily: 3, monthly: 20 },
+    basic: { daily: 10, monthly: 50 },
+    pro: { daily: -1, monthly: -1 },
+    enterprise: { daily: -1, monthly: -1 },
+  };
+
   useEffect(() => {
     console.log('ArticleDetails mounted with id:', id);
     const fetchArticle = async () => {
@@ -48,6 +57,39 @@ const ArticleDetails = () => {
       }
 
       try {
+        // Check user limits first
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_plan, daily_articles_read, monthly_articles_read')
+            .eq('user_id', user.id)
+            .single();
+
+          if (profile) {
+            const limits = PLAN_LIMITS[profile.subscription_plan] || PLAN_LIMITS.free;
+            // Check if admin (admins bypass limits)
+            const { data: roles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id)
+              .eq('role', 'admin');
+            
+            const isAdmin = roles && roles.length > 0;
+
+            if (!isAdmin && limits.daily > 0 && profile.daily_articles_read >= limits.daily) {
+              setLimitReached(true);
+              setLoading(false);
+              return;
+            }
+            if (!isAdmin && limits.monthly > 0 && profile.monthly_articles_read >= limits.monthly) {
+              setLimitReached(true);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
         const { data, error } = await supabase
           .from('articles')
           .select(`
@@ -76,17 +118,28 @@ const ArticleDetails = () => {
         } else {
           setArticle(data);
           
-          // Track article view
-          const user = await supabase.auth.getUser();
-          if (user.data.user) {
+          // Track article view and increment counters
+          if (user) {
             await supabase
               .from('user_articles')
-              .insert([
-                {
-                  user_id: user.data.user.id,
-                  article_id: data.id,
-                }
-              ]);
+              .insert([{ user_id: user.id, article_id: data.id }]);
+
+            // Increment read counters
+            const { data: currentProfile } = await supabase
+              .from('profiles')
+              .select('daily_articles_read, monthly_articles_read')
+              .eq('user_id', user.id)
+              .single();
+
+            if (currentProfile) {
+              await supabase
+                .from('profiles')
+                .update({
+                  daily_articles_read: currentProfile.daily_articles_read + 1,
+                  monthly_articles_read: currentProfile.monthly_articles_read + 1,
+                })
+                .eq('user_id', user.id);
+            }
           }
         }
       } catch (error) {
@@ -136,6 +189,24 @@ const ArticleDetails = () => {
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
+        </div>
+      </div>
+    );
+  }
+
+  if (limitReached) {
+    return (
+      <div className="container mx-auto px-4 py-16 max-w-2xl text-center">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-10">
+          <h1 className="text-2xl font-bold text-destructive mb-4">
+            {language === 'ar' ? 'لقد وصلت إلى حد الاستخدام الشهري' : 'You have reached your monthly usage limit'}
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {language === 'ar' ? 'يرجى ترقية باقتك للاستمرار في قراءة التحليلات' : 'Please upgrade your plan to continue reading analyses'}
+          </p>
+          <Button onClick={() => navigate('/pricing')}>
+            {language === 'ar' ? 'ترقية الباقة' : 'Upgrade Plan'}
+          </Button>
         </div>
       </div>
     );

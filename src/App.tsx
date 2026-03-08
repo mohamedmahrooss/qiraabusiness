@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
+import CookieConsent from "./components/CookieConsent";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -15,7 +16,9 @@ import ReportDetails from "./pages/ReportDetails";
 import About from "./pages/About";
 import QiraaSignals from "./pages/QiraaSignals";
 import QiraaMindPage from "./pages/QiraaMindPage";
-
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
+import CookiePolicy from "./pages/CookiePolicy";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
@@ -45,9 +48,13 @@ const App = () => {
           <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
           <Route path="/billing" element={<MainLayout><Pricing /></MainLayout>} />
           <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
+          <Route path="/privacy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
+          <Route path="/terms" element={<MainLayout><TermsOfUse /></MainLayout>} />
+          <Route path="/cookies" element={<MainLayout><CookiePolicy /></MainLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <CookieConsent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

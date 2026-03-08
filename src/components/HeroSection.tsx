@@ -21,7 +21,7 @@ const HeroSection = () => {
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-4 py-2 text-primary-foreground/90 text-sm">
               <Zap className="h-4 w-4" />
-              <span>{isRTL ? "منصة ذكاء السوق الأولى في المنطقة" : "The Region's Leading Market Intelligence Platform"}</span>
+              <span>{isRTL ? "منصة ذكاء الاسواق اللحظية الأولى في المنطقة" : "The Region's Leading Real-Time Market Intelligence Platform"}</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-primary-foreground">
@@ -34,8 +34,8 @@ const HeroSection = () => {
 
             <p className="text-xl md:text-2xl text-primary-foreground/70 leading-relaxed max-w-3xl mx-auto">
               {isRTL
-                ? "رؤى وتحليلات والتحليلات اللحظية تساعد صانعي القرار والمستثمرين في منطقة الشرق الأوسط وشمال أفريقيا"
-                : "Insights, analytics, and real-time analyses helping decision makers and investors across MENA"}
+                ? "خطوات تنفيذيه عمليه و تحليلات لحظية تساعد صانعي القرار والمستثمرين في منطقة الشرق الأوسط وشمال أفريقيا"
+                : "Actionable steps, Insights, and real-time analysis helping decision makers and investors across MENA"}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -52,13 +52,13 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-20 max-w-5xl mx-auto">
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-premium">1200+</div>
+              <div className="text-4xl font-bold text-primary-foreground">1200+</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "تحليل شهري" : "Monthly Analyses"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-success">20+</div>
+              <div className="text-4xl font-bold text-primary-foreground">20+</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "قطاع استثماري" : "Investment Sectors"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
@@ -66,8 +66,12 @@ const HeroSection = () => {
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "بيانات شركة ناشئة" : "Startup Data Points"}</div>
             </div>
             <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6">
-              <div className="text-4xl font-bold text-primary-glow">24/7</div>
+              <div className="text-4xl font-bold text-primary-foreground">24/7</div>
               <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "متابعة مستمرة" : "Continuous Tracking"}</div>
+            </div>
+            <div className="text-center bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10 rounded-2xl p-6 col-span-2 md:col-span-1">
+              <div className="text-4xl font-bold text-primary-foreground">55+</div>
+              <div className="text-sm text-primary-foreground/70 mt-1">{isRTL ? "قطاع فرعي" : "Sub-sectors"}</div>
             </div>
           </div>
         </div>

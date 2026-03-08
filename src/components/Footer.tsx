@@ -27,8 +27,8 @@ const Footer = () => {
             <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-14" />
             <p className="text-secondary-foreground/80 leading-relaxed">
               {isRTL ? 
-                "منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط وشمال أفريقيا. من خلال رؤى وتحليلات وتقارير دقيقة، تساعد قراءة صانعي القرار والمستثمرين على رؤية الصورة الكاملة واتخاذ قرارات أكثر استنارة وثقة." :
-                "A market intelligence platform for understanding market dynamics in the Middle East and North Africa region. Through accurate insights, analytics, and reports, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
+                "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
+                "A real-time market intelligence platform for understanding market dynamics in the Middle East and North Africa. Through actionable steps, insights, and real-time analytics, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
               }
             </p>
             <div className="flex gap-2">
@@ -122,14 +122,19 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#privacy" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <Link to="/privacy" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.privacyPolicyFooter}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#terms" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                <Link to="/terms" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.termsOfUse}
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="text-secondary-foreground/80 hover:text-primary transition-colors">
+                  {t.cookiePolicy}
+                </Link>
               </li>
             </ul>
           </div>
@@ -172,15 +177,15 @@ const Footer = () => {
               © 2025 QIRAA. {t.allRightsReserved}
             </div>
             <div className={`flex ${isRTL ? 'space-x-reverse space-x-6' : 'space-x-6'}`}>
-              <a href="#privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              <Link to="/privacy" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.privacyPolicyFooter}
-              </a>
-              <a href="#terms" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              </Link>
+              <Link to="/terms" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.termsOfUse}
-              </a>
-              <a href="#cookies" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
+              </Link>
+              <Link to="/cookies" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">
                 {t.cookiePolicy}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
