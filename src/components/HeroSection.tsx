@@ -34,8 +34,8 @@ const HeroSection = () => {
 
             <p className="text-xl md:text-2xl text-primary-foreground/70 leading-relaxed max-w-3xl mx-auto">
               {isRTL
-                ? "رؤى وتحليلات والتحليلات اللحظية تساعد صانعي القرار والمستثمرين في منطقة الشرق الأوسط وشمال أفريقيا"
-                : "Insights, analytics, and real-time analyses helping decision makers and investors across MENA"}
+                ? "خطوات تنفيذيه عمليه و تحليلات لحظية تساعد صانعي القرار والمستثمرين في منطقة الشرق الأوسط وشمال أفريقيا"
+                : "Actionable steps, Insights, and real-time analysis helping decision makers and investors across MENA"}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
