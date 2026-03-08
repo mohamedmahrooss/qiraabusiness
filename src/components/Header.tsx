@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Menu, X, LogIn, LogOut, LayoutDashboard, Shield, ChevronDown, BarChart3, Brain } from "lucide-react";
+import { Menu, X, LogIn, LogOut, LayoutDashboard, Shield, ChevronDown } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,12 +53,12 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+    <header className="sticky top-3 z-50 w-[calc(100%-2rem)] mx-auto rounded-2xl border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-14" />
+            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-20" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -73,7 +73,7 @@ const Header = () => {
               {isRTL ? 'التقارير' : 'Reports'}
             </Link>
 
-            {/* QIRAA Signals Dropdown */}
+            {/* QIRAA Signals Dropdown - no icons */}
             <div
               ref={dropdownRef}
               className="relative"
@@ -95,7 +95,6 @@ const Header = () => {
                     className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
                     onClick={() => setSignalsOpen(false)}
                   >
-                    <BarChart3 className="h-5 w-5 text-primary" />
                     <div>
                       <div className="font-medium text-foreground text-sm">
                         {isRTL ? 'مؤشرات المبيعات' : 'Sales Intelligence'}
@@ -110,7 +109,6 @@ const Header = () => {
                     className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
                     onClick={() => setSignalsOpen(false)}
                   >
-                    <Brain className="h-5 w-5 text-emerald-500" />
                     <div>
                       <div className="font-medium text-foreground text-sm">
                         {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
@@ -191,16 +189,14 @@ const Header = () => {
                 {isRTL ? 'التقارير' : 'Reports'}
               </Link>
               
-              {/* Mobile QIRAA Signals submenu */}
+              {/* Mobile QIRAA Signals submenu - no icons */}
               <div className="space-y-2">
                 <span className="text-foreground font-medium">{isRTL ? 'مؤشرات قراءة' : 'QIRAA Signals'}</span>
                 <div className={`${isRTL ? 'pr-4' : 'pl-4'} space-y-2`}>
                   <Link to="/qiraa-signals" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    <BarChart3 className="h-4 w-4" />
                     {isRTL ? 'مؤشرات المبيعات' : 'Sales Intelligence'}
                   </Link>
                   <Link to="/qiraa-mind" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    <Brain className="h-4 w-4" />
                     {isRTL ? 'عقل قراءة' : 'QIRAA Mind'}
                   </Link>
                 </div>
