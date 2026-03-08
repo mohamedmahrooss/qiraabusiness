@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock, ArrowUp, Plus, Mic } from "lucide-react";
+import { Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock, ArrowUp, Plus, Mic, X, FileText, Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,14 @@ type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
-// Radiant gradient styles are defined globally in index.css
+// Max file size: 500KB to leave room for DB sources within 800K total
+const MAX_FILE_SIZE = 500 * 1024;
+const ALLOWED_FILE_TYPES = [
+  "text/plain", "text/csv", "text/markdown",
+  "application/json", "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
 
 // Landing page for unauthenticated users
 const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => void }) => {
@@ -120,6 +127,23 @@ const useVoiceInput = (language: string) => {
   return { isListening, transcript, startListening, stopListening, setTranscript };
 };
 
+// Read file as text
+async function readFileAsText(file: File): Promise<string> {
+  // For text-based files, read directly
+  const textTypes = ["text/plain", "text/csv", "text/markdown", "application/json"];
+  if (textTypes.some(t => file.type.startsWith(t) || file.type === t)) {
+    return await file.text();
+  }
+  // For PDF and office docs, encode as base64 and let the edge function handle extraction
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return `[BASE64_FILE:${file.name}:${file.type}]` + btoa(binary);
+}
+
 const QiraaMindPage = () => {
   const { isRTL, language } = useLanguage();
   const { toast } = useToast();
@@ -132,8 +156,12 @@ const QiraaMindPage = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedFileContent, setAttachedFileContent] = useState<string>("");
+  const [isReadingFile, setIsReadingFile] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { isListening, transcript, startListening, stopListening, setTranscript } = useVoiceInput(language);
 
@@ -232,6 +260,64 @@ const QiraaMindPage = () => {
     }
   };
 
+  // Handle file selection
+  const handleFileSelect = async (file: File) => {
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: isRTL ? "الملف كبير جداً" : "File too large",
+        description: isRTL ? `الحد الأقصى ${(MAX_FILE_SIZE / 1024).toFixed(0)} كيلوبايت` : `Maximum ${(MAX_FILE_SIZE / 1024).toFixed(0)}KB allowed`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const isAllowed = ALLOWED_FILE_TYPES.includes(file.type) || 
+      file.name.endsWith('.txt') || file.name.endsWith('.csv') || 
+      file.name.endsWith('.md') || file.name.endsWith('.json') ||
+      file.name.endsWith('.pdf');
+    
+    if (!isAllowed) {
+      toast({
+        title: isRTL ? "نوع ملف غير مدعوم" : "Unsupported file type",
+        description: isRTL ? "الملفات المدعومة: TXT, CSV, MD, JSON, PDF, DOCX, XLSX" : "Supported: TXT, CSV, MD, JSON, PDF, DOCX, XLSX",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsReadingFile(true);
+    try {
+      const content = await readFileAsText(file);
+      setAttachedFile(file);
+      setAttachedFileContent(content);
+    } catch (e) {
+      toast({
+        title: isRTL ? "فشل قراءة الملف" : "Failed to read file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsReadingFile(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+  };
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null);
+    setAttachedFileContent("");
+  };
+
+  const handlePlusClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const powerQueries = isRTL
     ? [
         { label: "تحليل اتجاهات Q4", query: "حلل أبرز اتجاهات الاستثمار في الربع الأخير من 2025 في منطقة الشرق الأوسط وشمال أفريقيا", icon: TrendingUp },
@@ -269,10 +355,27 @@ const QiraaMindPage = () => {
     setInput("");
     setIsLoading(true);
 
-    await saveMessageToHistory("user", messageText);
+    // Capture file content before clearing
+    const fileContent = attachedFileContent;
+    const fileName = attachedFile?.name || "";
+    
+    // Clear attached file after sending
+    setAttachedFile(null);
+    setAttachedFileContent("");
+
+    await saveMessageToHistory("user", messageText + (fileName ? ` [📎 ${fileName}]` : ""));
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+
+      const body: any = { messages: newMessages };
+      // Include user file content if present
+      if (fileContent) {
+        body.user_file = {
+          name: fileName,
+          content: fileContent,
+        };
+      }
 
       const resp = await fetch(CHAT_URL, {
         method: "POST",
@@ -281,7 +384,7 @@ const QiraaMindPage = () => {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           ...(session?.access_token ? { "x-auth-token": session.access_token } : {}),
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify(body),
       });
 
       if (resp.status === 402) {
@@ -441,7 +544,33 @@ const QiraaMindPage = () => {
 
         {/* Input Area — centered when no messages */}
         <div className={`${hasMessages ? "mt-4" : "flex-1 flex flex-col items-center justify-center"} mb-2 w-full`}>
-          {/* Radiant Prompt Input — exact match from the Component.tsx prompt */}
+          
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".txt,.csv,.md,.json,.pdf,.docx,.xlsx"
+            onChange={handleFileInputChange}
+          />
+
+          {/* Attached file preview */}
+          {attachedFile && (
+            <div className="w-full max-w-2xl mx-auto mb-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/20 text-sm">
+                <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-foreground truncate flex-1">{attachedFile.name}</span>
+                <span className="text-muted-foreground text-xs flex-shrink-0">
+                  {(attachedFile.size / 1024).toFixed(0)}KB
+                </span>
+                <button onClick={removeAttachedFile} className="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Radiant Prompt Input */}
           <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="w-full max-w-2xl mx-auto">
             <div className="relative radiant-input-wrapper rounded-2xl">
               {/* Animated Gradient Border */}
@@ -450,12 +579,19 @@ const QiraaMindPage = () => {
               {/* Inner Content */}
               <div className="relative rounded-2xl bg-card/95 backdrop-blur-xl overflow-hidden">
                 <div className="flex items-end gap-2 px-4 py-3">
-                  {/* Add Button */}
+                  {/* Upload Button */}
                   <button
                     type="button"
-                    className="flex-shrink-0 w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors mb-0.5"
+                    onClick={handlePlusClick}
+                    disabled={isReadingFile || !!attachedFile}
+                    className="flex-shrink-0 w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors mb-0.5 disabled:opacity-30"
+                    title={isRTL ? "إرفاق ملف" : "Attach file"}
                   >
-                    <Plus className="h-5 w-5" />
+                    {isReadingFile ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Paperclip className="h-5 w-5" />
+                    )}
                   </button>
 
                   {/* Text Input */}
@@ -495,7 +631,7 @@ const QiraaMindPage = () => {
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      disabled={isLoading || !input.trim()}
+                      disabled={isLoading || (!input.trim() && !attachedFile)}
                       className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-foreground text-background hover:bg-foreground/80"
                     >
                       {isLoading ? (
