@@ -11,72 +11,7 @@ type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
-// Radiant gradient CSS for the input — exact match from the prompt component
-const radiantStyles = `
-@property --rotation {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes rotate-gradient {
-  to {
-    --rotation: 360deg;
-  }
-}
-
-.radiant-input-wrapper {
-  --border-size: 3px;
-  --gradient: conic-gradient(
-    from var(--rotation) 
-    at 50% 50% in oklab, 
-    oklch(0.63 0.2 251.22) 27%, 
-    oklch(0.67 0.21 25.81) 33%, 
-    oklch(0.9 0.19 93.93) 41%, 
-    oklch(0.79 0.25 150.49) 49%, 
-    oklch(0.63 0.2 251.22) 65%, 
-    oklch(0.72 0.21 150.89) 93%, 
-    oklch(0.63 0.2 251.22)
-  );
-  animation: rotate-gradient 5s infinite linear;
-}
-
-/* The glowing border effect */
-.radiant-input-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: calc(var(--border-size) * -1);
-  border-radius: inherit;
-  background: var(--gradient);
-  z-index: -1;
-  filter: blur(8px);
-  opacity: 0.6;
-}
-
-/* The sharp border mask */
-.radiant-input-border {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: var(--border-size);
-  background: var(--gradient);
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-@keyframes pulse-mic {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-}
-
-.mic-recording {
-  animation: pulse-mic 1.5s ease-in-out infinite;
-}
-`;
+// Radiant gradient styles are defined globally in index.css
 
 // Landing page for unauthenticated users
 const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => void }) => {
