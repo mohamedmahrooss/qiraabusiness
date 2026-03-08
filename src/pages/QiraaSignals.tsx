@@ -802,8 +802,7 @@ const QiraaSignals = () => {
             {annualData.quarterlyData.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
+                  <CardTitle>
                     {t.quarterlyRevenue} (USD)
                   </CardTitle>
                 </CardHeader>
