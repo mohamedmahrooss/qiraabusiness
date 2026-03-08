@@ -164,6 +164,15 @@ const QiraaMindPage = () => {
         return;
       }
       setIsAuthenticated(true);
+
+      // Check if user is admin — admins get full access always
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin');
+      const isAdmin = roles && roles.length > 0;
+
       const { data } = await supabase
         .from('profiles')
         .select('qiraa_mind_tokens, subscription_plan')
@@ -171,11 +180,14 @@ const QiraaMindPage = () => {
         .maybeSingle();
       if (data) {
         setTokensLeft(data.qiraa_mind_tokens ?? 0);
-        const plan = data.subscription_plan?.toLowerCase() || 'free';
-        const allowedPlans = ['pro', 'enterprise'];
-        setHasAccess(allowedPlans.includes(plan));
+        if (isAdmin) {
+          setHasAccess(true);
+        } else {
+          const plan = data.subscription_plan?.toLowerCase() || 'free';
+          setHasAccess(['pro', 'enterprise'].includes(plan));
+        }
       } else {
-        setHasAccess(false);
+        setHasAccess(isAdmin ? true : false);
       }
     };
     check();

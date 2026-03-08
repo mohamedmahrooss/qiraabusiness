@@ -153,8 +153,8 @@ ${knowledgeBase}`;
       return new Response(JSON.stringify({ error: "Gateway error" }), { status: 500, headers: corsHeaders });
     }
 
-    // 8. خصم التوكن بعد نجاح الاتصال
-    if (userId) {
+    // 8. خصم التوكن بعد نجاح الاتصال (الأدمن معفى)
+    if (userId && !isAdmin) {
         const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
         if (profile) {
             await supabase.from('profiles').update({ qiraa_mind_tokens: profile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
