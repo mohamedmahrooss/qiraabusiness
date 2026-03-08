@@ -21,7 +21,7 @@ const HeroSection = () => {
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-4 py-2 text-primary-foreground/90 text-sm">
               <Zap className="h-4 w-4" />
-              <span>{isRTL ? "منصة ذكاء السوق الأولى في المنطقة" : "The Region's Leading Market Intelligence Platform"}</span>
+              <span>{isRTL ? "منصة ذكاء الاسواق اللحظية الأولى في المنطقة" : "The Region's Leading Real-Time Market Intelligence Platform"}</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-primary-foreground">
