@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock, ArrowUp } from "lucide-react";
+import { Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock, ArrowUp, Plus, Mic } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
-// Radiant gradient CSS for the input
+// Radiant gradient CSS for the input — exact match from the prompt component
 const radiantStyles = `
 @property --rotation {
   syntax: '<angle>';
@@ -26,20 +26,22 @@ const radiantStyles = `
 }
 
 .radiant-input-wrapper {
-  --border-size: 2px;
+  --border-size: 3px;
   --gradient: conic-gradient(
-    from var(--rotation) at 50% 50% in oklab,
-    oklch(0.63 0.2 251.22) 27%,
-    oklch(0.67 0.21 25.81) 33%,
-    oklch(0.9 0.19 93.93) 41%,
-    oklch(0.79 0.25 150.49) 49%,
-    oklch(0.63 0.2 251.22) 65%,
-    oklch(0.72 0.21 150.89) 93%,
+    from var(--rotation) 
+    at 50% 50% in oklab, 
+    oklch(0.63 0.2 251.22) 27%, 
+    oklch(0.67 0.21 25.81) 33%, 
+    oklch(0.9 0.19 93.93) 41%, 
+    oklch(0.79 0.25 150.49) 49%, 
+    oklch(0.63 0.2 251.22) 65%, 
+    oklch(0.72 0.21 150.89) 93%, 
     oklch(0.63 0.2 251.22)
   );
   animation: rotate-gradient 5s infinite linear;
 }
 
+/* The glowing border effect */
 .radiant-input-wrapper::before {
   content: '';
   position: absolute;
@@ -48,19 +50,31 @@ const radiantStyles = `
   background: var(--gradient);
   z-index: -1;
   filter: blur(8px);
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
+/* The sharp border mask */
 .radiant-input-border {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: var(--border-size);
   background: var(--gradient);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+@keyframes pulse-mic {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.mic-recording {
+  animation: pulse-mic 1.5s ease-in-out infinite;
 }
 `;
 
@@ -127,8 +141,52 @@ const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => v
   );
 };
 
+// Voice recognition hook using Web Speech API
+const useVoiceInput = (language: string) => {
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      return false;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = language === 'ar' ? 'ar-SA' : 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        finalTranscript += event.results[i][0].transcript;
+      }
+      setTranscript(finalTranscript);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    return true;
+  }, [language]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  }, []);
+
+  return { isListening, transcript, startListening, stopListening, setTranscript };
+};
+
 const QiraaMindPage = () => {
-  const { isRTL } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -141,6 +199,15 @@ const QiraaMindPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { isListening, transcript, startListening, stopListening, setTranscript } = useVoiceInput(language);
+
+  // Sync voice transcript to input
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript]);
 
   useEffect(() => {
     if (outputRef.current) {
@@ -165,7 +232,6 @@ const QiraaMindPage = () => {
       }
       setIsAuthenticated(true);
 
-      // Check if user is admin — admins get full access always
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role')
@@ -216,6 +282,21 @@ const QiraaMindPage = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      const supported = startListening();
+      if (!supported) {
+        toast({
+          title: isRTL ? "غير مدعوم" : "Not Supported",
+          description: isRTL ? "المتصفح لا يدعم التعرف على الصوت. جرب Chrome." : "Your browser doesn't support speech recognition. Try Chrome.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const powerQueries = isRTL
     ? [
         { label: "تحليل اتجاهات Q4", query: "حلل أبرز اتجاهات الاستثمار في الربع الأخير من 2025 في منطقة الشرق الأوسط وشمال أفريقيا", icon: TrendingUp },
@@ -233,6 +314,10 @@ const QiraaMindPage = () => {
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
+
+    // Stop listening if active
+    if (isListening) stopListening();
+    setTranscript("");
 
     if (tokensLeft !== null && tokensLeft <= 0) {
       toast({
@@ -421,15 +506,24 @@ const QiraaMindPage = () => {
 
         {/* Input Area — centered when no messages */}
         <div className={`${hasMessages ? "mt-4" : "flex-1 flex flex-col items-center justify-center"} mb-2 w-full`}>
-          {/* Radiant Prompt Input */}
+          {/* Radiant Prompt Input — exact match from the Component.tsx prompt */}
           <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="w-full max-w-2xl mx-auto">
             <div className="relative radiant-input-wrapper rounded-2xl">
-              {/* Animated gradient border */}
+              {/* Animated Gradient Border */}
               <div className="radiant-input-border rounded-2xl" />
 
-              {/* Inner content */}
+              {/* Inner Content */}
               <div className="relative rounded-2xl bg-card/95 backdrop-blur-xl overflow-hidden">
                 <div className="flex items-end gap-2 px-4 py-3">
+                  {/* Add Button */}
+                  <button
+                    type="button"
+                    className="flex-shrink-0 w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors mb-0.5"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+
+                  {/* Text Input */}
                   <textarea
                     ref={textareaRef}
                     value={input}
@@ -446,17 +540,36 @@ const QiraaMindPage = () => {
                     className="flex-1 bg-transparent text-foreground placeholder-muted-foreground text-base outline-none resize-none max-h-[200px] py-2"
                     style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
                   />
-                  <button
-                    type="submit"
-                    disabled={isLoading || !input.trim()}
-                    className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-primary hover:bg-primary/90 mb-0.5"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
-                    ) : (
-                      <ArrowUp className="h-5 w-5 text-primary-foreground" />
-                    )}
-                  </button>
+
+                  {/* Right Actions */}
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    {/* Mic Button */}
+                    <button
+                      type="button"
+                      onClick={handleMicClick}
+                      className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                        isListening
+                          ? "bg-red-500 text-white mic-recording"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      }`}
+                      title={isRTL ? (isListening ? "إيقاف التسجيل" : "تحدث") : (isListening ? "Stop recording" : "Voice input")}
+                    >
+                      <Mic className="h-5 w-5" />
+                    </button>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isLoading || !input.trim()}
+                      className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-foreground text-background hover:bg-foreground/80"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <ArrowUp className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
