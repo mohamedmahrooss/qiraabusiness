@@ -27,8 +27,8 @@ const Footer = () => {
             <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-14" />
             <p className="text-secondary-foreground/80 leading-relaxed">
               {isRTL ? 
-                "منصة ذكاء سوقي لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط وشمال أفريقيا. من خلال رؤى وتحليلات وتقارير دقيقة، تساعد قراءة صانعي القرار والمستثمرين على رؤية الصورة الكاملة واتخاذ قرارات أكثر استنارة وثقة." :
-                "A market intelligence platform for understanding market dynamics in the Middle East and North Africa region. Through accurate insights, analytics, and reports, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
+                "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
+                "A real-time market intelligence platform for understanding market dynamics in the Middle East and North Africa. Through actionable steps, insights, and real-time analytics, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
               }
             </p>
             <div className="flex gap-2">
