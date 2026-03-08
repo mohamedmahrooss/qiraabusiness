@@ -14,7 +14,6 @@ import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-// Validation schemas
 const loginSchema = z.object({
   email: z.string().email('invalidEmail'),
   password: z.string().min(6, 'passwordTooShort'),
@@ -48,24 +47,14 @@ export default function Auth() {
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    }
+    defaultValues: { email: '', password: '' }
   });
 
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      acceptTerms: false,
-    }
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', acceptTerms: false }
   });
 
-  // Set document direction
   useEffect(() => {
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
     document.documentElement.lang = isRTL ? 'ar' : 'en';
@@ -74,55 +63,28 @@ export default function Auth() {
   const handleLogin = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
       if (error) throw error;
-      toast({
-        title: t.loginSuccess,
-        description: t.welcomeUser,
-      });
+      toast({ title: t.loginSuccess, description: t.welcomeUser });
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
-        title: t.loginError,
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+      toast({ title: t.loginError, description: error.message, variant: "destructive" });
+    } finally { setIsLoading(false); }
   };
 
   const handleRegister = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName,
-            subscription_plan: 'free'
-          }
-        }
+        email: data.email, password: data.password,
+        options: { data: { full_name: data.fullName, subscription_plan: 'free' } }
       });
       if (error) throw error;
-      toast({
-        title: t.accountCreated,
-        description: t.welcomeUser,
-      });
+      toast({ title: t.accountCreated, description: t.welcomeUser });
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
-        title: t.registrationError,
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+      toast({ title: t.registrationError, description: error.message, variant: "destructive" });
+    } finally { setIsLoading(false); }
   };
 
   const handleGoogleLogin = async () => {
@@ -130,19 +92,17 @@ export default function Auth() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+        options: { redirectTo: `${window.location.origin}/auth/callback` }
       });
       if (error) throw error;
     } catch (error: any) {
-      toast({
-        title: t.loginError,
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      toast({ title: t.loginError, description: error.message, variant: "destructive" });
+    } finally { setIsLoading(false); }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      navigate(-1);
     }
   };
 
@@ -152,47 +112,44 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen bg-background/40 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+      onClick={handleBackdropClick}
+    >
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-success/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-sm cursor-default" onClick={(e) => e.stopPropagation()}>
         {/* Language Toggle */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-4">
           <LanguageToggle />
         </div>
 
         {/* Main Card */}
-        <Card className="shadow-2xl border-0 bg-card/80 backdrop-blur-xl">
-          <CardHeader className="space-y-4 text-center">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-bold text-primary-foreground">Q</span>
+        <Card className="shadow-2xl border border-border bg-card/95 backdrop-blur-xl">
+          <CardHeader className="space-y-3 text-center pb-4">
+            {/* Logo instead of Q */}
+            <div className="mx-auto">
+              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-16 mx-auto" />
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground">
+            <div className="space-y-1">
+              <h1 className="text-xl font-bold text-foreground">
                 {isLogin ? t.welcomeBack : t.joinQiraa}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {isLogin ? t.accessPlatform : t.createNewAccount}
               </p>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 pt-0">
             {/* Google Login Button */}
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="w-full gap-3"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              <Chrome className="h-5 w-5" />
+            <Button type="button" variant="outline" size="sm" className="w-full gap-2" onClick={handleGoogleLogin} disabled={isLoading}>
+              <Chrome className="h-4 w-4" />
               {t.loginWithGoogle}
             </Button>
 
@@ -207,198 +164,91 @@ export default function Auth() {
 
             {/* Login Form */}
             {isLogin ? (
-              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t.email}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    {...loginForm.register('email')}
-                    className={loginForm.formState.errors.email ? 'border-destructive' : ''}
-                  />
-                  {loginForm.formState.errors.email && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('email', loginForm)}
-                    </p>
-                  )}
+              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-xs">{t.email}</Label>
+                  <Input id="email" type="email" dir={isRTL ? 'rtl' : 'ltr'} {...loginForm.register('email')} className={`h-9 text-sm ${loginForm.formState.errors.email ? 'border-destructive' : ''}`} />
+                  {loginForm.formState.errors.email && <p className="text-xs text-destructive">{getFieldError('email', loginForm)}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t.password}</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="password" className="text-xs">{t.password}</Label>
                   <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                      {...loginForm.register('password')}
-                      className={loginForm.formState.errors.password ? 'border-destructive' : ''}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={`absolute top-0 h-10 px-3 ${isRTL ? 'left-0' : 'right-0'}`}
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Input id="password" type={showPassword ? 'text' : 'password'} dir={isRTL ? 'rtl' : 'ltr'} {...loginForm.register('password')} className={`h-9 text-sm ${loginForm.formState.errors.password ? 'border-destructive' : ''}`} />
+                    <Button type="button" variant="ghost" size="sm" className={`absolute top-0 h-9 px-2 ${isRTL ? 'left-0' : 'right-0'}`} onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </Button>
                   </div>
-                  {loginForm.formState.errors.password && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('password', loginForm)}
-                    </p>
-                  )}
+                  {loginForm.formState.errors.password && <p className="text-xs text-destructive">{getFieldError('password', loginForm)}</p>}
                 </div>
 
                 <div className="flex justify-end">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-primary hover:text-primary/80 transition-colors"
-                  >
-                    {t.forgotPassword}
-                  </Link>
+                  <Link to="/forgot-password" className="text-xs text-primary hover:text-primary/80 transition-colors">{t.forgotPassword}</Link>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                <Button type="submit" size="sm" className="w-full" disabled={isLoading}>
                   {isLoading ? '...' : t.signIn}
                 </Button>
               </form>
             ) : (
-              /* Register Form */
-              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">{t.fullName}</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    {...registerForm.register('fullName')}
-                    className={registerForm.formState.errors.fullName ? 'border-destructive' : ''}
-                  />
-                  {registerForm.formState.errors.fullName && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('fullName', registerForm)}
-                    </p>
-                  )}
+              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="fullName" className="text-xs">{t.fullName}</Label>
+                  <Input id="fullName" type="text" dir={isRTL ? 'rtl' : 'ltr'} {...registerForm.register('fullName')} className={`h-9 text-sm ${registerForm.formState.errors.fullName ? 'border-destructive' : ''}`} />
+                  {registerForm.formState.errors.fullName && <p className="text-xs text-destructive">{getFieldError('fullName', registerForm)}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t.email}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    {...registerForm.register('email')}
-                    className={registerForm.formState.errors.email ? 'border-destructive' : ''}
-                  />
-                  {registerForm.formState.errors.email && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('email', registerForm)}
-                    </p>
-                  )}
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-xs">{t.email}</Label>
+                  <Input id="email" type="email" dir={isRTL ? 'rtl' : 'ltr'} {...registerForm.register('email')} className={`h-9 text-sm ${registerForm.formState.errors.email ? 'border-destructive' : ''}`} />
+                  {registerForm.formState.errors.email && <p className="text-xs text-destructive">{getFieldError('email', registerForm)}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t.password}</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="password" className="text-xs">{t.password}</Label>
                   <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                      {...registerForm.register('password')}
-                      className={registerForm.formState.errors.password ? 'border-destructive' : ''}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={`absolute top-0 h-10 px-3 ${isRTL ? 'left-0' : 'right-0'}`}
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Input id="password" type={showPassword ? 'text' : 'password'} dir={isRTL ? 'rtl' : 'ltr'} {...registerForm.register('password')} className={`h-9 text-sm ${registerForm.formState.errors.password ? 'border-destructive' : ''}`} />
+                    <Button type="button" variant="ghost" size="sm" className={`absolute top-0 h-9 px-2 ${isRTL ? 'left-0' : 'right-0'}`} onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </Button>
                   </div>
-                  {registerForm.formState.errors.password && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('password', registerForm)}
-                    </p>
-                  )}
+                  {registerForm.formState.errors.password && <p className="text-xs text-destructive">{getFieldError('password', registerForm)}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="confirmPassword" className="text-xs">{t.confirmPassword}</Label>
                   <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      dir={isRTL ? 'rtl' : 'ltr'}
-                      {...registerForm.register('confirmPassword')}
-                      className={registerForm.formState.errors.confirmPassword ? 'border-destructive' : ''}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className={`absolute top-0 h-10 px-3 ${isRTL ? 'left-0' : 'right-0'}`}
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} dir={isRTL ? 'rtl' : 'ltr'} {...registerForm.register('confirmPassword')} className={`h-9 text-sm ${registerForm.formState.errors.confirmPassword ? 'border-destructive' : ''}`} />
+                    <Button type="button" variant="ghost" size="sm" className={`absolute top-0 h-9 px-2 ${isRTL ? 'left-0' : 'right-0'}`} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </Button>
                   </div>
-                  {registerForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-destructive">
-                      {getFieldError('confirmPassword', registerForm)}
-                    </p>
-                  )}
+                  {registerForm.formState.errors.confirmPassword && <p className="text-xs text-destructive">{getFieldError('confirmPassword', registerForm)}</p>}
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <Controller
-                    name="acceptTerms"
-                    control={registerForm.control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="acceptTerms"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="mt-1"
-                      />
-                    )}
-                  />
-                  <Label htmlFor="acceptTerms" className="text-sm leading-5">
+                  <Controller name="acceptTerms" control={registerForm.control} render={({ field }) => (
+                    <Checkbox id="acceptTerms" checked={field.value} onCheckedChange={field.onChange} className="mt-0.5" />
+                  )} />
+                  <Label htmlFor="acceptTerms" className="text-xs leading-4">
                     {t.agreeToTerms}{' '}
-                    <Link to="/terms" className="text-primary hover:text-primary/80">
-                      {t.termsAndConditions}
-                    </Link>{' '}
+                    <Link to="/terms" className="text-primary hover:text-primary/80">{t.termsAndConditions}</Link>{' '}
                     {t.and}{' '}
-                    <Link to="/privacy" className="text-primary hover:text-primary/80">
-                      {t.privacyPolicy}
-                    </Link>
+                    <Link to="/privacy" className="text-primary hover:text-primary/80">{t.privacyPolicy}</Link>
                   </Label>
                 </div>
-                {registerForm.formState.errors.acceptTerms && (
-                  <p className="text-sm text-destructive">
-                    {getFieldError('acceptTerms', registerForm)}
-                  </p>
-                )}
+                {registerForm.formState.errors.acceptTerms && <p className="text-xs text-destructive">{getFieldError('acceptTerms', registerForm)}</p>}
 
-                <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                <Button type="submit" size="sm" className="w-full" disabled={isLoading}>
                   {isLoading ? '...' : t.signUp}
                 </Button>
               </form>
             )}
 
             {/* Toggle Form */}
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">
-                {isLogin ? t.noAccount : t.haveAccount}
-              </span>{' '}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:text-primary/80 font-medium transition-colors"
-              >
+            <div className="text-center text-xs">
+              <span className="text-muted-foreground">{isLogin ? t.noAccount : t.haveAccount}</span>{' '}
+              <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:text-primary/80 font-medium transition-colors">
                 {isLogin ? t.createAccount : t.signInHere}
               </button>
             </div>
