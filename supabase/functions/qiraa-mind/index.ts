@@ -13,6 +13,9 @@ serve(async (req) => {
     const { messages } = await req.json();
     const userToken = req.headers.get("x-auth-token");
     
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -20,7 +23,7 @@ serve(async (req) => {
     // 1. التحقق من هوية المستخدم ورصيد الأسئلة
     let userId: string | null = null;
     if (userToken) {
-        const { data: { user }, error: authError } = await supabase.auth.getUser(userToken);
+        const { data: { user } } = await supabase.auth.getUser(userToken);
         if (user) {
             userId = user.id;
             const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
@@ -30,142 +33,132 @@ serve(async (req) => {
         }
     }
 
-    // 2. تحليل لغة السؤال الأخير
+    // 2. تحليل لغة السؤال لاختيار عمود المقالات
     const lastUserMessage = messages[messages.length - 1].content;
     const isArabic = /[\u0600-\u06FF]/.test(lastUserMessage);
     const contentColumn = isArabic ? "content_ar" : "content_en";
 
-    // 3. تحديد النطاق الزمني (آخر 3 أشهر فقط)
+    // 3. تحديد النطاق الزمني للمقالات (آخر 3 أشهر فقط)
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    const dateString = threeMonthsAgo.toISOString();
+    const dateLimit = threeMonthsAgo.toISOString();
 
-    // 4. سحب المقالات/التحليلات من جدول articles
     let knowledgeBase = "";
+    let totalChars = 0;
     const MAX_KB_CHARS = 800000; 
+
+    // 4. سحب المقالات اللحظية (Articles)
     try {
       const { data: articles } = await supabase
         .from("articles")
         .select(`${contentColumn}, published_at`)
-        .gte("published_at", dateString)
+        .gte("published_at", dateLimit)
         .order("published_at", { ascending: false });
 
       if (articles && articles.length > 0) {
-        let totalChars = 0;
-        const truncatedDocs: string[] = [];
+        knowledgeBase += "=== RECENT MARKET ANALYSES (LAST 3 MONTHS) ===\n";
         for (const art of articles) {
           const textContent = (art as any)[contentColumn];
           if (!textContent) continue;
 
-          const entry = `\n--- [تاريخ النشر: ${new Date(art.published_at!).toLocaleDateString()}] ---\n${textContent}`;
-          if (totalChars + entry.length > MAX_KB_CHARS) {
-            const remaining = MAX_KB_CHARS - totalChars;
-            if (remaining > 500) truncatedDocs.push(entry.slice(0, remaining) + "\n[TRUNCATED]");
-            break;
+          const entry = `\n[Published: ${new Date(art.published_at!).toLocaleDateString()}] \n${textContent}\n`;
+          if (totalChars + entry.length < MAX_KB_CHARS) {
+            knowledgeBase += entry;
+            totalChars += entry.length;
           }
-          truncatedDocs.push(entry);
-          totalChars += entry.length;
         }
-        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\n" + truncatedDocs.join("\n");
-      } else {
-        knowledgeBase = "\n\n### UPLOADED KNOWLEDGE BASE (SOURCE OF TRUTH):\nلا توجد تحليلات متاحة في آخر 3 أشهر بهذه اللغة.";
       }
-    } catch (e) {
-      console.error("Error fetching articles:", e);
+    } catch (e) { console.error("Error fetching articles:", e); }
+
+    // 5. سحب المستندات والتقارير المرفوعة يدوياً (qiraa_mind_documents)
+    try {
+      const { data: staticDocs } = await supabase
+        .from("qiraa_mind_documents")
+        .select("title, content, source_month, source_year, document_type")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (staticDocs && staticDocs.length > 0) {
+        knowledgeBase += "\n=== STATIC REFERENCE DOCUMENTS ===\n";
+        for (const doc of staticDocs) {
+          const entry = `\n[Document: ${doc.title} | ${doc.source_month || ''} ${doc.source_year || ''} | Type: ${doc.document_type || 'general'}]\n${doc.content}\n`;
+          if (totalChars + entry.length < MAX_KB_CHARS) {
+            knowledgeBase += entry;
+            totalChars += entry.length;
+          }
+        }
+      }
+    } catch (e) { console.error("Error fetching documents:", e); }
+
+    if (totalChars === 0) {
+        knowledgeBase = "لا توجد بيانات متاحة للإجابة.";
     }
 
-    // 5. البرومبت النظامي
+    // 6. البرومبت النظامي 
     const systemPrompt = `### ROLE
-
-You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are NOT a generic AI. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
+You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
 
 ### STRICT DATA SOURCE
-
-Answer ONLY based on the text extracted from the uploaded files in the database below. These are your ONLY source of truth.
-
-- If data is missing in the files, state: "// SIGNAL MISSING: Data point not found in recent Index."
+Answer ONLY based on the text extracted from the database below (which includes live articles and static reports).
+- If data is missing, state: "// SIGNAL MISSING: Data point is out of my role."
 - DO NOT hallucinate. DO NOT use outside knowledge.
-- ALWAYS cite which date/month you are referencing.
+- For Arabic queries, answer in Business Arabic. For English, use Business English.
 
 ### RESPONSE FORMAT (The "Briefing" Style)
 
 1. **THE BOTTOM LINE:** A single, decisive summary sentence.
+
 2. **THE DATA:** Bullet points with **Bold** numbers/percentages and specific deal names.
+
 3. **THE STRATEGIC IMPLICATION:** Why this matters for an investor or founder. One powerful sentence.
 
 ### TONE
 
 - **No Fluff:** No "Hello," "Sure," "Here is the info," or any greeting.
+
 - **Language:** Match the user's language (Formal Arabic or Business English).
+
 - **Style:** Executive, Sharp, Analytical. Every word must earn its place.
 
+### KNOWLEDGE BASE:
 ${knowledgeBase}`;
 
-    // 6. نظام شلال المفاتيح (50 Keys Fallback)
-    let aiResponse: Response | null = null;
+    // 7. الاتصال بمحرك Lovable AI Gateway بمفتاح واحد
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages,
+        ],
+        stream: true,
+      }),
+    });
 
-    for (let i = 1; i <= 50; i++) {
-      const apiKey = Deno.env.get(`LOVABLE_API_KEY_${i}`);
-      if (!apiKey) continue;
-
-      try {
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: systemPrompt },
-              ...messages,
-            ],
-            stream: true,
-          }),
-        });
-
-        if (response.status === 402 || response.status === 429) {
-          console.warn(`Key LOVABLE_API_KEY_${i} exhausted. Moving to next...`);
-          continue; 
-        }
-
-        if (response.ok) {
-          aiResponse = response;
-          break;
-        } else {
-           const t = await response.text();
-           throw new Error(`API Error: ${response.status} - ${t}`);
-        }
-      } catch (err) {
-         console.error(`Error with Key ${i}:`, err);
-         continue;
-      }
+    if (!response.ok) {
+      if (response.status === 429) return new Response(JSON.stringify({ error: "الضغط عالي، يرجى المحاولة بعد قليل." }), { status: 429, headers: corsHeaders });
+      if (response.status === 402) return new Response(JSON.stringify({ error: "رصيد الـ API نفد." }), { status: 402, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Gateway error" }), { status: 500, headers: corsHeaders });
     }
 
-    if (!aiResponse) {
-      return new Response(JSON.stringify({ error: "All API Keys are exhausted or unavailable. Please contact admin." }), {
-        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 7. خصم التوكن من المستخدم بعد نجاح الاتصال
+    // 8. خصم التوكن بعد نجاح الاتصال
     if (userId) {
-        const { data: currentProfile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
-        if (currentProfile) {
-            await supabase.from('profiles').update({ qiraa_mind_tokens: currentProfile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
+        const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
+        if (profile) {
+            await supabase.from('profiles').update({ qiraa_mind_tokens: profile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
         }
     }
 
-    // 8. إعادة البث (Stream) للعميل
-    return new Response(aiResponse.body, {
+    return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
 
   } catch (e: any) {
-    console.error("qiraa-mind error:", e);
-    return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
   }
 });
