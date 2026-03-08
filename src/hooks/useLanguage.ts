@@ -19,6 +19,7 @@ export const useLanguage = (): LanguageState => {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('qiraa-language', lang);
+    window.scrollTo(0, 0);
   };
 
   useEffect(() => {
