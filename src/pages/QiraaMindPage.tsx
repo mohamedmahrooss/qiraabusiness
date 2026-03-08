@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock } from "lucide-react";
+import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock, ArrowUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,59 @@ import { Button } from "@/components/ui/button";
 type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
+
+// Radiant gradient CSS for the input
+const radiantStyles = `
+@property --rotation {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes rotate-gradient {
+  to {
+    --rotation: 360deg;
+  }
+}
+
+.radiant-input-wrapper {
+  --border-size: 2px;
+  --gradient: conic-gradient(
+    from var(--rotation) at 50% 50% in oklab,
+    oklch(0.63 0.2 251.22) 27%,
+    oklch(0.67 0.21 25.81) 33%,
+    oklch(0.9 0.19 93.93) 41%,
+    oklch(0.79 0.25 150.49) 49%,
+    oklch(0.63 0.2 251.22) 65%,
+    oklch(0.72 0.21 150.89) 93%,
+    oklch(0.63 0.2 251.22)
+  );
+  animation: rotate-gradient 5s infinite linear;
+}
+
+.radiant-input-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--border-size) * -1);
+  border-radius: inherit;
+  background: var(--gradient);
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0.5;
+}
+
+.radiant-input-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--border-size);
+  background: var(--gradient);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+`;
 
 // Landing page for unauthenticated users
 const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => void }) => {
@@ -301,39 +354,8 @@ const QiraaMindPage = () => {
 
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-background flex flex-col">
+      <style>{radiantStyles}</style>
       <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col">
-        {/* Header */}
-        <div className="text-center mb-4">
-          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-3 bg-primary/5">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary text-xs font-mono tracking-wider uppercase">
-              {isRTL ? "نشط • محرك الذكاء الاستراتيجي" : "LIVE • STRATEGIC ENGINE"}
-            </span>
-          </div>
-
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
-            QIRAA MIND
-          </h1>
-
-          <p className="text-muted-foreground text-sm mb-2">
-            {isRTL
-              ? "تحليل شامل مقيد ببيانات المنصة الحية والتقارير المرفوعة"
-              : "Comprehensive Analysis tied to Live Data & Uploaded Reports"}
-          </p>
-
-          {tokensLeft !== null && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-mono text-muted-foreground">
-              <span>
-                {isRTL ? `رصيد التحليلات: ${tokensLeft}` : `Analysis Credits: ${tokensLeft}`}
-              </span>
-              {tokensLeft < 10 && (
-                <button onClick={() => navigate("/pricing")} className="text-[10px] bg-primary text-primary-foreground px-2 py-0.5 rounded hover:bg-primary/80 ml-2">
-                  {isRTL ? "شحن الرصيد" : "Top up"}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
 
         {/* Messages Area */}
         {hasMessages && (
@@ -385,43 +407,52 @@ const QiraaMindPage = () => {
           </div>
         )}
 
-        {/* Input Area */}
-        <div className={`${hasMessages ? "mt-4" : "mt-auto"} mb-2`}>
-          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
-            <div className="relative border border-border rounded-2xl overflow-hidden bg-card shadow-sm">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder={isRTL ? "...اسأل QIRAA MIND عن تحركات السوق" : "Ask QIRAA MIND about market signals..."}
-                disabled={isLoading}
-                rows={1}
-                className="w-full bg-transparent text-foreground placeholder-muted-foreground px-6 py-4 pr-14 text-base outline-none resize-none max-h-[200px]"
-                style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="absolute bottom-3 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-primary hover:bg-primary/90"
-                style={{
-                  right: isRTL ? "auto" : "12px",
-                  left: isRTL ? "12px" : "auto",
-                }}
-              >
-                {isLoading ? <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" /> : <Send className="h-5 w-5 text-primary-foreground" />}
-              </button>
+        {/* Input Area — centered when no messages */}
+        <div className={`${hasMessages ? "mt-4" : "flex-1 flex flex-col items-center justify-center"} mb-2 w-full`}>
+          {/* Radiant Prompt Input */}
+          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="w-full max-w-2xl mx-auto">
+            <div className="relative radiant-input-wrapper rounded-2xl">
+              {/* Animated gradient border */}
+              <div className="radiant-input-border rounded-2xl" />
+
+              {/* Inner content */}
+              <div className="relative rounded-2xl bg-card/95 backdrop-blur-xl overflow-hidden">
+                <div className="flex items-end gap-2 px-4 py-3">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    placeholder={isRTL ? "اسأل قراءة" : "Ask QIRAA"}
+                    disabled={isLoading}
+                    rows={1}
+                    className="flex-1 bg-transparent text-foreground placeholder-muted-foreground text-base outline-none resize-none max-h-[200px] py-2"
+                    style={{ fontFamily: "'Inter', sans-serif", direction: isRTL ? "rtl" : "ltr" }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLoading || !input.trim()}
+                    className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 bg-primary hover:bg-primary/90 mb-0.5"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
+                    ) : (
+                      <ArrowUp className="h-5 w-5 text-primary-foreground" />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
 
           {/* Power Queries - below input */}
           {!hasMessages && (
-            <div className="flex flex-wrap justify-center gap-3 mt-4">
+            <div className="flex flex-wrap justify-center gap-3 mt-6 max-w-2xl">
               {powerQueries.map((q) => (
                 <button
                   key={q.label}
