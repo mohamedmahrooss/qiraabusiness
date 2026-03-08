@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles } from "lucide-react";
+import { Send, Loader2, Zap, TrendingUp, Globe, Leaf, Copy, Check, Brain, Shield, BarChart3, Sparkles, Lock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ type Message = { role: "user" | "assistant" | "system"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
+// Landing page for unauthenticated users
 const QiraaMindLanding = ({ isRTL, onLogin }: { isRTL: boolean; onLogin: () => void }) => {
   const features = isRTL
     ? [
@@ -81,6 +82,7 @@ const QiraaMindPage = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tokensLeft, setTokensLeft] = useState<number | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -100,7 +102,7 @@ const QiraaMindPage = () => {
     }
   }, [input]);
 
-  // Check auth & fetch tokens
+  // Check auth, access & fetch tokens
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -111,10 +113,17 @@ const QiraaMindPage = () => {
       setIsAuthenticated(true);
       const { data } = await supabase
         .from('profiles')
-        .select('qiraa_mind_tokens')
+        .select('qiraa_mind_tokens, subscription_plan')
         .eq('user_id', session.user.id)
-        .single();
-      if (data) setTokensLeft((data as any).qiraa_mind_tokens);
+        .maybeSingle();
+      if (data) {
+        setTokensLeft(data.qiraa_mind_tokens ?? 0);
+        const plan = data.subscription_plan?.toLowerCase() || 'free';
+        const allowedPlans = ['pro', 'enterprise'];
+        setHasAccess(allowedPlans.includes(plan));
+      } else {
+        setHasAccess(false);
+      }
     };
     check();
   }, [isLoading]);
@@ -145,15 +154,15 @@ const QiraaMindPage = () => {
   const powerQueries = isRTL
     ? [
         { label: "تحليل اتجاهات Q4", query: "حلل أبرز اتجاهات الاستثمار في الربع الأخير من 2025 في منطقة الشرق الأوسط وشمال أفريقيا", icon: TrendingUp },
-        { label: "شركات تحتاج لتوظيف", query: "بناءً على التحليلات الأخيرة، اذكر لي قائمة بأسماء الشركات التي ستحتاج لتوظيف وتوريد عمالة قريباً.", icon: Globe },
+        { label: "مصر vs السعودية", query: "قارن بين بيئة الاستثمار في الشركات الناشئة في مصر والسعودية خلال Q4 2025", icon: Globe },
         { label: "أبرز صفقات AgriTech", query: "ما هي أبرز صفقات واستثمارات التكنولوجيا الزراعية في المنطقة؟", icon: Leaf },
-        { label: "FinTech في المنطقة", query: "ما هو وضع قطاع التكنولوجيا المالية في الشرق الأوسط وشمال أفريقيا؟", icon: Zap },
+        { label: "FinTech في المنطقة", query: "ما هو وضع قطاع التكنولوجيا المالية في الشرق الأوسط وشمال أفريقيا في الربع الأخير من 2025؟", icon: Zap },
       ]
     : [
         { label: "Analyze Q4 Trends", query: "Analyze the top investment trends in MENA region during Q4 2025", icon: TrendingUp },
-        { label: "Hiring Opportunities", query: "Based on recent analyses, list companies likely to need hiring soon.", icon: Globe },
+        { label: "Egypt vs KSA", query: "Compare startup investment environments in Egypt vs Saudi Arabia during Q4 2025", icon: Globe },
         { label: "Top AgriTech Deals", query: "What are the top AgriTech deals and investments in the MENA region?", icon: Leaf },
-        { label: "FinTech Overview", query: "What is the state of FinTech in MENA?", icon: Zap },
+        { label: "FinTech Overview", query: "What is the state of FinTech in MENA during Q4 2025?", icon: Zap },
       ];
 
   const sendMessage = async (text?: string) => {
@@ -191,7 +200,7 @@ const QiraaMindPage = () => {
       });
 
       if (resp.status === 402) {
-        throw new Error(isRTL ? "رصيد الأسئلة لا يسمح. يرجى الشحن." : "Insufficient tokens.");
+        throw new Error(isRTL ? "الرصيد غير كافٍ. يرجى الشحن." : "Insufficient tokens.");
       }
 
       if (!resp.ok) {
@@ -249,7 +258,7 @@ const QiraaMindPage = () => {
     }
   };
 
-  // Show loading while checking auth
+  // Loading state
   if (isAuthenticated === null) {
     return (
       <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
@@ -258,9 +267,34 @@ const QiraaMindPage = () => {
     );
   }
 
-  // Show landing page for unauthenticated users
+  // Landing for unauthenticated
   if (!isAuthenticated) {
     return <QiraaMindLanding isRTL={isRTL} onLogin={() => navigate("/auth")} />;
+  }
+
+  // Access gate: only pro/enterprise
+  if (hasAccess === false) {
+    return (
+      <div className="min-h-[calc(100vh-5rem)] bg-background flex items-center justify-center">
+        <div className="max-w-lg w-full mx-auto px-4 text-center space-y-6">
+          <Lock className="h-16 w-16 text-primary/40 mx-auto" />
+          <h2 className="text-2xl font-bold text-foreground">
+            {isRTL ? "ميزة حصرية للباقات المتقدمة" : "Exclusive Feature"}
+          </h2>
+          <p className="text-muted-foreground text-base">
+            {isRTL
+              ? "عقل قراءة (Qiraa Mind) هو محرك ذكاء استراتيجي متاح فقط لمشتركي الباقة الاحترافية (Pro) والمؤسسية (Enterprise). قم بالترقية الآن للوصول إلى تحليلات عميقة."
+              : "Qiraa Mind is a strategic intelligence engine available only to Pro and Enterprise subscribers. Upgrade now to access deep insights."}
+          </p>
+          <button
+            onClick={() => navigate("/pricing")}
+            className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+          >
+            {isRTL ? "ترقية الباقة الآن" : "Upgrade Plan Now"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const hasMessages = messages.length > 0;
@@ -270,18 +304,33 @@ const QiraaMindPage = () => {
       <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col">
         {/* Header */}
         <div className="text-center mb-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
-            {isRTL ? "عقل قراءة" : "QIRAA MIND"}
-          </h1>
-          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 bg-primary/5">
+          <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-3 bg-primary/5">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-primary text-xs font-mono tracking-wider uppercase">
-              {isRTL ? "مستشار ذكاء الاعمال الاستراتيجي" : "STRATEGIC BUSINESS INTELLIGENCE ADVISOR"}
+              {isRTL ? "نشط • محرك الذكاء الاستراتيجي" : "LIVE • STRATEGIC ENGINE"}
             </span>
           </div>
+
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1 tracking-tight" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+            QIRAA MIND
+          </h1>
+
+          <p className="text-muted-foreground text-sm mb-2">
+            {isRTL
+              ? "تحليل شامل مقيد ببيانات المنصة الحية والتقارير المرفوعة"
+              : "Comprehensive Analysis tied to Live Data & Uploaded Reports"}
+          </p>
+
           {tokensLeft !== null && (
-            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-mono text-muted-foreground">
-              {isRTL ? `الرصيد المتبقي: ${tokensLeft} سؤال` : `Tokens left: ${tokensLeft}`}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-mono text-muted-foreground">
+              <span>
+                {isRTL ? `رصيد التحليلات: ${tokensLeft}` : `Analysis Credits: ${tokensLeft}`}
+              </span>
+              {tokensLeft < 10 && (
+                <button onClick={() => navigate("/pricing")} className="text-[10px] bg-primary text-primary-foreground px-2 py-0.5 rounded hover:bg-primary/80 ml-2">
+                  {isRTL ? "شحن الرصيد" : "Top up"}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -306,7 +355,7 @@ const QiraaMindPage = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <span className="text-primary text-xs font-mono uppercase tracking-wider">
-                          {isRTL ? "موجز استراتيجي" : "STRATEGIC BRIEFING"}
+                          {isRTL ? "موجز استخباراتي" : "INTELLIGENCE BRIEF"}
                         </span>
                         {isLoading && i === messages.length - 1 && (
                           <Loader2 className="h-3 w-3 text-primary animate-spin" />
@@ -350,7 +399,7 @@ const QiraaMindPage = () => {
                     sendMessage();
                   }
                 }}
-                placeholder={isRTL ? "...اسأل عقل قراءة عن التوصيات وقوائم الشركات" : "Ask QIRAA MIND for recommendations and company lists..."}
+                placeholder={isRTL ? "...اسأل QIRAA MIND عن تحركات السوق" : "Ask QIRAA MIND about market signals..."}
                 disabled={isLoading}
                 rows={1}
                 className="w-full bg-transparent text-foreground placeholder-muted-foreground px-6 py-4 pr-14 text-base outline-none resize-none max-h-[200px]"

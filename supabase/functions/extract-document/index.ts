@@ -17,7 +17,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify admin
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error("Unauthorized");
@@ -38,8 +37,7 @@ serve(async (req) => {
 
     if (!file || !title) throw new Error("File and title are required");
 
-    // Upload file to storage
-    const fileName = `${Date.now()}-${file.name}`;
+    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
     const filePath = `documents/${fileName}`;
     const arrayBuffer = await file.arrayBuffer();
     const fileBytes = new Uint8Array(arrayBuffer);
@@ -50,20 +48,17 @@ serve(async (req) => {
 
     if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
 
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     let extractedText = "";
 
     if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-      const base64 = btoa(String.fromCharCode(...fileBytes));
-      let extractionSuccess = false;
-
-      for (let i = 1; i <= 50; i++) {
-        const apiKey = Deno.env.get(`LOVABLE_API_KEY_${i}`);
-        if (!apiKey) continue;
-
+      const base64 = btoa(Array.from(fileBytes).map(b => String.fromCharCode(b)).join(''));
+      
+      if (LOVABLE_API_KEY) {
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -80,40 +75,29 @@ serve(async (req) => {
           }),
         });
 
-        if (aiResponse.status === 402 || aiResponse.status === 429) {
-           console.warn(`Extraction Key ${i} exhausted. Trying next...`);
-           continue;
-        }
-
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           extractedText = aiData.choices?.[0]?.message?.content || "";
-          extractionSuccess = true;
-          break;
+        } else {
+           extractedText = `[تم الرفع بنجاح. فشل الاستخراج التلقائي للـ PDF]`;
         }
       }
-      
-      if (!extractionSuccess) {
-         extractedText = `[تم الرفع بنجاح. فشل الاستخراج، جميع المفاتيح نفدت أو غير متاحة]`;
-      }
-      
     } else {
       try {
         const decoder = new TextDecoder("utf-8");
         extractedText = decoder.decode(fileBytes);
         if (extractedText.includes("\x00") || extractedText.length < 10) {
-          extractedText = `[Document uploaded: ${file.name}. Content extraction pending manual review.]`;
+          extractedText = `[تم الرفع: ${file.name}. يحتاج نسخ يدوي.]`;
         }
       } catch {
-        extractedText = `[Document uploaded: ${file.name}]`;
+        extractedText = `[تم الرفع: ${file.name}]`;
       }
     }
 
     if (!extractedText || extractedText.length < 50) {
-      extractedText = `[Document: ${file.name} uploaded successfully. Please paste the text content manually.]`;
+      extractedText = `[الملف: ${file.name} تم الرفع بنجاح. يرجى لصق المحتوى النصي يدوياً.]`;
     }
 
-    // Insert document record
     const { data: doc, error: insertError } = await supabase
       .from("qiraa_mind_documents")
       .insert({
@@ -124,6 +108,7 @@ serve(async (req) => {
         document_type: documentType || "market_signals",
         file_path: filePath,
         uploaded_by: user.id,
+        is_active: true
       })
       .select()
       .single();
@@ -134,10 +119,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
-    console.error("extract-document error:", e);
     return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
