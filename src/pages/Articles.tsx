@@ -57,7 +57,7 @@ const Analytics = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalArticles, setTotalArticles] = useState(0);
+  const [totalAnalytics, setTotalAnalytics] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   
   const { language, isRTL } = useLanguage();
