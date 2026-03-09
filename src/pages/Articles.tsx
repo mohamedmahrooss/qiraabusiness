@@ -289,7 +289,7 @@ const Analytics = () => {
         ) : analytics.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
-              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analytics found'}
+              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analysis found'}
             </div>
             <Button variant="outline" onClick={() => {
               setSearchTerm('');
