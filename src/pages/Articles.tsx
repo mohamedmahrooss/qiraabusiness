@@ -101,14 +101,14 @@ const Analytics = () => {
     fetchCategories();
   }, [language, toast]);
 
-  // Fetch articles
+  // Fetch analytics
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchAnalytics = async () => {
       setLoading(true);
       
       try {
         let query = supabase
-          .from('articles')
+          .from('analytics')
           .select(`
             *,
             categories(id, name_ar, name_en, slug)
@@ -129,26 +129,26 @@ const Analytics = () => {
 
         // Get total count for pagination
         const { count } = await supabase
-          .from('articles')
+          .from('analytics')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'published');
-        setTotalArticles(count || 0);
+        setTotalAnalytics(count || 0);
 
         // Apply pagination
-        const from = (currentPage - 1) * ARTICLES_PER_PAGE;
-        const to = from + ARTICLES_PER_PAGE - 1;
+        const from = (currentPage - 1) * ANALYTICS_PER_PAGE;
+        const to = from + ANALYTICS_PER_PAGE - 1;
         
         const { data, error } = await query.range(from, to);
         
         if (error) throw error;
-        setArticles(data || []);
+        setAnalytics(data || []);
       } catch (error) {
-        console.error('Error fetching articles:', error);
+        console.error('Error fetching analytics:', error);
         toast({
-          title: language === 'ar' ? 'خطأ في جلب المقالات' : 'Error fetching articles',
+          title: language === 'ar' ? 'خطأ في جلب التحليلات' : 'Error fetching analytics',
           description: language === 'ar' 
-            ? 'حدث خطأ أثناء جلب المقالات' 
-            : 'An error occurred while fetching articles',
+            ? 'حدث خطأ أثناء جلب التحليلات' 
+            : 'An error occurred while fetching analytics',
           variant: "destructive",
         });
       } finally {
@@ -156,7 +156,7 @@ const Analytics = () => {
       }
     };
 
-    fetchArticles();
+    fetchAnalytics();
   }, [selectedCategory, searchTerm, currentPage, language, toast]);
 
   // Update URL params
