@@ -218,55 +218,54 @@ const Analytics = () => {
     });
   };
 
-  const totalPages = Math.ceil(totalArticles / ARTICLES_PER_PAGE);
+  const totalPages = Math.ceil(totalAnalytics / ANALYTICS_PER_PAGE);
 
   return (
     <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
-            {language === 'ar' ? 'التحليلات اللحظية' : 'Real-Time Analyses'}
+            {language === 'ar' ? 'تحليلات لحظية' : 'Real-Time Analytics'}
           </h1>
           <p className="text-muted-foreground">
             {language === 'ar' 
               ? 'اكتشف آخر التحليلات اللحظية في عالم الأعمال والاستثمار' 
-              : 'Discover the latest real-time analyses in business and investment'}
+              : 'Discover the latest real-time analytics in business and investment'}
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className="relative flex-1">
+            <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4`} />
             <Input
-              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analyses...'}
+              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analytics...'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
+              className={isRTL ? 'pr-10' : 'pl-10'}
             />
           </div>
 
-          {/* Category filters */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleCategoryFilter(null)}
-            >
-              {language === 'ar' ? 'جميع التصنيفات' : 'All Categories'}
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategoryFilter(category.id)}
-              >
-                {language === 'ar' ? category.name_ar : category.name_en}
-              </Button>
-            ))}
-          </div>
+          {/* Category dropdown */}
+          <Select
+            value={selectedCategory || "all"}
+            onValueChange={(value) => handleCategoryFilter(value === "all" ? null : value)}
+          >
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder={language === 'ar' ? 'اختر التصنيف' : 'Select Category'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {language === 'ar' ? 'الكل' : 'All'}
+              </SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {language === 'ar' ? category.name_ar : category.name_en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Articles Grid */}
