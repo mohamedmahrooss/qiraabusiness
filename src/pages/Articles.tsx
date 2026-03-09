@@ -189,23 +189,23 @@ const Analytics = () => {
     setSearchParams(params);
   };
 
-  const handleArticleClick = async (articleId: string) => {
-    console.log('Article clicked, ID:', articleId);
-    console.log('Navigating to:', `/articles/${articleId}`);
+  const handleAnalyticClick = async (analyticId: string) => {
+    console.log('Analytic clicked, ID:', analyticId);
+    console.log('Navigating to:', `/articles/${analyticId}`);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Record article view
+        // Record analytic view
         await supabase
-          .from('user_articles')
+          .from('user_analytics')
           .insert({
             user_id: user.id,
-            article_id: articleId
+            analytic_id: analyticId
           });
       }
     } catch (error) {
-      console.error('Error recording article view:', error);
+      console.error('Error recording analytic view:', error);
     }
   };
 
