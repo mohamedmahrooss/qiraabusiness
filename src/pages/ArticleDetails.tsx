@@ -217,10 +217,10 @@ const ArticleDetails = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-muted-foreground mb-4">
-            {language === 'ar' ? 'المقال غير موجود' : 'Article not found'}
+            {language === 'ar' ? 'التحليل غير موجود' : 'Analytic not found'}
           </h1>
           <p className="text-muted-foreground mb-6">
-            {language === 'ar' ? 'عذراً، لم نتمكن من العثور على المقال المطلوب' : 'Sorry, we could not find the requested article'}
+            {language === 'ar' ? 'عذراً، لم نتمكن من العثور على التحليل المطلوب' : 'Sorry, we could not find the requested analytic'}
           </p>
           <Button onClick={() => navigate('/articles')} variant="outline">
             <ArrowLeft className="w-4 h-4 mx-2" />
