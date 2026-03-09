@@ -24,7 +24,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info - text aligned with quick links */}
           <div className="flex flex-col">
-            <div className="mb-4">
+            <div className="mb-4 pt-1">
               <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 w-auto object-contain" />
             </div>
             <div className="space-y-6">
