@@ -338,7 +338,7 @@ const AdminDashboard = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button variant="outline" className="h-16 gap-3 text-lg" onClick={() => navigate("/articles")}>
-          <BookOpen className="h-5 w-5" />{isRTL ? "إدارة المقالات" : "Manage Articles"}
+          <BookOpen className="h-5 w-5" />{isRTL ? "إدارة التحليلات" : "Manage Analytics"}
         </Button>
         <Button variant="outline" className="h-16 gap-3 text-lg" onClick={() => navigate("/reports")}>
           <FileText className="h-5 w-5" />{isRTL ? "إدارة التقارير" : "Manage Reports"}
