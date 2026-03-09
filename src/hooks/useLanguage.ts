@@ -125,7 +125,7 @@ const ar: TranslationKeys = {
   qiraaSignals: 'مؤشرات قراءة', pricing: 'الباقات والأسعار', about: 'من نحن',
   supportHelp: 'الدعم والمساعدة', helpCenter: 'مركز المساعدة', contactUs: 'تواصل معنا', api: 'واجهة API',
   privacyPolicyFooter: 'سياسة الخصوصية', termsOfUse: 'شروط الاستخدام',
-  newsletter: 'اشترك في النشرة البريدية', newsletterDesc: 'احصل على أحدث الرؤى والتحليلات مباشرة في بريدك الإلكتروني',
+  newsletter: 'اشترك في النشرة البريدية', newsletterDesc: 'احصل على أهم قراءة لحظية للأسواق في بريدك الإلكتروني',
   yourEmail: 'بريدك الإلكتروني', subscribe: 'اشتراك', allRightsReserved: 'جميع الحقوق محفوظة', cookiePolicy: 'سياسة الكوكيز',
   choosePlan: 'اختر الباقة المناسبة لك', pricingSubtitle: 'باقات مرنة تناسب جميع احتياجاتك الاستثمارية من البداية حتى المؤسسات الكبيرة',
   freePlan: 'المجانية', basicPlan: 'الأساسية', proPlan: 'الاحترافية', enterprisePlan: 'المؤسسية',
