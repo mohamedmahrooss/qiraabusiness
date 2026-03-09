@@ -224,12 +224,72 @@ const QiraaMind = () => {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Attached File Preview */}
+        {attachedFile && (
+          <div className="px-4 pt-2 pb-2">
+            <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg border border-border">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <FileIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm truncate">{attachedFile.name}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">
+                  ({(attachedFile.size / 1024).toFixed(1)} KB)
+                </span>
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => {
+                setAttachedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className="border-t border-border p-4">
           <form
             onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-            className="flex gap-2"
+            className="flex gap-2 items-center"
           >
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".txt,.md,.csv,.pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast({ title: isRTL ? "خطأ" : "Error", description: isRTL ? "حجم الملف يتجاوز 5 ميجابايت" : "File size exceeds 5MB", variant: "destructive" });
+                    return;
+                  }
+                  setAttachedFile(file);
+                }
+              }}
+            />
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              className="flex-shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              title={isRTL ? "إرفاق ملف (جهازك أو Google Drive)" : "Attach file (Device or Google Drive)"}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+
+            <Button 
+              type="button" 
+              variant={isRecording ? "destructive" : "outline"} 
+              size="icon" 
+              className={`flex-shrink-0 transition-all ${isRecording ? 'animate-pulse' : ''}`}
+              onClick={toggleRecording}
+              title={isRTL ? "تحدث" : "Speak"}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -237,7 +297,7 @@ const QiraaMind = () => {
               disabled={isLoading}
               className="flex-1"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+            <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !attachedFile)}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
