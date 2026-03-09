@@ -20,16 +20,15 @@ const Footer = () => {
   const { isRTL } = useLanguage();
   const t = useTranslation();
   return <footer className="bg-secondary text-secondary-foreground">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Logo above everything */}
-        <div className="mb-4">
-          <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 object-contain" />
-        </div>
-
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info - text aligned with quick links */}
-          <div className="space-y-6">
-            <p className="text-secondary-foreground/80 leading-relaxed">
+          <div className="flex flex-col">
+            <div className="mb-4">
+              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 w-auto object-contain" />
+            </div>
+            <div className="space-y-6">
+              <p className="text-secondary-foreground/80 leading-relaxed">
               {isRTL ? 
                 "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
                 "A real-time market intelligence platform for understanding market dynamics in the Middle East and North Africa. Through actionable steps, insights, and real-time analytics, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
@@ -67,10 +66,11 @@ const Footer = () => {
                 </a>
               </Button>
             </div>
+            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:pt-[148px]">
             <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
             <ul className="space-y-3">
               <li>
@@ -107,7 +107,7 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-[148px]">
             <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
             <ul className="space-y-3">
               <li>
@@ -144,7 +144,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-[148px]">
             <h3 className="text-lg font-semibold">{t.newsletter}</h3>
             <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
             <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
