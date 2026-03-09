@@ -108,8 +108,8 @@ const ArticleDetails = () => {
         if (error) {
           console.error('Error fetching article:', error);
           toast({
-            title: language === 'ar' ? 'خطأ في تحميل المقال' : 'Error loading article',
-            description: language === 'ar' ? 'حدث خطأ أثناء تحميل المقال' : 'An error occurred while loading the article',
+            title: language === 'ar' ? 'خطأ في تحميل التحليل' : 'Error loading analytic',
+            description: language === 'ar' ? 'حدث خطأ أثناء تحميل التحليل' : 'An error occurred while loading the analytic',
             variant: "destructive",
           });
           setNotFound(true);
