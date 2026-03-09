@@ -53,12 +53,12 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-3 z-50 w-[calc(100%-2rem)] mx-auto rounded-2xl border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
+    <header className="sticky top-5 z-50 w-[calc(100%-4rem)] max-w-7xl mx-auto rounded-xl border border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-24 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-20" />
+            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-28 object-contain" />
           </Link>
 
           {/* Desktop Navigation */}

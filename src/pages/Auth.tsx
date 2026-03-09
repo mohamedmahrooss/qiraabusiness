@@ -113,7 +113,7 @@ export default function Auth() {
 
   return (
     <div
-      className="min-h-screen bg-background/40 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+      className="fixed inset-0 z-[100] bg-background/40 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
       onClick={handleBackdropClick}
     >
       {/* Background decoration */}
@@ -133,7 +133,7 @@ export default function Auth() {
           <CardHeader className="space-y-3 text-center pb-4">
             {/* Logo instead of Q */}
             <div className="mx-auto">
-              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-16 mx-auto" />
+              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-28 mx-auto object-contain" />
             </div>
             
             <div className="space-y-1">

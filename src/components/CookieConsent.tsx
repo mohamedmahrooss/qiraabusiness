@@ -27,7 +27,7 @@ const CookieConsent = () => {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-3 left-4 right-4 z-50 rounded-2xl p-4 bg-card border border-border shadow-2xl">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-7xl z-50 rounded-xl p-4 bg-card border border-border shadow-2xl">
       <div className="container mx-auto max-w-4xl flex flex-col sm:flex-row items-center gap-4">
         <p className="text-sm text-muted-foreground flex-1">
           {isRTL

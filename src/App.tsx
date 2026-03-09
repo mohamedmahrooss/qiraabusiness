@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useRef, useEffect } from "react";
 import ScrollToTop from "./components/ScrollToTop";
 import MainLayout from "./components/layout/MainLayout";
 import CookieConsent from "./components/CookieConsent";
@@ -25,6 +26,49 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const RouteHandler = () => {
+  const location = useLocation();
+  const previousLocation = useRef(location);
+  
+  const isAuthRoute = ['/auth', '/login', '/register'].includes(location.pathname);
+
+  useEffect(() => {
+    if (!isAuthRoute) {
+      previousLocation.current = location;
+    }
+  }, [location, isAuthRoute]);
+
+  const backgroundLocation = isAuthRoute && previousLocation.current.pathname !== location.pathname
+    ? previousLocation.current 
+    : { ...location, pathname: '/' };
+
+  return (
+    <>
+      <Routes location={isAuthRoute ? backgroundLocation : location}>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+        <Route path="/admin" element={<MainLayout><AdminDashboard /></MainLayout>} />
+        <Route path="/articles" element={<MainLayout><Articles /></MainLayout>} />
+        <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
+        <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+        <Route path="/reports/:id" element={<MainLayout><ReportDetails /></MainLayout>} />
+        <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+        <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
+        <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
+        <Route path="/billing" element={<MainLayout><Pricing /></MainLayout>} />
+        <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
+        <Route path="/privacy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
+        <Route path="/terms" element={<MainLayout><TermsOfUse /></MainLayout>} />
+        <Route path="/cookies" element={<MainLayout><CookiePolicy /></MainLayout>} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      
+      {isAuthRoute && <Auth />}
+    </>
+  );
+};
+
 const App = () => {
   console.log('App component rendering...');
   return (
@@ -34,28 +78,7 @@ const App = () => {
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/register" element={<Auth />} />
-          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-          <Route path="/admin" element={<MainLayout><AdminDashboard /></MainLayout>} />
-          <Route path="/articles" element={<MainLayout><Articles /></MainLayout>} />
-          <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
-          <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
-          <Route path="/reports/:id" element={<MainLayout><ReportDetails /></MainLayout>} />
-          <Route path="/about" element={<MainLayout><About /></MainLayout>} />
-          <Route path="/qiraa-signals" element={<MainLayout><QiraaSignals /></MainLayout>} />
-          <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
-          <Route path="/billing" element={<MainLayout><Pricing /></MainLayout>} />
-          <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
-          <Route path="/privacy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
-          <Route path="/terms" element={<MainLayout><TermsOfUse /></MainLayout>} />
-          <Route path="/cookies" element={<MainLayout><CookiePolicy /></MainLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <RouteHandler />
         <CookieConsent />
       </BrowserRouter>
     </TooltipProvider>
