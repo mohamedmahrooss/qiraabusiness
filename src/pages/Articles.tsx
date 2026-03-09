@@ -395,4 +395,4 @@ const Analytics = () => {
   );
 };
 
-export default Articles;
+export default Analytics;

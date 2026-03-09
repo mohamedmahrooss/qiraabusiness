@@ -171,7 +171,7 @@ const en: TranslationKeys = {
   totalSalesTooltip: 'Total number of sales achieved during the month',
   monthlyGrowthTooltip: 'Percentage change in revenue compared to previous month',
   quarterlyRevenue: 'Quarterly Revenue', exportDataDescription: 'Download selected data as CSV file for your own analysis',
-  quickLinks: 'Quick Links', home: 'Home', articles: 'Analyses', reports: 'Strategic Reports',
+  quickLinks: 'Quick Links', home: 'Home', articles: 'Analytics', reports: 'Strategic Reports',
   qiraaSignals: 'QIRAA Signals', pricing: 'Pricing', about: 'About Us',
   supportHelp: 'Support & Help', helpCenter: 'Help Center', contactUs: 'Contact Us', api: 'API',
   privacyPolicyFooter: 'Privacy Policy', termsOfUse: 'Terms of Use',
