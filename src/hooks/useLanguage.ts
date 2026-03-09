@@ -121,7 +121,7 @@ const ar: TranslationKeys = {
   totalSalesTooltip: 'عدد المبيعات الإجمالي المحقق خلال الشهر',
   monthlyGrowthTooltip: 'النسبة المئوية للتغيير في الإيرادات مقارنة بالشهر السابق',
   quarterlyRevenue: 'الإيرادات الربع سنوية', exportDataDescription: 'قم بتنزيل البيانات المحددة كملف CSV لتحليلاتك الخاصة',
-  quickLinks: 'روابط سريعة', home: 'الرئيسية', articles: 'التحليلات', reports: 'التقارير الاستراتيجية',
+  quickLinks: 'روابط سريعة', home: 'الرئيسية', articles: 'تحليلات', reports: 'التقارير الاستراتيجية',
   qiraaSignals: 'مؤشرات قراءة', pricing: 'الباقات والأسعار', about: 'من نحن',
   supportHelp: 'الدعم والمساعدة', helpCenter: 'مركز المساعدة', contactUs: 'تواصل معنا', api: 'واجهة API',
   privacyPolicyFooter: 'سياسة الخصوصية', termsOfUse: 'شروط الاستخدام',
