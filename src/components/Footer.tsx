@@ -144,7 +144,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-4 lg:pt-[148px]">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.newsletter}</h3>
             <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
             <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
