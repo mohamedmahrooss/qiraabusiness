@@ -19,57 +19,69 @@ const ApplePodcastIcon = () => (
 const Footer = () => {
   const { isRTL } = useLanguage();
   const t = useTranslation();
-  return <footer className="bg-secondary text-secondary-foreground">
+
+  return (
+    <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+
+          {/* Column 1: Logo sits at top aligned with other column headings,
+              then description text starts after a gap equal to space-y-4 (16px)
+              so it aligns with the first <li> "الرئيسية" in the Quick Links column.
+              Logo h-44 = 176px. Other columns: h3 line-height ~28px + space-y-4 16px = 44px before first item.
+              So after logo we need mb that brings description to same row as first <li>.
+              We use the same space-y-4 gap (16px) matching the gap between h3 and ul. */}
           <div className="flex flex-col">
-            <div className="mb-4 pt-6">
-              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 w-auto object-contain" />
-            </div>
+            {/* Logo — same top position as h3 headings in other columns */}
+            <img
+              src="/images/qiraa-logo.png"
+              alt="QIRAA"
+              className="h-44 w-auto object-contain self-start mb-4"
+            />
+            {/* Description starts here — aligned with "الرئيسية" in col 2 */}
             <div className="space-y-6">
               <p className="text-secondary-foreground/80 leading-relaxed">
-              {isRTL ? 
-                "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
-                "A real-time market intelligence platform for understanding market dynamics in the Middle East and North Africa. Through actionable steps, insights, and real-time analytics, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
-              }
-            </p>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://www.facebook.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
-                  <Facebook className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://x.com/qiraabusiness" target="_blank" rel="noopener noreferrer">
-                  <X className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://www.linkedin.com/company/qiraabusiness/" target="_blank" rel="noopener noreferrer">
-                  <Linkedin className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://www.instagram.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
-                  <Instagram className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://podcasts.apple.com/eg/podcast/qiraa/id1813550545" target="_blank" rel="noopener noreferrer">
-                  <ApplePodcastIcon />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href="https://open.spotify.com/show/7fioTcz02yXnrHv2rcBldu" target="_blank" rel="noopener noreferrer">
-                  <SpotifyIcon />
-                </a>
-              </Button>
-            </div>
+                {isRTL ?
+                  "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
+                  "A real-time market intelligence platform for understanding market dynamics in the Middle East and North Africa. Through actionable steps, insights, and real-time analytics, QIRAA helps decision makers and investors see the complete picture and make more informed and confident decisions."
+                }
+              </p>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://www.facebook.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://x.com/qiraabusiness" target="_blank" rel="noopener noreferrer">
+                    <X className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://www.linkedin.com/company/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://www.instagram.com/qiraabusiness/" target="_blank" rel="noopener noreferrer">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://podcasts.apple.com/eg/podcast/qiraa/id1813550545" target="_blank" rel="noopener noreferrer">
+                    <ApplePodcastIcon />
+                  </a>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                  <a href="https://open.spotify.com/show/7fioTcz02yXnrHv2rcBldu" target="_blank" rel="noopener noreferrer">
+                    <SpotifyIcon />
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 2: Quick Links */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
             <ul className="space-y-3">
@@ -106,7 +118,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Column 3: Support */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
             <ul className="space-y-3">
@@ -143,7 +155,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Column 4: Newsletter */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.newsletter}</h3>
             <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
@@ -153,8 +165,6 @@ const Footer = () => {
                 {t.subscribe}
               </Button>
             </div>
-            
-            {/* Contact Info */}
             <div className="space-y-3 pt-4" dir="ltr">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
@@ -170,6 +180,7 @@ const Footer = () => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -194,6 +205,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
 export default Footer;
