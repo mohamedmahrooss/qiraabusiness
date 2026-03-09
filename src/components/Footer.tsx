@@ -107,7 +107,7 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="space-y-4 lg:pt-[148px]">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
             <ul className="space-y-3">
               <li>
