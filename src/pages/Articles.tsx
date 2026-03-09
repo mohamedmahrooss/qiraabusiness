@@ -241,7 +241,7 @@ const Analytics = () => {
           <div className="relative flex-1">
             <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4`} />
             <Input
-              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analytics...'}
+              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analysis...'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className={isRTL ? 'pr-10' : 'pl-10'}
