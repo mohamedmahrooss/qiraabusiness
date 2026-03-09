@@ -268,7 +268,7 @@ const Analytics = () => {
           </Select>
         </div>
 
-        {/* Articles Grid */}
+        {/* Analytics Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -285,10 +285,10 @@ const Analytics = () => {
               </Card>
             ))}
           </div>
-        ) : articles.length === 0 ? (
+        ) : analytics.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
-              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analyses found'}
+              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analytics found'}
             </div>
             <Button variant="outline" onClick={() => {
               setSearchTerm('');
