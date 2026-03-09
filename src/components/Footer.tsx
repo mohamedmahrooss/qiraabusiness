@@ -66,10 +66,11 @@ const Footer = () => {
                 </a>
               </Button>
             </div>
+            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:pt-[148px]">
             <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
             <ul className="space-y-3">
               <li>
