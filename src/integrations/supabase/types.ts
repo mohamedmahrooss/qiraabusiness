@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      articles: {
+      analytics: {
         Row: {
           author_id: string | null
           category_id: string | null
@@ -468,21 +468,21 @@ export type Database = {
           },
         ]
       }
-      user_articles: {
+      user_analytics: {
         Row: {
-          article_id: string
+          analytic_id: string
           id: string
           read_at: string
           user_id: string
         }
         Insert: {
-          article_id: string
+          analytic_id: string
           id?: string
           read_at?: string
           user_id: string
         }
         Update: {
-          article_id?: string
+          analytic_id?: string
           id?: string
           read_at?: string
           user_id?: string
@@ -490,9 +490,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_articles_article_id_fkey"
-            columns: ["article_id"]
+            columns: ["analytic_id"]
             isOneToOne: false
-            referencedRelation: "articles"
+            referencedRelation: "analytics"
             referencedColumns: ["id"]
           },
         ]
