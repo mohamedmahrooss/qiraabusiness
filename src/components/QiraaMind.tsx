@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, Brain, Loader2, Bot, User } from "lucide-react";
+import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type Message = { role: "user" | "assistant"; content: string };
 
