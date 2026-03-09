@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Tag, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Article {
+interface Analytic {
   id: string;
   title_ar: string;
   title_en: string;
