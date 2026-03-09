@@ -77,15 +77,34 @@ const QiraaMind = () => {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !attachedFile) || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    const userMessage: Message = { role: "user", content: input.trim() || (isRTL ? "مرفق ملف للتحليل" : "File attached for analysis") };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
+      let user_file = null;
+      if (attachedFile) {
+        if (attachedFile.type.includes('pdf')) {
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve) => {
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(',')[1];
+              resolve(`[BASE64_FILE:${attachedFile.type}]${base64}`);
+            };
+          });
+          reader.readAsDataURL(attachedFile);
+          const content = await base64Promise;
+          user_file = { name: attachedFile.name, content };
+        } else {
+          const text = await attachedFile.text();
+          user_file = { name: attachedFile.name, content: text };
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       
       const resp = await fetch(CHAT_URL, {
