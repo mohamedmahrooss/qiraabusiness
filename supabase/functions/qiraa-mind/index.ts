@@ -55,8 +55,8 @@ serve(async (req) => {
 
     // 4. سحب المقالات اللحظية (Articles) — PRIORITY 1: DB sources first
     try {
-      const { data: articles } = await supabase
-        .from("articles")
+      const { data: analyticsData } = await supabase
+        .from("analytics")
         .select(`${contentColumn}, published_at`)
         .gte("published_at", dateLimit)
         .order("published_at", { ascending: false });
