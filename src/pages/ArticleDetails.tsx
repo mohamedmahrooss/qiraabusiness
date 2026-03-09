@@ -91,7 +91,7 @@ const ArticleDetails = () => {
         }
 
         const { data, error } = await supabase
-          .from('articles')
+          .from('analytics')
           .select(`
             *,
             categories (
@@ -116,13 +116,13 @@ const ArticleDetails = () => {
         } else if (!data) {
           setNotFound(true);
         } else {
-          setArticle(data);
+          setArticle(data as any);
           
           // Track article view and increment counters
           if (user) {
             await supabase
-              .from('user_articles')
-              .insert([{ user_id: user.id, article_id: data.id }]);
+              .from('user_analytics')
+              .insert([{ user_id: user.id, analytic_id: data.id }]);
 
             // Increment read counters
             const { data: currentProfile } = await supabase
