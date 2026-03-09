@@ -22,9 +22,9 @@ const Footer = () => {
   return <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info - text aligned with quick links */}
+          {/* Company Info */}
           <div className="flex flex-col">
-            <div className="mb-4 pt-1">
+            <div className="mb-4 pt-6">
               <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 w-auto object-contain" />
             </div>
             <div className="space-y-6">
@@ -154,7 +154,7 @@ const Footer = () => {
               </Button>
             </div>
             
-            {/* Contact Info - always LTR for consistency */}
+            {/* Contact Info */}
             <div className="space-y-3 pt-4" dir="ltr">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
