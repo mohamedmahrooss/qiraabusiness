@@ -226,12 +226,12 @@ const Analytics = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
-            {language === 'ar' ? 'تحليلات لحظية' : 'Real-Time Analytics'}
+            {language === 'ar' ? 'التحليلات اللحظية' : 'Real-Time Analysis'}
           </h1>
           <p className="text-muted-foreground">
             {language === 'ar' 
               ? 'اكتشف آخر التحليلات اللحظية في عالم الأعمال والاستثمار' 
-              : 'Discover the latest real-time analytics in business and investment'}
+              : 'Discover the latest real-time analysis in business and investment'}
           </p>
         </div>
 
