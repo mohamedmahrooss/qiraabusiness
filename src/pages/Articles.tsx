@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,10 +14,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Calendar, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Article {
+interface Analytic {
   id: string;
   title_ar: string;
   title_en: string;
@@ -42,10 +48,10 @@ interface Category {
   slug: string;
 }
 
-const ARTICLES_PER_PAGE = 6;
+const ANALYTICS_PER_PAGE = 6;
 
-const Articles = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
+const Analytics = () => {
+  const [analytics, setAnalytics] = useState<Analytic[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
