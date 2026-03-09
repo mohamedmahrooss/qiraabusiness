@@ -315,12 +315,12 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Articles Card */}
+        {/* Analytics Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
-              {isRTL ? 'المقالات' : 'Articles'}
+              {isRTL ? 'التحليلات' : 'Analytics'}
             </CardTitle>
             <CardDescription>
               {isRTL ? 'اكتشف المحتوى التحليلي الحصري' : 'Discover exclusive analytical content'}
@@ -332,7 +332,7 @@ const Dashboard = () => {
               onClick={() => navigate('/articles')}
             >
               <BookOpen className="h-4 w-4 mr-2" />
-              {isRTL ? 'تصفح المقالات' : 'Browse Articles'}
+              {isRTL ? 'تصفح التحليلات' : 'Browse Analytics'}
             </Button>
           </CardContent>
         </Card>
