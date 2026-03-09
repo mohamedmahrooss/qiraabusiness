@@ -113,7 +113,7 @@ export default function Auth() {
 
   return (
     <div
-      className="min-h-screen bg-background/40 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+      className="fixed inset-0 z-[100] bg-background/40 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
       onClick={handleBackdropClick}
     >
       {/* Background decoration */}
