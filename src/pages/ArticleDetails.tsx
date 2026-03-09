@@ -33,7 +33,7 @@ const ArticleDetails = () => {
   const { language, isRTL } = useLanguage();
   const translations = useTranslation();
   const { toast } = useToast();
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<Analytic | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
