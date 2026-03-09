@@ -23,8 +23,10 @@ const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info - logo bigger, text starts aligned with other columns */}
-          <div className="space-y-4">
-            <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-24" />
+          <div className="space-y-6">
+            <div className="-mt-8">
+              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-40 object-contain" />
+            </div>
             <p className="text-secondary-foreground/80 leading-relaxed">
               {isRTL ? 
                 "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :

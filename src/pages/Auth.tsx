@@ -133,7 +133,7 @@ export default function Auth() {
           <CardHeader className="space-y-3 text-center pb-4">
             {/* Logo instead of Q */}
             <div className="mx-auto">
-              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-16 mx-auto" />
+              <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-28 mx-auto object-contain" />
             </div>
             
             <div className="space-y-1">
