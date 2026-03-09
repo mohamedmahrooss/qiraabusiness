@@ -56,7 +56,7 @@ const AdminDashboard = () => {
         setIsAdmin(true);
 
         const [articlesRes, reportsRes, profilesRes, docsRes] = await Promise.all([
-          supabase.from("articles").select("id", { count: "exact", head: true }),
+          supabase.from("analytics").select("id", { count: "exact", head: true }),
           supabase.from("reports").select("id", { count: "exact", head: true }),
           supabase.from("profiles").select("subscription_plan"),
           supabase.from("qiraa_mind_documents").select("*").order("created_at", { ascending: false }),
