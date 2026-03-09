@@ -246,7 +246,7 @@ const ArticleDetails = () => {
         className="mb-6"
       >
         <ArrowLeft className="w-4 h-4 mx-2" />
-        {language === 'ar' ? 'العودة إلى المقالات' : 'Back to Articles'}
+        {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
       </Button>
 
       {/* Article Header */}
