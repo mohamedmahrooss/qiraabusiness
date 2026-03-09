@@ -114,8 +114,12 @@ const QiraaMind = () => {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           ...(session?.access_token ? { "x-auth-token": session.access_token } : {}),
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, user_file }),
       });
+
+      // Clear file after sending
+      setAttachedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
 
       if (!resp.ok || !resp.body) {
         const errData = await resp.json().catch(() => ({}));
