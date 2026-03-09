@@ -24,7 +24,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info - text aligned with quick links */}
           <div className="flex flex-col">
-            <div className="mb-4">
+            <div className="mb-4 pt-1">
               <img src="/images/qiraa-logo.png" alt="QIRAA" className="h-44 w-auto object-contain" />
             </div>
             <div className="space-y-6">
@@ -70,7 +70,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4 md:pt-[148px]">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
             <ul className="space-y-3">
               <li>
@@ -107,7 +107,7 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="space-y-4 lg:pt-[148px]">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
             <ul className="space-y-3">
               <li>
@@ -144,7 +144,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-4 lg:pt-[148px]">
+          <div className="space-y-4">
             <h3 className="text-lg font-semibold">{t.newsletter}</h3>
             <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
             <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
