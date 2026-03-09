@@ -22,24 +22,21 @@ const Footer = () => {
 
   return (
     <footer className="bg-secondary text-secondary-foreground">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
 
-          {/* Column 1: Logo sits at top aligned with other column headings,
-              then description text starts after a gap equal to space-y-4 (16px)
-              so it aligns with the first <li> "الرئيسية" in the Quick Links column.
-              Logo h-44 = 176px. Other columns: h3 line-height ~28px + space-y-4 16px = 44px before first item.
-              So after logo we need mb that brings description to same row as first <li>.
-              We use the same space-y-4 gap (16px) matching the gap between h3 and ul. */}
+          {/* Column 1: Company Info */}
           <div className="flex flex-col">
-            {/* Logo — same top position as h3 headings in other columns */}
-            <img
-              src="/images/qiraa-logo.png"
-              alt="QIRAA"
-              className="h-44 w-auto object-contain self-start mb-4"
-            />
-            {/* Description starts here — aligned with "الرئيسية" in col 2 */}
-            <div className="space-y-6">
+            {/* Logo — h-44 preserved, top-aligned with h3 headings */}
+            <div className="h-44 flex items-start">
+              <img
+                src="/images/qiraa-logo.png"
+                alt="QIRAA"
+                className="h-44 w-auto object-contain"
+              />
+            </div>
+            {/* Gap matches space-y-4 (16px) used between h3 and ul in other columns */}
+            <div className="mt-4 space-y-6">
               <p className="text-secondary-foreground/80 leading-relaxed">
                 {isRTL ?
                   "منصة ذكاء الاسواق اللحظية لفهم ديناميكيات الأسواق في منطقة الشرق الأوسط و شمال افريقيا. من خلال خطوات عملية تنفيذيه و رؤى و تحليلات لحظية, تساعد قراءة صانعي القرار و المستثمرين على رؤية الصورة الكاملة و اتخاذ قرارات اكثر استنارة و ثقة." :
@@ -82,9 +79,13 @@ const Footer = () => {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
-            <ul className="space-y-3">
+          <div className="flex flex-col">
+            {/* Header area — same height as logo to ensure vertical alignment */}
+            <div className="h-44 flex items-start">
+              <h3 className="text-lg font-semibold">{t.quickLinks}</h3>
+            </div>
+            {/* Content starts at same Y as description in col 1 */}
+            <ul className="mt-4 space-y-3">
               <li>
                 <Link to="/" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.home}
@@ -119,9 +120,11 @@ const Footer = () => {
           </div>
 
           {/* Column 3: Support */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
-            <ul className="space-y-3">
+          <div className="flex flex-col">
+            <div className="h-44 flex items-start">
+              <h3 className="text-lg font-semibold">{t.supportHelp}</h3>
+            </div>
+            <ul className="mt-4 space-y-3">
               <li>
                 <a href="#help" className="text-secondary-foreground/80 hover:text-primary transition-colors">
                   {t.helpCenter}
@@ -156,27 +159,31 @@ const Footer = () => {
           </div>
 
           {/* Column 4: Newsletter */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{t.newsletter}</h3>
-            <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
-            <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-              <Input placeholder={t.yourEmail} className="bg-background/10 border-secondary-foreground/20" />
-              <Button variant="default" size="sm">
-                {t.subscribe}
-              </Button>
+          <div className="flex flex-col">
+            <div className="h-44 flex items-start">
+              <h3 className="text-lg font-semibold">{t.newsletter}</h3>
             </div>
-            <div className="space-y-3 pt-4" dir="ltr">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-sm">contact@qiraabusiness.online</span>
+            <div className="mt-4 space-y-4">
+              <p className="text-secondary-foreground/80 text-sm">{t.newsletterDesc}</p>
+              <div className={`flex ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+                <Input placeholder={t.yourEmail} className="bg-background/10 border-secondary-foreground/20" />
+                <Button variant="default" size="sm">
+                  {t.subscribe}
+                </Button>
               </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-sm">+1 361 470 4099</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-sm">Cairo, Egypt</span>
+              <div className="space-y-3 pt-4" dir="ltr">
+                <div className="flex items-center space-x-3">
+                  <Mail className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-sm">contact@qiraabusiness.online</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Phone className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-sm">+1 361 470 4099</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-sm">Cairo, Egypt</span>
+                </div>
               </div>
             </div>
           </div>
