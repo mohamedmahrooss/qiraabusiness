@@ -13,14 +13,68 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
 const QiraaMind = () => {
   const { isRTL } = useLanguage();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: isRTL ? "غير مدعوم" : "Not supported",
+        description: isRTL ? "متصفحك لا يدعم التعرف على الصوت" : "Your browser does not support speech recognition",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.lang = isRTL ? 'ar-SA' : 'en-US';
+      recognitionRef.current.start();
+      setIsRecording(true);
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(prev => (prev ? prev + ' ' : '') + transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          toast({
+            title: isRTL ? "خطأ في التسجيل" : "Recording error",
+            description: event.error,
+            variant: "destructive"
+          });
+        }
+      };
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
