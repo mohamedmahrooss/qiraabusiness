@@ -183,7 +183,7 @@ const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{isRTL ? "المقالات" : "Articles"}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{isRTL ? "التحليلات" : "Analytics"}</CardTitle>
             <BookOpen className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent><div className="text-3xl font-bold">{stats.totalArticles}</div></CardContent>
