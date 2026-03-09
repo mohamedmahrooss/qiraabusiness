@@ -302,41 +302,41 @@ const Analytics = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {articles.map((article) => (
-                <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+              {analytics.map((analytic) => (
+                <Card key={analytic.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
                   <Link 
-                    to={`/articles/${article.id}`}
-                    onClick={() => handleArticleClick(article.id)}
+                    to={`/articles/${analytic.id}`}
+                    onClick={() => handleAnalyticClick(analytic.id)}
                   >
-                    {article.featured_image && (
+                    {analytic.featured_image && (
                       <div className="overflow-hidden">
                         <img
-                          src={article.featured_image}
-                          alt={language === 'ar' ? article.title_ar : article.title_en}
+                          src={analytic.featured_image}
+                          alt={language === 'ar' ? analytic.title_ar : analytic.title_en}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     )}
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
-                        {article.categories && (
+                        {analytic.categories && (
                           <Badge variant="secondary" className="text-xs">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {language === 'ar' ? article.categories.name_ar : article.categories.name_en}
+                            <Tag className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                            {language === 'ar' ? analytic.categories.name_ar : analytic.categories.name_en}
                           </Badge>
                         )}
                         <div className="flex items-center text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(article.published_at)}
+                          <Calendar className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                          {formatDate(analytic.published_at)}
                         </div>
                       </div>
                       <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                        {language === 'ar' ? article.title_ar : article.title_en}
+                        {language === 'ar' ? analytic.title_ar : analytic.title_en}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground text-sm line-clamp-3">
-                        {language === 'ar' ? article.excerpt_ar : article.excerpt_en}
+                        {language === 'ar' ? analytic.excerpt_ar : analytic.excerpt_en}
                       </p>
                     </CardContent>
                   </Link>
