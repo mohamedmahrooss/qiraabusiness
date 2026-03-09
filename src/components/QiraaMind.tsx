@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, Brain, Loader2, Bot, User } from "lucide-react";
+import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -12,25 +13,98 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/qiraa-mind`;
 
 const QiraaMind = () => {
   const { isRTL } = useLanguage();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+    }
+  }, []);
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: isRTL ? "غير مدعوم" : "Not supported",
+        description: isRTL ? "متصفحك لا يدعم التعرف على الصوت" : "Your browser does not support speech recognition",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.lang = isRTL ? 'ar-SA' : 'en-US';
+      recognitionRef.current.start();
+      setIsRecording(true);
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(prev => (prev ? prev + ' ' : '') + transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          toast({
+            title: isRTL ? "خطأ في التسجيل" : "Recording error",
+            description: event.error,
+            variant: "destructive"
+          });
+        }
+      };
+    }
+  };
+
+  const sendMessage = async () => {
+    if ((!input.trim() && !attachedFile) || isLoading) return;
+
+    const userMessage: Message = { role: "user", content: input.trim() || (isRTL ? "مرفق ملف للتحليل" : "File attached for analysis") };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
+      let user_file = null;
+      if (attachedFile) {
+        if (attachedFile.type.includes('pdf')) {
+          const reader = new FileReader();
+          const base64Promise = new Promise<string>((resolve) => {
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(',')[1];
+              resolve(`[BASE64_FILE:${attachedFile.type}]${base64}`);
+            };
+          });
+          reader.readAsDataURL(attachedFile);
+          const content = await base64Promise;
+          user_file = { name: attachedFile.name, content };
+        } else {
+          const text = await attachedFile.text();
+          user_file = { name: attachedFile.name, content: text };
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       
       const resp = await fetch(CHAT_URL, {
@@ -40,8 +114,12 @@ const QiraaMind = () => {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           ...(session?.access_token ? { "x-auth-token": session.access_token } : {}),
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, user_file }),
       });
+
+      // Clear file after sending
+      setAttachedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
 
       if (!resp.ok || !resp.body) {
         const errData = await resp.json().catch(() => ({}));
@@ -146,12 +224,72 @@ const QiraaMind = () => {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Attached File Preview */}
+        {attachedFile && (
+          <div className="px-4 pt-2 pb-2">
+            <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg border border-border">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <FileIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm truncate">{attachedFile.name}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">
+                  ({(attachedFile.size / 1024).toFixed(1)} KB)
+                </span>
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => {
+                setAttachedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className="border-t border-border p-4">
           <form
             onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
-            className="flex gap-2"
+            className="flex gap-2 items-center"
           >
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".txt,.md,.csv,.pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast({ title: isRTL ? "خطأ" : "Error", description: isRTL ? "حجم الملف يتجاوز 5 ميجابايت" : "File size exceeds 5MB", variant: "destructive" });
+                    return;
+                  }
+                  setAttachedFile(file);
+                }
+              }}
+            />
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon" 
+              className="flex-shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              title={isRTL ? "إرفاق ملف (جهازك أو Google Drive)" : "Attach file (Device or Google Drive)"}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+
+            <Button 
+              type="button" 
+              variant={isRecording ? "destructive" : "outline"} 
+              size="icon" 
+              className={`flex-shrink-0 transition-all ${isRecording ? 'animate-pulse' : ''}`}
+              onClick={toggleRecording}
+              title={isRTL ? "تحدث" : "Speak"}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -159,7 +297,7 @@ const QiraaMind = () => {
               disabled={isLoading}
               className="flex-1"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+            <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !attachedFile)}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
