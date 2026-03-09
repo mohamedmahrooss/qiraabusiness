@@ -56,7 +56,7 @@ const AdminDashboard = () => {
         setIsAdmin(true);
 
         const [articlesRes, reportsRes, profilesRes, docsRes] = await Promise.all([
-          supabase.from("articles").select("id", { count: "exact", head: true }),
+          supabase.from("analytics").select("id", { count: "exact", head: true }),
           supabase.from("reports").select("id", { count: "exact", head: true }),
           supabase.from("profiles").select("subscription_plan"),
           supabase.from("qiraa_mind_documents").select("*").order("created_at", { ascending: false }),
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{isRTL ? "المقالات" : "Articles"}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{isRTL ? "التحليلات" : "Analytics"}</CardTitle>
             <BookOpen className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent><div className="text-3xl font-bold">{stats.totalArticles}</div></CardContent>
@@ -338,7 +338,7 @@ const AdminDashboard = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button variant="outline" className="h-16 gap-3 text-lg" onClick={() => navigate("/articles")}>
-          <BookOpen className="h-5 w-5" />{isRTL ? "إدارة المقالات" : "Manage Articles"}
+          <BookOpen className="h-5 w-5" />{isRTL ? "إدارة التحليلات" : "Manage Analytics"}
         </Button>
         <Button variant="outline" className="h-16 gap-3 text-lg" onClick={() => navigate("/reports")}>
           <FileText className="h-5 w-5" />{isRTL ? "إدارة التقارير" : "Manage Reports"}

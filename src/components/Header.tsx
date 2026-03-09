@@ -67,7 +67,7 @@ const Header = () => {
               {isRTL ? 'الرئيسية' : 'Home'}
             </Link>
             <Link to="/articles" className="text-foreground hover:text-primary transition-colors">
-              {isRTL ? 'التحليلات' : 'Analyses'}
+              {isRTL ? 'تحليلات' : 'Analytics'}
             </Link>
             <Link to="/reports" className="text-foreground hover:text-primary transition-colors">
               {isRTL ? 'التقارير' : 'Reports'}
@@ -183,7 +183,7 @@ const Header = () => {
                 {isRTL ? 'الرئيسية' : 'Home'}
               </Link>
               <Link to="/articles" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                {isRTL ? 'التحليلات' : 'Analyses'}
+                {isRTL ? 'تحليلات' : 'Analytics'}
               </Link>
               <Link to="/reports" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
                 {isRTL ? 'التقارير' : 'Reports'}

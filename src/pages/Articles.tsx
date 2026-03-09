@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Calendar, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Article {
+interface Analytic {
   id: string;
   title_ar: string;
   title_en: string;
@@ -42,16 +49,16 @@ interface Category {
   slug: string;
 }
 
-const ARTICLES_PER_PAGE = 6;
+const ANALYTICS_PER_PAGE = 6;
 
-const Articles = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
+const Analytics = () => {
+  const [analytics, setAnalytics] = useState<Analytic[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalArticles, setTotalArticles] = useState(0);
+  const [totalAnalytics, setTotalAnalytics] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   
   const { language, isRTL } = useLanguage();
@@ -95,14 +102,14 @@ const Articles = () => {
     fetchCategories();
   }, [language, toast]);
 
-  // Fetch articles
+  // Fetch analytics
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchAnalytics = async () => {
       setLoading(true);
       
       try {
         let query = supabase
-          .from('articles')
+          .from('analytics')
           .select(`
             *,
             categories(id, name_ar, name_en, slug)
@@ -123,26 +130,26 @@ const Articles = () => {
 
         // Get total count for pagination
         const { count } = await supabase
-          .from('articles')
+          .from('analytics')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'published');
-        setTotalArticles(count || 0);
+        setTotalAnalytics(count || 0);
 
         // Apply pagination
-        const from = (currentPage - 1) * ARTICLES_PER_PAGE;
-        const to = from + ARTICLES_PER_PAGE - 1;
+        const from = (currentPage - 1) * ANALYTICS_PER_PAGE;
+        const to = from + ANALYTICS_PER_PAGE - 1;
         
         const { data, error } = await query.range(from, to);
         
         if (error) throw error;
-        setArticles(data || []);
+        setAnalytics(data || []);
       } catch (error) {
-        console.error('Error fetching articles:', error);
+        console.error('Error fetching analytics:', error);
         toast({
-          title: language === 'ar' ? 'خطأ في جلب المقالات' : 'Error fetching articles',
+          title: language === 'ar' ? 'خطأ في جلب التحليلات' : 'Error fetching analytics',
           description: language === 'ar' 
-            ? 'حدث خطأ أثناء جلب المقالات' 
-            : 'An error occurred while fetching articles',
+            ? 'حدث خطأ أثناء جلب التحليلات' 
+            : 'An error occurred while fetching analytics',
           variant: "destructive",
         });
       } finally {
@@ -150,7 +157,7 @@ const Articles = () => {
       }
     };
 
-    fetchArticles();
+    fetchAnalytics();
   }, [selectedCategory, searchTerm, currentPage, language, toast]);
 
   // Update URL params
@@ -183,23 +190,23 @@ const Articles = () => {
     setSearchParams(params);
   };
 
-  const handleArticleClick = async (articleId: string) => {
-    console.log('Article clicked, ID:', articleId);
-    console.log('Navigating to:', `/articles/${articleId}`);
+  const handleAnalyticClick = async (analyticId: string) => {
+    console.log('Analytic clicked, ID:', analyticId);
+    console.log('Navigating to:', `/articles/${analyticId}`);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Record article view
+        // Record analytic view
         await supabase
-          .from('user_articles')
+          .from('user_analytics')
           .insert({
             user_id: user.id,
-            article_id: articleId
+            analytic_id: analyticId
           });
       }
     } catch (error) {
-      console.error('Error recording article view:', error);
+      console.error('Error recording analytic view:', error);
     }
   };
 
@@ -212,58 +219,57 @@ const Articles = () => {
     });
   };
 
-  const totalPages = Math.ceil(totalArticles / ARTICLES_PER_PAGE);
+  const totalPages = Math.ceil(totalAnalytics / ANALYTICS_PER_PAGE);
 
   return (
     <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
-            {language === 'ar' ? 'التحليلات اللحظية' : 'Real-Time Analyses'}
+            {language === 'ar' ? 'التحليلات اللحظية' : 'Real-Time Analysis'}
           </h1>
           <p className="text-muted-foreground">
             {language === 'ar' 
               ? 'اكتشف آخر التحليلات اللحظية في عالم الأعمال والاستثمار' 
-              : 'Discover the latest real-time analyses in business and investment'}
+              : 'Discover the latest real-time analysis in business and investment'}
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className="relative flex-1">
+            <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4`} />
             <Input
-              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analyses...'}
+              placeholder={language === 'ar' ? 'البحث في التحليلات...' : 'Search analysis...'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
+              className={isRTL ? 'pr-10' : 'pl-10'}
             />
           </div>
 
-          {/* Category filters */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleCategoryFilter(null)}
-            >
-              {language === 'ar' ? 'جميع التصنيفات' : 'All Categories'}
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategoryFilter(category.id)}
-              >
-                {language === 'ar' ? category.name_ar : category.name_en}
-              </Button>
-            ))}
-          </div>
+          {/* Category dropdown */}
+          <Select
+            value={selectedCategory || "all"}
+            onValueChange={(value) => handleCategoryFilter(value === "all" ? null : value)}
+          >
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder={language === 'ar' ? 'اختر التصنيف' : 'Select Category'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {language === 'ar' ? 'الكل' : 'All'}
+              </SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {language === 'ar' ? category.name_ar : category.name_en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Articles Grid */}
+        {/* Analytics Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -280,10 +286,10 @@ const Articles = () => {
               </Card>
             ))}
           </div>
-        ) : articles.length === 0 ? (
+        ) : analytics.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
-              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analyses found'}
+              {language === 'ar' ? 'لم يتم العثور على تحليلات' : 'No analysis found'}
             </div>
             <Button variant="outline" onClick={() => {
               setSearchTerm('');
@@ -297,41 +303,41 @@ const Articles = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {articles.map((article) => (
-                <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+              {analytics.map((analytic) => (
+                <Card key={analytic.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
                   <Link 
-                    to={`/articles/${article.id}`}
-                    onClick={() => handleArticleClick(article.id)}
+                    to={`/articles/${analytic.id}`}
+                    onClick={() => handleAnalyticClick(analytic.id)}
                   >
-                    {article.featured_image && (
+                    {analytic.featured_image && (
                       <div className="overflow-hidden">
                         <img
-                          src={article.featured_image}
-                          alt={language === 'ar' ? article.title_ar : article.title_en}
+                          src={analytic.featured_image}
+                          alt={language === 'ar' ? analytic.title_ar : analytic.title_en}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     )}
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
-                        {article.categories && (
+                        {analytic.categories && (
                           <Badge variant="secondary" className="text-xs">
-                            <Tag className="h-3 w-3 mr-1" />
-                            {language === 'ar' ? article.categories.name_ar : article.categories.name_en}
+                            <Tag className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                            {language === 'ar' ? analytic.categories.name_ar : analytic.categories.name_en}
                           </Badge>
                         )}
                         <div className="flex items-center text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(article.published_at)}
+                          <Calendar className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                          {formatDate(analytic.published_at)}
                         </div>
                       </div>
                       <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                        {language === 'ar' ? article.title_ar : article.title_en}
+                        {language === 'ar' ? analytic.title_ar : analytic.title_en}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground text-sm line-clamp-3">
-                        {language === 'ar' ? article.excerpt_ar : article.excerpt_en}
+                        {language === 'ar' ? analytic.excerpt_ar : analytic.excerpt_en}
                       </p>
                     </CardContent>
                   </Link>
@@ -390,4 +396,4 @@ const Articles = () => {
   );
 };
 
-export default Articles;
+export default Analytics;

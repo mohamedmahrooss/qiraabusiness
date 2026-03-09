@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Tag, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Article {
+interface Analytic {
   id: string;
   title_ar: string;
   title_en: string;
@@ -33,7 +33,7 @@ const ArticleDetails = () => {
   const { language, isRTL } = useLanguage();
   const translations = useTranslation();
   const { toast } = useToast();
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<Analytic | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -91,7 +91,7 @@ const ArticleDetails = () => {
         }
 
         const { data, error } = await supabase
-          .from('articles')
+          .from('analytics')
           .select(`
             *,
             categories (
@@ -108,21 +108,21 @@ const ArticleDetails = () => {
         if (error) {
           console.error('Error fetching article:', error);
           toast({
-            title: language === 'ar' ? 'خطأ في تحميل المقال' : 'Error loading article',
-            description: language === 'ar' ? 'حدث خطأ أثناء تحميل المقال' : 'An error occurred while loading the article',
+            title: language === 'ar' ? 'خطأ في تحميل التحليل' : 'Error loading analytic',
+            description: language === 'ar' ? 'حدث خطأ أثناء تحميل التحليل' : 'An error occurred while loading the analytic',
             variant: "destructive",
           });
           setNotFound(true);
         } else if (!data) {
           setNotFound(true);
         } else {
-          setArticle(data);
+          setArticle(data as any);
           
           // Track article view and increment counters
           if (user) {
             await supabase
-              .from('user_articles')
-              .insert([{ user_id: user.id, article_id: data.id }]);
+              .from('user_analytics')
+              .insert([{ user_id: user.id, analytic_id: data.id }]);
 
             // Increment read counters
             const { data: currentProfile } = await supabase
@@ -217,14 +217,14 @@ const ArticleDetails = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-muted-foreground mb-4">
-            {language === 'ar' ? 'المقال غير موجود' : 'Article not found'}
+            {language === 'ar' ? 'التحليل غير موجود' : 'Analytic not found'}
           </h1>
           <p className="text-muted-foreground mb-6">
-            {language === 'ar' ? 'عذراً، لم نتمكن من العثور على المقال المطلوب' : 'Sorry, we could not find the requested article'}
+            {language === 'ar' ? 'عذراً، لم نتمكن من العثور على التحليل المطلوب' : 'Sorry, we could not find the requested analytic'}
           </p>
           <Button onClick={() => navigate('/articles')} variant="outline">
             <ArrowLeft className="w-4 h-4 mx-2" />
-            {language === 'ar' ? 'العودة إلى المقالات' : 'Back to Articles'}
+            {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
           </Button>
         </div>
       </div>
@@ -246,7 +246,7 @@ const ArticleDetails = () => {
         className="mb-6"
       >
         <ArrowLeft className="w-4 h-4 mx-2" />
-        {language === 'ar' ? 'العودة إلى المقالات' : 'Back to Articles'}
+        {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
       </Button>
 
       {/* Article Header */}
@@ -318,7 +318,7 @@ const ArticleDetails = () => {
           className="w-full md:w-auto"
         >
           <ArrowLeft className="w-4 h-4 mx-2" />
-          {language === 'ar' ? 'العودة إلى المقالات' : 'Back to Articles'}
+          {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
         </Button>
       </footer>
     </div>
