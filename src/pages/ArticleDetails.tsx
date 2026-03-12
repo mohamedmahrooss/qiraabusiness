@@ -222,7 +222,7 @@ const ArticleDetails = () => {
           <p className="text-muted-foreground mb-6">
             {language === 'ar' ? 'عذراً، لم نتمكن من العثور على التحليل المطلوب' : 'Sorry, we could not find the requested analytic'}
           </p>
-          <Button onClick={() => navigate('/articles')} variant="outline">
+          <Button onClick={() => navigate('/analytics')} variant="outline">
             <ArrowLeft className="w-4 h-4 mx-2" />
             {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
           </Button>
