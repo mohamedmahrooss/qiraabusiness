@@ -31,7 +31,14 @@ serve(async (req) => {
             isAdmin = !!(roles && roles.length > 0);
 
             if (!isAdmin) {
-                const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
+                const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens, subscription_plan').eq('user_id', userId).single();
+                
+                // Enforce subscription plan: only pro/enterprise allowed
+                const plan = profile?.subscription_plan?.toLowerCase() || 'free';
+                if (!['pro', 'enterprise'].includes(plan)) {
+                    return new Response(JSON.stringify({ error: "Access restricted to Pro and Enterprise plans." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                }
+                
                 if (!profile || profile.qiraa_mind_tokens <= 0) {
                     return new Response(JSON.stringify({ error: "Insufficient tokens" }), { status: 402, headers: corsHeaders });
                 }
