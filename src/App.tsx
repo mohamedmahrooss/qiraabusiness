@@ -48,11 +48,11 @@ const RouteHandler = () => {
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
         <Route path="/admin" element={<MainLayout><AdminDashboard /></MainLayout>} />
-        <Route path="/analytics" element={<MainLayout><Articles /></MainLayout>} />
-        <Route path="/analytics/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
+        <Route path="/analytics" element={<MainLayout><Analytics /></MainLayout>} />
+        <Route path="/analytics/:id" element={<MainLayout><AnalyticsDetails /></MainLayout>} />
         {/* Redirect old /articles paths */}
-        <Route path="/articles" element={<MainLayout><Articles /></MainLayout>} />
-        <Route path="/articles/:id" element={<MainLayout><ArticleDetails /></MainLayout>} />
+        <Route path="/articles" element={<MainLayout><Analytics /></MainLayout>} />
+        <Route path="/articles/:id" element={<MainLayout><AnalyticsDetails /></MainLayout>} />
         <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
         <Route path="/reports/:id" element={<MainLayout><ReportDetails /></MainLayout>} />
         <Route path="/about" element={<MainLayout><About /></MainLayout>} />
