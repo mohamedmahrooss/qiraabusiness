@@ -329,7 +329,7 @@ const Dashboard = () => {
           <CardContent>
             <Button 
               className="w-full" 
-              onClick={() => navigate('/articles')}
+              onClick={() => navigate('/analytics')}
             >
               <BookOpen className="h-4 w-4 mr-2" />
               {isRTL ? 'تصفح التحليلات' : 'Browse Analytics'}
