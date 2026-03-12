@@ -329,7 +329,7 @@ const Dashboard = () => {
           <CardContent>
             <Button 
               className="w-full" 
-              onClick={() => navigate('/articles')}
+              onClick={() => navigate('/analytics')}
             >
               <BookOpen className="h-4 w-4 mr-2" />
               {isRTL ? 'تصفح التحليلات' : 'Browse Analytics'}
@@ -390,7 +390,7 @@ const Dashboard = () => {
           {isRTL ? 'إجراءات سريعة' : 'Quick Actions'}
         </h2>
         <div className="flex flex-wrap gap-4">
-          <Button variant="outline" onClick={() => navigate('/articles')}>
+          <Button variant="outline" onClick={() => navigate('/analytics')}>
             <BookOpen className="h-4 w-4 mr-2" />
             {isRTL ? 'قراءة جديدة' : 'New Reading'}
           </Button>

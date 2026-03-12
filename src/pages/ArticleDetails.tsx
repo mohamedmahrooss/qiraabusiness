@@ -222,7 +222,7 @@ const ArticleDetails = () => {
           <p className="text-muted-foreground mb-6">
             {language === 'ar' ? 'عذراً، لم نتمكن من العثور على التحليل المطلوب' : 'Sorry, we could not find the requested analytic'}
           </p>
-          <Button onClick={() => navigate('/articles')} variant="outline">
+          <Button onClick={() => navigate('/analytics')} variant="outline">
             <ArrowLeft className="w-4 h-4 mx-2" />
             {language === 'ar' ? 'العودة إلى التحليلات' : 'Back to Analytics'}
           </Button>
@@ -241,7 +241,7 @@ const ArticleDetails = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}
       <Button 
-        onClick={() => navigate('/articles')} 
+        onClick={() => navigate('/analytics')} 
         variant="ghost" 
         className="mb-6"
       >
@@ -313,7 +313,7 @@ const ArticleDetails = () => {
       {/* Navigation Footer */}
       <footer className="mt-12 pt-8 border-t border-border">
         <Button 
-          onClick={() => navigate('/articles')} 
+          onClick={() => navigate('/analytics')} 
           variant="outline"
           className="w-full md:w-auto"
         >

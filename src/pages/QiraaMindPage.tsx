@@ -460,26 +460,60 @@ const QiraaMindPage = () => {
     return <QiraaMindLanding isRTL={isRTL} onLogin={() => navigate("/auth")} />;
   }
 
-  // Access gate: only pro/enterprise
+  // Access gate: only pro/enterprise — show landing with upgrade alert
   if (hasAccess === false) {
     return (
       <div className="min-h-[calc(100vh-5rem)] bg-background flex items-center justify-center">
-        <div className="max-w-lg w-full mx-auto px-4 text-center space-y-6">
-          <Lock className="h-16 w-16 text-primary/40 mx-auto" />
-          <h2 className="text-2xl font-bold text-foreground">
-            {isRTL ? "ميزة حصرية للباقات المتقدمة" : "Exclusive Feature"}
-          </h2>
-          <p className="text-muted-foreground text-base">
-            {isRTL
-              ? "عقل قراءة (Qiraa Mind) هو محرك ذكاء استراتيجي متاح فقط لمشتركي الباقة الاحترافية (Pro) والمؤسسية (Enterprise). قم بالترقية الآن للوصول إلى تحليلات عميقة."
-              : "Qiraa Mind is a strategic intelligence engine available only to Pro and Enterprise subscribers. Upgrade now to access deep insights."}
-          </p>
-          <button
-            onClick={() => navigate("/pricing")}
-            className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-          >
-            {isRTL ? "ترقية الباقة الآن" : "Upgrade Plan Now"}
-          </button>
+        <div className="max-w-2xl w-full mx-auto px-4 text-center space-y-8">
+          {/* Alert Banner */}
+          <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-6">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Lock className="h-6 w-6 text-destructive" />
+              <h2 className="text-xl font-bold text-destructive">
+                {isRTL ? "أداة حصرية لأعضاء Pro و Enterprise" : "Exclusive to Pro & Enterprise Members"}
+              </h2>
+            </div>
+            <p className="text-muted-foreground text-base mb-6">
+              {isRTL
+                ? "أداة الذكاء الاستراتيجي هذه حصرية لأعضاء Pro و Enterprise. يرجى ترقية باقتك للحصول على الوصول الكامل."
+                : "This intelligence tool is exclusive to Pro & Enterprise members. Please upgrade your plan to gain access."}
+            </p>
+            <Button
+              onClick={() => navigate("/pricing")}
+              size="lg"
+              className="text-base px-8"
+            >
+              {isRTL ? "ترقية الباقة الآن" : "Upgrade Plan Now"}
+            </Button>
+          </div>
+
+          {/* Features preview (landing-style) */}
+          <div className="grid md:grid-cols-2 gap-4 text-start">
+            {(isRTL
+              ? [
+                  { icon: Brain, title: "تحليل استراتيجي بالذكاء الاصطناعي", desc: "محرك تحليل مبني على بيانات المنصة الحية" },
+                  { icon: Shield, title: "بيانات موثوقة ومحدثة", desc: "إجابات مستندة على تحليلات آخر 3 أشهر" },
+                  { icon: BarChart3, title: "تقارير تنفيذية احترافية", desc: "أسلوب الموجز الاستراتيجي مع أرقام دقيقة" },
+                  { icon: Sparkles, title: "أسئلة ذكية جاهزة", desc: "استعلامات سريعة لتحليل القطاعات والاتجاهات" },
+                ]
+              : [
+                  { icon: Brain, title: "AI-Powered Strategic Analysis", desc: "Built on live platform data for precise insights" },
+                  { icon: Shield, title: "Trusted & Up-to-Date Data", desc: "Based on analyses from the last 3 months" },
+                  { icon: BarChart3, title: "Executive-Grade Reports", desc: "Strategic briefing style with precise figures" },
+                  { icon: Sparkles, title: "Ready-Made Power Queries", desc: "Pre-built queries to analyze sectors and trends" },
+                ]
+            ).map((f, i) => (
+              <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <f.icon className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-sm mb-0.5">{f.title}</h3>
+                  <p className="text-xs text-muted-foreground">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
