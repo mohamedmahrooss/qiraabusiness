@@ -241,7 +241,7 @@ const ArticleDetails = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Back Button */}
       <Button 
-        onClick={() => navigate('/articles')} 
+        onClick={() => navigate('/analytics')} 
         variant="ghost" 
         className="mb-6"
       >
