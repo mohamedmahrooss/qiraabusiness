@@ -313,7 +313,7 @@ const ArticleDetails = () => {
       {/* Navigation Footer */}
       <footer className="mt-12 pt-8 border-t border-border">
         <Button 
-          onClick={() => navigate('/articles')} 
+          onClick={() => navigate('/analytics')} 
           variant="outline"
           className="w-full md:w-auto"
         >

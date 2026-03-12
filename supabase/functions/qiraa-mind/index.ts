@@ -68,9 +68,9 @@ serve(async (req) => {
         .gte("published_at", dateLimit)
         .order("published_at", { ascending: false });
 
-      if (articles && articles.length > 0) {
+      if (analyticsData && analyticsData.length > 0) {
         knowledgeBase += "=== RECENT MARKET ANALYSES (LAST 3 MONTHS) ===\n";
-        for (const art of articles) {
+        for (const art of analyticsData) {
           const textContent = (art as any)[contentColumn];
           if (!textContent) continue;
 

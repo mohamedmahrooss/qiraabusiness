@@ -192,7 +192,7 @@ const Analytics = () => {
 
   const handleAnalyticClick = async (analyticId: string) => {
     console.log('Analytic clicked, ID:', analyticId);
-    console.log('Navigating to:', `/articles/${analyticId}`);
+    console.log('Navigating to:', `/analytics/${analyticId}`);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
