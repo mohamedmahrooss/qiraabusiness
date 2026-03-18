@@ -290,7 +290,7 @@ const Pricing = () => {
                   className="w-full"
                   variant="outline"
                   disabled={loading === "topup"}
-                  onClick={() => handleSubscribe("topup", 100, 15, "pro")}
+                  onClick={() => handleSubscribe("topup", false)}
                 >
                   {loading === "topup" ? <Loader2 className="h-4 w-4 animate-spin" /> : isRTL ? "شراء التوكنات" : "Buy Tokens"}
                 </Button>
