@@ -5,3 +5,21 @@ verify_jwt = false
 
 [functions.extract-document]
 verify_jwt = false
+
+[functions.fawaterak-checkout]
+verify_jwt = false
+
+[functions.fawaterak-paid]
+verify_jwt = false
+
+[functions.fawaterak-failed]
+verify_jwt = false
+
+[functions.fawaterak-cancel]
+verify_jwt = false
+
+[functions.fawaterak-refund]
+verify_jwt = false
+
+[functions.fawaterak-token]
+verify_jwt = false

@@ -115,42 +115,74 @@ export type Database = {
           country: string
           created_at: string
           day_1_revenue: number | null
+          day_1_sales: number | null
           day_10_revenue: number | null
+          day_10_sales: number | null
           day_11_revenue: number | null
+          day_11_sales: number | null
           day_12_revenue: number | null
+          day_12_sales: number | null
           day_13_revenue: number | null
+          day_13_sales: number | null
           day_14_revenue: number | null
+          day_14_sales: number | null
           day_15_revenue: number | null
+          day_15_sales: number | null
           day_16_revenue: number | null
+          day_16_sales: number | null
           day_17_revenue: number | null
+          day_17_sales: number | null
           day_18_revenue: number | null
+          day_18_sales: number | null
           day_19_revenue: number | null
+          day_19_sales: number | null
           day_2_revenue: number | null
+          day_2_sales: number | null
           day_20_revenue: number | null
+          day_20_sales: number | null
           day_21_revenue: number | null
+          day_21_sales: number | null
           day_22_revenue: number | null
+          day_22_sales: number | null
           day_23_revenue: number | null
+          day_23_sales: number | null
           day_24_revenue: number | null
+          day_24_sales: number | null
           day_25_revenue: number | null
+          day_25_sales: number | null
           day_26_revenue: number | null
+          day_26_sales: number | null
           day_27_revenue: number | null
+          day_27_sales: number | null
           day_28_revenue: number | null
+          day_28_sales: number | null
           day_29_revenue: number | null
+          day_29_sales: number | null
           day_3_revenue: number | null
+          day_3_sales: number | null
           day_30_revenue: number | null
+          day_30_sales: number | null
           day_31_revenue: number | null
+          day_31_sales: number | null
           day_4_revenue: number | null
+          day_4_sales: number | null
           day_5_revenue: number | null
+          day_5_sales: number | null
           day_6_revenue: number | null
+          day_6_sales: number | null
           day_7_revenue: number | null
+          day_7_sales: number | null
           day_8_revenue: number | null
+          day_8_sales: number | null
           day_9_revenue: number | null
+          day_9_sales: number | null
           id: string
           main_sector: string
           market_share_percentage: number | null
           month: number
           quarter: string | null
           quarterly_revenue: number | null
+          quarterly_sales: number | null
           store_products: number
           sub_sector: string | null
           total_revenue: number
@@ -163,42 +195,74 @@ export type Database = {
           country: string
           created_at?: string
           day_1_revenue?: number | null
+          day_1_sales?: number | null
           day_10_revenue?: number | null
+          day_10_sales?: number | null
           day_11_revenue?: number | null
+          day_11_sales?: number | null
           day_12_revenue?: number | null
+          day_12_sales?: number | null
           day_13_revenue?: number | null
+          day_13_sales?: number | null
           day_14_revenue?: number | null
+          day_14_sales?: number | null
           day_15_revenue?: number | null
+          day_15_sales?: number | null
           day_16_revenue?: number | null
+          day_16_sales?: number | null
           day_17_revenue?: number | null
+          day_17_sales?: number | null
           day_18_revenue?: number | null
+          day_18_sales?: number | null
           day_19_revenue?: number | null
+          day_19_sales?: number | null
           day_2_revenue?: number | null
+          day_2_sales?: number | null
           day_20_revenue?: number | null
+          day_20_sales?: number | null
           day_21_revenue?: number | null
+          day_21_sales?: number | null
           day_22_revenue?: number | null
+          day_22_sales?: number | null
           day_23_revenue?: number | null
+          day_23_sales?: number | null
           day_24_revenue?: number | null
+          day_24_sales?: number | null
           day_25_revenue?: number | null
+          day_25_sales?: number | null
           day_26_revenue?: number | null
+          day_26_sales?: number | null
           day_27_revenue?: number | null
+          day_27_sales?: number | null
           day_28_revenue?: number | null
+          day_28_sales?: number | null
           day_29_revenue?: number | null
+          day_29_sales?: number | null
           day_3_revenue?: number | null
+          day_3_sales?: number | null
           day_30_revenue?: number | null
+          day_30_sales?: number | null
           day_31_revenue?: number | null
+          day_31_sales?: number | null
           day_4_revenue?: number | null
+          day_4_sales?: number | null
           day_5_revenue?: number | null
+          day_5_sales?: number | null
           day_6_revenue?: number | null
+          day_6_sales?: number | null
           day_7_revenue?: number | null
+          day_7_sales?: number | null
           day_8_revenue?: number | null
+          day_8_sales?: number | null
           day_9_revenue?: number | null
+          day_9_sales?: number | null
           id?: string
           main_sector: string
           market_share_percentage?: number | null
           month: number
           quarter?: string | null
           quarterly_revenue?: number | null
+          quarterly_sales?: number | null
           store_products?: number
           sub_sector?: string | null
           total_revenue?: number
@@ -211,42 +275,74 @@ export type Database = {
           country?: string
           created_at?: string
           day_1_revenue?: number | null
+          day_1_sales?: number | null
           day_10_revenue?: number | null
+          day_10_sales?: number | null
           day_11_revenue?: number | null
+          day_11_sales?: number | null
           day_12_revenue?: number | null
+          day_12_sales?: number | null
           day_13_revenue?: number | null
+          day_13_sales?: number | null
           day_14_revenue?: number | null
+          day_14_sales?: number | null
           day_15_revenue?: number | null
+          day_15_sales?: number | null
           day_16_revenue?: number | null
+          day_16_sales?: number | null
           day_17_revenue?: number | null
+          day_17_sales?: number | null
           day_18_revenue?: number | null
+          day_18_sales?: number | null
           day_19_revenue?: number | null
+          day_19_sales?: number | null
           day_2_revenue?: number | null
+          day_2_sales?: number | null
           day_20_revenue?: number | null
+          day_20_sales?: number | null
           day_21_revenue?: number | null
+          day_21_sales?: number | null
           day_22_revenue?: number | null
+          day_22_sales?: number | null
           day_23_revenue?: number | null
+          day_23_sales?: number | null
           day_24_revenue?: number | null
+          day_24_sales?: number | null
           day_25_revenue?: number | null
+          day_25_sales?: number | null
           day_26_revenue?: number | null
+          day_26_sales?: number | null
           day_27_revenue?: number | null
+          day_27_sales?: number | null
           day_28_revenue?: number | null
+          day_28_sales?: number | null
           day_29_revenue?: number | null
+          day_29_sales?: number | null
           day_3_revenue?: number | null
+          day_3_sales?: number | null
           day_30_revenue?: number | null
+          day_30_sales?: number | null
           day_31_revenue?: number | null
+          day_31_sales?: number | null
           day_4_revenue?: number | null
+          day_4_sales?: number | null
           day_5_revenue?: number | null
+          day_5_sales?: number | null
           day_6_revenue?: number | null
+          day_6_sales?: number | null
           day_7_revenue?: number | null
+          day_7_sales?: number | null
           day_8_revenue?: number | null
+          day_8_sales?: number | null
           day_9_revenue?: number | null
+          day_9_sales?: number | null
           id?: string
           main_sector?: string
           market_share_percentage?: number | null
           month?: number
           quarter?: string | null
           quarterly_revenue?: number | null
+          quarterly_sales?: number | null
           store_products?: number
           sub_sector?: string | null
           total_revenue?: number

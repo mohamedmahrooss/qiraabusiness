@@ -16,7 +16,7 @@ const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleSubscribe = async (planId: string, tokenAmount: number, price: number, subscriptionPlan: "free" | "basic" | "pro" | "enterprise") => {
+  const handleSubscribe = async (planId: string, isAnnualPlan: boolean) => {
     setLoading(planId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -25,38 +25,16 @@ const Pricing = () => {
         return;
       }
 
-      const { data: current } = await supabase
-        .from("profiles")
-        .select("qiraa_mind_tokens")
-        .eq("user_id", session.user.id)
-        .single();
-
-      const currentTokens = (current as any)?.qiraa_mind_tokens || 0;
-
-      // Update profile with new plan and tokens
-      await supabase
-        .from("profiles")
-        .update({
-          qiraa_mind_tokens: currentTokens + tokenAmount,
-          subscription_plan: subscriptionPlan,
-        } as any)
-        .eq("user_id", session.user.id);
-
-      // Record payment
-      await supabase.from("payments").insert({
-        user_id: session.user.id,
-        amount: price,
-        subscription_plan: subscriptionPlan,
-        payment_status: "completed" as const,
-        payment_provider: "mock",
+      const { data, error } = await supabase.functions.invoke("fawaterak-checkout", {
+        body: { planId, isAnnual: isAnnualPlan },
       });
 
-      toast({
-        title: isRTL ? "تم الاشتراك بنجاح!" : "Subscription Successful!",
-        description: isRTL
-          ? `تمت ترقية باقتك وإضافة ${tokenAmount} سؤال إلى رصيدك`
-          : `Plan upgraded and ${tokenAmount} tokens added to your balance`,
-      });
+      if (error) throw error;
+      if (data?.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        throw new Error("No payment URL returned");
+      }
     } catch (e: any) {
       toast({ title: isRTL ? "خطأ" : "Error", description: e.message, variant: "destructive" });
     } finally {
@@ -269,7 +247,7 @@ const Pricing = () => {
                         if (plan.id === "free") {
                           navigate("/auth");
                         } else {
-                          handleSubscribe(plan.id, plan.tokens, isAnnual ? plan.price.annual : plan.price.monthly, plan.subscriptionPlan);
+                          handleSubscribe(plan.id, isAnnual);
                         }
                       }}
                     >
@@ -312,7 +290,7 @@ const Pricing = () => {
                   className="w-full"
                   variant="outline"
                   disabled={loading === "topup"}
-                  onClick={() => handleSubscribe("topup", 100, 15, "pro")}
+                  onClick={() => handleSubscribe("topup", false)}
                 >
                   {loading === "topup" ? <Loader2 className="h-4 w-4 animate-spin" /> : isRTL ? "شراء التوكنات" : "Buy Tokens"}
                 </Button>
