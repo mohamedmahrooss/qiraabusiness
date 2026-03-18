@@ -62,6 +62,8 @@ const RouteHandler = () => {
         <Route path="/qiraa-mind" element={<MainLayout><QiraaMindPage /></MainLayout>} />
         <Route path="/billing" element={<MainLayout><Pricing /></MainLayout>} />
         <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/fail" element={<PaymentFail />} />
         <Route path="/privacy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
         <Route path="/terms" element={<MainLayout><TermsOfUse /></MainLayout>} />
         <Route path="/cookies" element={<MainLayout><CookiePolicy /></MainLayout>} />
