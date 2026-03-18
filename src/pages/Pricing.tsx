@@ -247,7 +247,7 @@ const Pricing = () => {
                         if (plan.id === "free") {
                           navigate("/auth");
                         } else {
-                          handleSubscribe(plan.id, plan.tokens, isAnnual ? plan.price.annual : plan.price.monthly, plan.subscriptionPlan);
+                          handleSubscribe(plan.id, isAnnual);
                         }
                       }}
                     >
