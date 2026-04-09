@@ -281,7 +281,11 @@ const ArticleDetails = () => {
           <img
             src={article.featured_image}
             alt={title}
-            className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+            className="w-full rounded-lg shadow-lg object-contain max-h-[500px]"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.closest('div')!.style.display = 'none';
+            }}
           />
         </div>
       )}

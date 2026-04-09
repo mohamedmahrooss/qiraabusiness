@@ -309,15 +309,23 @@ const Analytics = () => {
                     to={`/analytics/${analytic.id}`}
                     onClick={() => handleAnalyticClick(analytic.id)}
                   >
-                    {analytic.featured_image && (
-                      <div className="overflow-hidden">
+                    <div className="overflow-hidden h-48 bg-muted">
+                      {analytic.featured_image ? (
                         <img
                           src={analytic.featured_image}
                           alt={language === 'ar' ? analytic.title_ar : analytic.title_en}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <Calendar className="h-8 w-8" />
+                        </div>
+                      )}
+                    </div>
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
                         {analytic.categories && (

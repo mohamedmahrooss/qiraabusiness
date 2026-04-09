@@ -29,6 +29,9 @@ export type Database = {
           is_premium: boolean
           published_at: string | null
           status: Database["public"]["Enums"]["article_status"]
+          steps_ar: Json | null
+          steps_en: Json | null
+          subcategory_id: string | null
           title_ar: string
           title_en: string
           updated_at: string
@@ -47,6 +50,9 @@ export type Database = {
           is_premium?: boolean
           published_at?: string | null
           status?: Database["public"]["Enums"]["article_status"]
+          steps_ar?: Json | null
+          steps_en?: Json | null
+          subcategory_id?: string | null
           title_ar: string
           title_en: string
           updated_at?: string
@@ -65,11 +71,21 @@ export type Database = {
           is_premium?: boolean
           published_at?: string | null
           status?: Database["public"]["Enums"]["article_status"]
+          steps_ar?: Json | null
+          steps_en?: Json | null
+          subcategory_id?: string | null
           title_ar?: string
           title_en?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "analytics_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
+            referencedColumns: ["subcategory_id"]
+          },
           {
             foreignKeyName: "articles_category_id_fkey"
             columns: ["category_id"]
@@ -557,6 +573,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reports_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subcategories: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          name_ar: string
+          name_en: string
+          slug: string
+          subcategory_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          name_ar: string
+          name_en: string
+          slug: string
+          subcategory_id?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          name_ar?: string
+          name_en?: string
+          slug?: string
+          subcategory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
