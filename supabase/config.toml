@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.fawaterak-token]
 verify_jwt = false
+
+[functions.geo-pricing]
+verify_jwt = false

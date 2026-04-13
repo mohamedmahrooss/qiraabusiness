@@ -6,50 +6,61 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Star, Crown, Building2, TrendingUp, Plus, Loader2 } from "lucide-react";
 import { useLanguage, useTranslation } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useGeoPrice } from "@/hooks/useGeoPrice";
+import CheckoutModal from "@/components/CheckoutModal";
 
 const Pricing = () => {
   const { isRTL } = useLanguage();
   const t = useTranslation();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const geo = useGeoPrice();
 
-  const handleSubscribe = async (planId: string, isAnnualPlan: boolean) => {
-    setLoading(planId);
-    try {
+  // Checkout modal state
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState({ id: "", name: "", price: 0 });
+
+  useEffect(() => {
+    const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        navigate("/auth");
-        return;
+      if (session?.user) {
+        setIsAuthenticated(true);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("subscription_plan")
+          .eq("user_id", session.user.id)
+          .single();
+        if (profile) setUserPlan(profile.subscription_plan);
       }
+    };
+    load();
+  }, []);
 
-      const { data, error } = await supabase.functions.invoke("fawaterak-checkout", {
-        body: { planId, isAnnual: isAnnualPlan },
-      });
-
-      if (error) throw error;
-      if (data?.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        throw new Error("No payment URL returned");
-      }
-    } catch (e: any) {
-      toast({ title: isRTL ? "خطأ" : "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setLoading(null);
+  const handleSubscribe = (planId: string, planName: string, price: number) => {
+    if (!isAuthenticated) {
+      navigate("/auth?returnUrl=/pricing");
+      return;
     }
+    setCheckoutPlan({ id: planId, name: planName, price });
+    setCheckoutOpen(true);
   };
+
+  const getPrice = (planId: string) => {
+    const p = geo.prices[planId];
+    if (!p) return 0;
+    return isAnnual ? p.annual : p.monthly;
+  };
+
+  const isTopupAllowed = userPlan === "pro" || userPlan === "enterprise";
 
   const plans = [
     {
       id: "free",
       name: t.freePlan,
-      price: { monthly: 0, annual: 0 },
       description: t.freePlanDesc,
       icon: Star,
-      subscriptionPlan: "free" as const,
       tokens: 0,
       features: [
         isRTL ? "3 تحليلات يومية" : "3 daily analyses",
@@ -68,10 +79,8 @@ const Pricing = () => {
     {
       id: "basic",
       name: t.basicPlan,
-      price: { monthly: 5, annual: 48 },
       description: t.basicPlanDesc,
       icon: TrendingUp,
-      subscriptionPlan: "basic" as const,
       tokens: 0,
       features: [
         isRTL ? "10 تحليلات يومية" : "10 daily analyses",
@@ -89,10 +98,8 @@ const Pricing = () => {
     {
       id: "pro",
       name: t.proPlan,
-      price: { monthly: 19, annual: 182 },
       description: t.proPlanDesc,
       icon: Crown,
-      subscriptionPlan: "pro" as const,
       tokens: 50,
       features: [
         isRTL ? "تحليلات غير محدودة" : "Unlimited analyses",
@@ -112,10 +119,8 @@ const Pricing = () => {
     {
       id: "enterprise",
       name: t.enterprisePlan,
-      price: { monthly: 65, annual: 624 },
       description: t.enterprisePlanDesc,
       icon: Building2,
-      subscriptionPlan: "enterprise" as const,
       tokens: 250,
       features: [
         isRTL ? "جميع مزايا الاحترافية" : "All Pro features",
@@ -134,28 +139,22 @@ const Pricing = () => {
     },
   ];
 
-  const togglePricing = () => setIsAnnual(!isAnnual);
-
   return (
     <div className="bg-muted/30">
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-              {t.choosePlan}
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              {t.pricingSubtitle}
-            </p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">{t.choosePlan}</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">{t.pricingSubtitle}</p>
 
-            {/* Pricing Toggle */}
+            {/* Toggle */}
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center gap-3">
                 <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-primary' : 'text-muted-foreground'}`}>
                   {t.monthlyPricing}
                 </span>
                 <button
-                  onClick={togglePricing}
+                  onClick={() => setIsAnnual(!isAnnual)}
                   className={`relative inline-flex h-7 w-14 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isAnnual ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                   aria-label="Toggle pricing"
                 >
@@ -181,7 +180,7 @@ const Pricing = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {plans.map((plan) => {
               const IconComponent = plan.icon;
-              const price = isAnnual ? plan.price.annual : plan.price.monthly;
+              const price = plan.id === "free" ? 0 : getPrice(plan.id);
               const period = isAnnual ? (isRTL ? "سنة" : "year") : (isRTL ? "شهر" : "month");
 
               return (
@@ -202,8 +201,18 @@ const Pricing = () => {
                     <CardTitle className="text-xl font-bold text-foreground">{plan.name}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">{plan.description}</CardDescription>
                     <div className="mt-4">
-                      <span className="text-4xl font-bold text-foreground">${price}</span>
-                      <span className="text-muted-foreground text-base">/{period}</span>
+                      {geo.loading ? (
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                      ) : (
+                        <>
+                          <span className="text-4xl font-bold text-foreground">
+                            {geo.currency === "USD" ? "$" : ""}{price}
+                          </span>
+                          <span className="text-muted-foreground text-base">
+                            {geo.currency !== "USD" ? ` ${geo.currency}` : ""}/{period}
+                          </span>
+                        </>
+                      )}
                     </div>
                     {plan.tokens > 0 && (
                       <p className="text-xs text-primary mt-1 font-medium">
@@ -214,23 +223,22 @@ const Pricing = () => {
 
                   <CardContent className="space-y-4">
                     <div className="space-y-3">
-                      {plan.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="flex items-start gap-3">
+                      {plan.features.map((feature, i) => (
+                        <div key={i} className="flex items-start gap-3">
                           <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                           <span className="text-sm text-muted-foreground">{feature}</span>
                         </div>
                       ))}
                     </div>
-
                     {plan.limitations.length > 0 && (
                       <div className="pt-4 border-t border-border">
                         <p className="text-xs text-muted-foreground mb-2 font-medium">
                           {isRTL ? "القيود:" : "Limitations:"}
                         </p>
-                        {plan.limitations.map((limitation, limitIndex) => (
-                          <div key={limitIndex} className="flex items-start gap-2 mb-1">
+                        {plan.limitations.map((lim, i) => (
+                          <div key={i} className="flex items-start gap-2 mb-1">
                             <span className="text-xs text-muted-foreground/60">•</span>
-                            <span className="text-xs text-muted-foreground/60">{limitation}</span>
+                            <span className="text-xs text-muted-foreground/60">{lim}</span>
                           </div>
                         ))}
                       </div>
@@ -242,16 +250,15 @@ const Pricing = () => {
                       className={`w-full font-medium ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : ''}`}
                       variant={plan.popular ? "default" : "outline"}
                       size="lg"
-                      disabled={loading === plan.id}
                       onClick={() => {
                         if (plan.id === "free") {
                           navigate("/auth");
                         } else {
-                          handleSubscribe(plan.id, isAnnual);
+                          handleSubscribe(plan.id, plan.name, price);
                         }
                       }}
                     >
-                      {loading === plan.id ? <Loader2 className="h-4 w-4 animate-spin" /> : plan.buttonText}
+                      {plan.buttonText}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -261,7 +268,7 @@ const Pricing = () => {
 
           {/* Top-up Section */}
           <div className="mt-16 max-w-md mx-auto">
-            <Card className="border-primary/20 bg-card">
+            <Card className={`border-primary/20 bg-card ${!isTopupAllowed && isAuthenticated ? 'opacity-60' : ''}`}>
               <CardHeader className="text-center">
                 <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mb-4">
                   <Plus className="h-6 w-6 text-white" />
@@ -269,8 +276,18 @@ const Pricing = () => {
                 <CardTitle>{isRTL ? "توكنات إضافية" : "Top-up Tokens"}</CardTitle>
                 <CardDescription>{isRTL ? "أضف أسئلة إضافية لـ QIRAA Mind" : "Add extra QIRAA Mind queries"}</CardDescription>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold text-foreground">$15</span>
-                  <span className="text-muted-foreground text-sm"> / {isRTL ? "مرة واحدة" : "one-time"}</span>
+                  {geo.loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold text-foreground">
+                        {geo.currency === "USD" ? "$" : ""}{geo.prices.topup?.monthly || 15}
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        {geo.currency !== "USD" ? ` ${geo.currency}` : ""} / {isRTL ? "مرة واحدة" : "one-time"}
+                      </span>
+                    </>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -286,13 +303,22 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+
+                {!isTopupAllowed && isAuthenticated && (
+                  <p className="text-xs text-muted-foreground mb-3 text-center">
+                    {isRTL
+                      ? "متاح فقط لمشتركي Pro و Enterprise"
+                      : "Available for Pro & Enterprise subscribers only"}
+                  </p>
+                )}
+
                 <Button
                   className="w-full"
                   variant="outline"
-                  disabled={loading === "topup"}
-                  onClick={() => handleSubscribe("topup", false)}
+                  disabled={isAuthenticated && !isTopupAllowed}
+                  onClick={() => handleSubscribe("topup", isRTL ? "توكنات إضافية" : "Top-up Tokens", geo.prices.topup?.monthly || 15)}
                 >
-                  {loading === "topup" ? <Loader2 className="h-4 w-4 animate-spin" /> : isRTL ? "شراء التوكنات" : "Buy Tokens"}
+                  {isRTL ? "شراء التوكنات" : "Buy Tokens"}
                 </Button>
               </CardContent>
             </Card>
@@ -302,22 +328,27 @@ const Pricing = () => {
           <div className="text-center mt-16">
             <p className="text-muted-foreground mb-6 text-lg">{t.moneyBackGuarantee}</p>
             <div className="flex justify-center gap-8 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
-                <span className="text-sm text-muted-foreground">{t.noSetupFees}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
-                <span className="text-sm text-muted-foreground">{t.cancelAnytime}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
-                <span className="text-sm text-muted-foreground">{t.instantSupport}</span>
-              </div>
+              {[t.noSetupFees, t.cancelAnytime, t.instantSupport].map((text, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-green-500" />
+                  <span className="text-sm text-muted-foreground">{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
+
+      <CheckoutModal
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        planId={checkoutPlan.id}
+        planName={checkoutPlan.name}
+        isAnnual={checkoutPlan.id === "topup" ? false : isAnnual}
+        price={checkoutPlan.price}
+        currency={geo.currency}
+        isEgyptian={geo.is_egyptian}
+      />
     </div>
   );
 };
