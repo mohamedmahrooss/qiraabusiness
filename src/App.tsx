@@ -24,6 +24,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 import Pricing from "./pages/Pricing";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFail from "./pages/PaymentFail";
+import PaymentPending from "./pages/PaymentPending";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
