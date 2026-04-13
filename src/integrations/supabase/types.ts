@@ -374,6 +374,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          is_annual: boolean
           payment_id: string | null
           payment_provider: string
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -386,6 +387,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_annual?: boolean
           payment_id?: string | null
           payment_provider?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -398,6 +400,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_annual?: boolean
           payment_id?: string | null
           payment_provider?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
