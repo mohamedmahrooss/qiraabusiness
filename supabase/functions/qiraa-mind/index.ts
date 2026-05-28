@@ -121,7 +121,7 @@ serve(async (req) => {
     }
     userId = user.id;
 
-    const { data: roleData } = await adminSupabase.from("user_role").select("role").eq("user_id", userId).single();
+    const { data: roleData } = await adminSupabase.from("user_roles").select("role").eq("user_id", userId).single();
     if (roleData?.role === "admin") isAdmin = true;
 
     const { data: profile, error: profileError } = await adminSupabase.from("profiles").select("*").eq("user_id", userId).single();
