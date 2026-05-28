@@ -13,235 +13,230 @@ serve(async (req) => {
     const { messages, user_file } = await req.json();
     const userToken = req.headers.get("x-auth-token");
     
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // استخدام Service Key يمنحنا صلاحية تخطي RLS للقيام بالعمليات الإدارية بأمان
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. التحقق من هوية المستخدم ورصيد الأسئلة
+    // 1. Authentication, Feature Gate & Role Check
     let userId: string | null = null;
     let isAdmin = false;
-    if (userToken) {
-        const { data: { user } } = await supabase.auth.getUser(userToken);
-        if (user) {
-            userId = user.id;
-            const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin');
-            isAdmin = !!(roles && roles.length > 0);
+    let userProfile = null;
 
-            if (!isAdmin) {
-                const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens, subscription_plan').eq('user_id', userId).single();
-                
-                // Enforce subscription plan: only pro/enterprise allowed
-                const plan = profile?.subscription_plan?.toLowerCase() || 'free';
-                if (!['pro', 'enterprise'].includes(plan)) {
-                    return new Response(JSON.stringify({ error: "Access restricted to Pro and Enterprise plans." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-                }
-                
-                if (!profile || profile.qiraa_mind_tokens <= 0) {
-                    return new Response(JSON.stringify({ error: "Insufficient tokens" }), { status: 402, headers: corsHeaders });
-                }
-            }
+    if (!userToken) {
+        return new Response(JSON.stringify({ error: "طلب غير مصرح به. يرجى تسجيل الدخول." }), { status: 401, headers: corsHeaders });
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(userToken);
+    if (authError || !user) {
+        return new Response(JSON.stringify({ error: "فشل التحقق من هوية المستخدم." }), { status: 401, headers: corsHeaders });
+    }
+
+    userId = user.id;
+
+    // أ- التحقق من صلاحيات المسؤول (Admin Check) من جدول user_role بدقة
+    const { data: roleData } = await supabase.from('user_role').select('role').eq('user_id', userId).single();
+    if (roleData && roleData.role === 'admin') {
+        isAdmin = true;
+    }
+
+    // ب- جلب بيانات العميل والتحقق من الصلاحيات
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('user_id', userId).single();
+    if (profileError || !profile) {
+        return new Response(JSON.stringify({ error: "لم يتم العثور على ملف تعريف المستخدم." }), { status: 404, headers: corsHeaders });
+    }
+    
+    userProfile = profile;
+
+    // ج- تطبيق بوابات الدفع والصلاحيات (لغير المديرين فقط)
+    if (!isAdmin) {
+        if (profile.has_qiraa_mind !== true) {
+            return new Response(JSON.stringify({ error: "خاصية عقل قراءة غير مفعلة لحسابك. يرجى ترقية باقتك." }), { status: 403, headers: corsHeaders });
+        }
+        if (profile.qiraa_mind_tokens <= 0) {
+            return new Response(JSON.stringify({ error: "نفد رصيد توكنز عقل قراءة. يرجى شحن رصيدك للمتابعة." }), { status: 403, headers: corsHeaders });
         }
     }
 
-    // 2. تحليل لغة السؤال لاختيار عمود المقالات
-    const lastUserMessage = messages[messages.length - 1].content;
-    const isArabic = /[\u0600-\u06FF]/.test(lastUserMessage);
-    const contentColumn = isArabic ? "content_ar" : "content_en";
+    // 2. The AI Pre-processor (OpenRouter 4D Extraction Engine)
+    const latestUserMessage = messages.filter((m: any) => m.role === 'user').pop()?.content || "";
+    
+    const openRouterKeysStr = Deno.env.get("OPENROUTER_KEYS");
+    if (!openRouterKeysStr) throw new Error("OPENROUTER_KEYS are not configured");
+    const openRouterKeys = openRouterKeysStr.split(',');
+    const activeOpenRouterKey = openRouterKeys[Math.floor(Math.random() * openRouterKeys.length)];
 
-    // 3. تحديد النطاق الزمني للمقالات (آخر 3 أشهر فقط)
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    const dateLimit = threeMonthsAgo.toISOString();
+    const extractionPrompt = `أنت أداة استخبارات بيانات دقيقة. حلل رسالة المستخدم واستخرج أو استنتج المحددات التالية لبناء استعلام دقيق لقاعدة البيانات.
 
-    let knowledgeBase = "";
-    let totalChars = 0;
-    const MAX_KB_CHARS = 800000; 
+قواعد صارمة جداً:
+1. أرجع النتيجة بصيغة JSON فقط.
+2. لا تضف أي نص تمهيدي، ولا تضف علامات Markdown مثل \`\`\`json.
+3. استنتج القطاع والدولة حتى لو لم تُذكر صراحة (مثال: "تطبيق مدفوعات" يعني القطاع "FinTech").
+4. إذا لم تجد أو تستنتج القيمة، ضع "null".
 
-    // 4. سحب المقالات اللحظية (Articles) — PRIORITY 1: DB sources first
+رسالة المستخدم: "${latestUserMessage}"
+
+المخرج المطلوب بالضبط:
+{"sector": "اسم القطاع أو null", "country": "اسم الدولة أو null", "company": "اسم الشركة المستهدفة أو null", "round_type": "نوع الجولة مثل Seed, Series A, Acquisition أو null"}`;
+
+    let extractedData = { sector: "", country: "", company: "", round_type: "" };
+    
     try {
-      const { data: analyticsData } = await supabase
-        .from("analytics")
-        .select(`${contentColumn}, published_at`)
-        .gte("published_at", dateLimit)
-        .order("published_at", { ascending: false });
+      const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${activeOpenRouterKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openrouter/free",
+          messages: [{ role: "user", content: extractionPrompt }]
+        })
+      });
 
-      if (analyticsData && analyticsData.length > 0) {
-        knowledgeBase += "=== RECENT MARKET ANALYSES (LAST 3 MONTHS) ===\n";
-        for (const art of analyticsData) {
-          const textContent = (art as any)[contentColumn];
-          if (!textContent) continue;
-
-          const entry = `\n[Published: ${new Date(art.published_at!).toLocaleDateString()}] \n${textContent}\n`;
-          if (totalChars + entry.length < MAX_KB_CHARS) {
-            knowledgeBase += entry;
-            totalChars += entry.length;
-          }
-        }
+      if (openRouterRes.ok) {
+        const aiJson = await openRouterRes.json();
+        const rawContent = aiJson.choices[0].message.content;
+        const cleanJson = rawContent.replace(/```json\n?|```/g, '').trim();
+        extractedData = JSON.parse(cleanJson);
       }
-    } catch (e) { console.error("Error fetching articles:", e); }
-
-    // 5. سحب المستندات والتقارير المرفوعة يدوياً (qiraa_mind_documents) — PRIORITY 2
-    try {
-      const { data: staticDocs } = await supabase
-        .from("qiraa_mind_documents")
-        .select("title, content, source_month, source_year, document_type")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-
-      if (staticDocs && staticDocs.length > 0) {
-        knowledgeBase += "\n=== STATIC REFERENCE DOCUMENTS ===\n";
-        for (const doc of staticDocs) {
-          const entry = `\n[Document: ${doc.title} | ${doc.source_month || ''} ${doc.source_year || ''} | Type: ${doc.document_type || 'general'}]\n${doc.content}\n`;
-          if (totalChars + entry.length < MAX_KB_CHARS) {
-            knowledgeBase += entry;
-            totalChars += entry.length;
-          }
-        }
-      }
-    } catch (e) { console.error("Error fetching documents:", e); }
-
-    // 6. ملف المستخدم المرفق — PRIORITY 3 (lowest, after DB sources)
-    if (user_file && user_file.content) {
-      let userFileText = "";
-      const fileContent = user_file.content as string;
-      const fileName = user_file.name || "unknown";
-
-      // Check if it's a base64-encoded file (PDF/DOCX)
-      if (fileContent.startsWith("[BASE64_FILE:")) {
-        // Extract the base64 content after the header
-        const headerEnd = fileContent.indexOf("]");
-        const base64Data = fileContent.slice(headerEnd + 1);
-        const headerInfo = fileContent.slice(1, headerEnd);
-        const fileType = headerInfo.split(":")[2] || "";
-
-        // For PDFs, use AI to extract text
-        if (fileType.includes("pdf")) {
-          try {
-            const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
-                messages: [
-                  {
-                    role: "user",
-                    content: [
-                      { type: "text", text: "Extract ALL text content from this PDF document. Return ONLY the raw text, preserving the structure. Do not summarize." },
-                      { type: "image_url", image_url: { url: `data:application/pdf;base64,${base64Data}` } }
-                    ]
-                  }
-                ],
-              }),
-            });
-            if (aiResponse.ok) {
-              const aiData = await aiResponse.json();
-              userFileText = aiData.choices?.[0]?.message?.content || `[فشل استخراج نص الـ PDF: ${fileName}]`;
-            }
-          } catch (e) {
-            console.error("PDF extraction error:", e);
-            userFileText = `[فشل استخراج نص الـ PDF: ${fileName}]`;
-          }
-        } else {
-          userFileText = `[ملف ثنائي مرفق: ${fileName} - النوع غير مدعوم للاستخراج التلقائي]`;
-        }
-      } else {
-        // Plain text content
-        userFileText = fileContent;
-      }
-
-      // Append user file ONLY if there's room left
-      if (userFileText && totalChars + userFileText.length < MAX_KB_CHARS) {
-        knowledgeBase += `\n=== USER-UPLOADED FILE (Lower Priority - Unverified) ===\n`;
-        knowledgeBase += `[File: ${fileName}]\n${userFileText}\n`;
-        totalChars += userFileText.length;
-      } else if (userFileText) {
-        // Truncate to fit remaining space
-        const remaining = MAX_KB_CHARS - totalChars - 200;
-        if (remaining > 500) {
-          knowledgeBase += `\n=== USER-UPLOADED FILE (Lower Priority - Unverified - TRUNCATED) ===\n`;
-          knowledgeBase += `[File: ${fileName}]\n${userFileText.slice(0, remaining)}\n[... TRUNCATED]\n`;
-          totalChars = MAX_KB_CHARS;
-        }
-      }
+    } catch (extractionError) {
+      console.warn("OpenRouter Extraction fallback triggered:", extractionError);
     }
 
-    if (totalChars === 0) {
-        knowledgeBase = "لا توجد بيانات متاحة للإجابة.";
+    const sectorTerm = (extractedData.sector && extractedData.sector !== "null") ? extractedData.sector : null;
+    const countryTerm = (extractedData.country && extractedData.country !== "null") ? extractedData.country : null;
+    const companyTerm = (extractedData.company && extractedData.company !== "null") ? extractedData.company : null;
+    const roundTerm = (extractedData.round_type && extractedData.round_type !== "null") ? extractedData.round_type : null;
+    
+    const fallbackTerm = latestUserMessage.split(' ').slice(0, 3).join(' ');
+    const primarySearchTerm = companyTerm || sectorTerm || fallbackTerm;
+
+    // 3. Precision Database Querying (T+0 Live Data Engine - 4D Dynamic Builders)
+    let analyticsQuery = supabase.from('analytics')
+        .select('title_ar, content_ar, updated_at, country')
+        .order('updated_at', { ascending: false })
+        .limit(10);
+        
+    if (companyTerm) {
+        analyticsQuery = analyticsQuery.ilike('content_ar', `%${primarySearchTerm}%`);
+    } else {
+        analyticsQuery = analyticsQuery.or(`content_ar.ilike.%${primarySearchTerm}%,title_ar.ilike.%${primarySearchTerm}%`);
     }
 
-    // 7. البرومبت النظامي 
-    const systemPrompt = `### ROLE
-You are "QIRAA MIND," a proprietary Strategic Market Intelligence Engine. You are a sharp, data-driven analyst for VCs and founders in the MENA startup ecosystem.
+    let companiesQuery = supabase.from('qiraa_companies')
+        .select('name, description, sector_main, country, total_funding_usd, growth_stage')
+        .order('total_funding_usd', { ascending: false })
+        .limit(10);
+        
+    if (companyTerm) {
+        companiesQuery = companiesQuery.ilike('name', `%${primarySearchTerm}%`);
+    } else {
+        companiesQuery = companiesQuery.or(`sector_main.ilike.%${primarySearchTerm}%,name.ilike.%${primarySearchTerm}%,tags.ilike.%${primarySearchTerm}%`);
+    }
 
-### STRICT DATA SOURCE
-Answer ONLY based on the text extracted from the database below (which includes live articles, static reports, and optionally a user-uploaded file).
-- Database sources (articles & static documents) are TRUSTED and take PRIORITY.
-- User-uploaded files are SECONDARY and UNVERIFIED. Use them as supplementary context only. If they conflict with database sources, prefer database sources.
-- If data is missing, state: "// SIGNAL MISSING: Data point is out of my role."
-- DO NOT hallucinate. DO NOT use outside knowledge.
-- For Arabic queries, answer in Business Arabic. For English, use Business English.
+    let transactionsQuery = supabase.from('qiraa_transactions')
+        .select('company_name, round_type, round_amount_usd, investors, country, round_year, round_month')
+        .order('round_year', { ascending: false })
+        .order('round_month', { ascending: false })
+        .limit(15);
+        
+    if (companyTerm) {
+        transactionsQuery = transactionsQuery.ilike('company_name', `%${primarySearchTerm}%`);
+    } else {
+        transactionsQuery = transactionsQuery.or(`sector_main.ilike.%${primarySearchTerm}%,company_name.ilike.%${primarySearchTerm}%`);
+    }
 
-### RESPONSE FORMAT (The "Briefing" Style)
+    if (countryTerm) {
+        analyticsQuery = analyticsQuery.ilike('country', `%${countryTerm}%`);
+        companiesQuery = companiesQuery.ilike('country', `%${countryTerm}%`);
+        transactionsQuery = transactionsQuery.ilike('country', `%${countryTerm}%`);
+    }
+    
+    if (roundTerm) {
+        transactionsQuery = transactionsQuery.ilike('round_type', `%${roundTerm}%`);
+    }
 
-1. **THE BOTTOM LINE:** A single, decisive summary sentence.
+    const [analyticsRes, companiesRes, transactionsRes] = await Promise.all([
+      analyticsQuery,
+      companiesQuery,
+      transactionsQuery
+    ]);
 
-2. **THE DATA:** Bullet points with **Bold** numbers/percentages and specific deal names.
+    // الإبقاء على المحتوى كاملاً وعدم قص النصوص للاستفادة القصوى من سياق Opus
+    const contextData = {
+      market_intelligence: analyticsRes.data || [],
+      top_companies: companiesRes.data || [],
+      latest_transactions: transactionsRes.data || []
+    };
 
-3. **THE STRATEGIC IMPLICATION:** Why this matters for an investor or founder. One powerful sentence.
+    // 4. The Sovereign Prompt for Claude Opus 4.7
+    const systemPrompt = `أنت 'عقل قراءة'، المحلل الاستراتيجي والمالي الحصري لمنصة QIRAA. 
+معرفتك لحظية (T+0) وتستمدها مباشرة من محرك ذكاء قراءة.
 
-### TONE
+<market_intelligence>
+${JSON.stringify(contextData)}
+</market_intelligence>
 
-- **No Fluff:** No "Hello," "Sure," "Here is the info," or any greeting.
+القواعد الصارمة:
+1. أجب بناءً على بيانات <market_intelligence> فقط. اربط بين التحليلات والصفقات لتكوين استنتاج سيادي حاد.
+2. إذا كان استعلام العميل خارج نطاق البيانات المرفقة، قل نصاً: "بناءً على بيانات محرك قراءة الحالية، لا تتوافر معلومات دقيقة حول هذا القطاع، يرجى توسيع نطاق البحث."
+3. استخدم لغة مالية قاطعة، خالية من الحشو، وموجهة لصناديق رأس المال الجريء (VCs) و رؤساء الشركات و المستثمرين.
+4. حظر مطلق: لا تستخدم عبارات مثل "بناءً على البيانات المرفقة" أو "كما يظهر في السياق". تحدث بثقة مطلقة وكأنك تمتلك المعلومة.
+5. الإيجاز: قدم إجابتك في هيكل مباشر (ملخص، أرقام حاسمة، استنتاج) بدون مقدمات ترحيبية.`;
 
-- **Language:** Match the user's language (Formal Arabic or Business English).
-
-- **Style:** Executive, Sharp, Analytical. Every word must earn its place.
-
-### KNOWLEDGE BASE:
-${knowledgeBase}`;
-
-    // 8. الاتصال بمحرك Lovable AI Gateway
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // 5. Direct Call to Anthropic API (Claude Opus 4.7)
+    const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        model: "claude-opus-4-7", // تم التحديث للنموذج الأقوى والحالي
+        max_tokens: 2000, // زيادة التوكنز قليلاً لاستيعاب السياق الأضخم
+        system: systemPrompt,
+        messages: messages,
         stream: true,
       }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) return new Response(JSON.stringify({ error: "الضغط عالي، يرجى المحاولة بعد قليل." }), { status: 429, headers: corsHeaders });
-      if (response.status === 402) return new Response(JSON.stringify({ error: "رصيد الـ API نفد." }), { status: 402, headers: corsHeaders });
-      return new Response(JSON.stringify({ error: "Gateway error" }), { status: 500, headers: corsHeaders });
+    if (!anthropicResponse.ok) {
+      const err = await anthropicResponse.json();
+      throw new Error(`Anthropic API Error: ${JSON.stringify(err)}`);
     }
 
-    // 9. خصم التوكن بعد نجاح الاتصال (الأدمن معفى)
-    if (userId && !isAdmin) {
-        const { data: profile } = await supabase.from('profiles').select('qiraa_mind_tokens').eq('user_id', userId).single();
-        if (profile) {
-            await supabase.from('profiles').update({ qiraa_mind_tokens: profile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
+    // 6. Safe Token Deduction (درع التوكن اللحظي)
+    // نستخدم TransformStream لمراقبة الـ Stream. لا يتم الخصم إلا عند الانتهاء بنجاح.
+    const transformStream = new TransformStream({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+      },
+      async flush() {
+        // يتم تنفيذ هذا الكود فقط إذا انتهى إرسال الرد بنجاح (بدون انقطاع)
+        if (userId && !isAdmin && userProfile) {
+            await supabase.from('profiles').update({ qiraa_mind_tokens: userProfile.qiraa_mind_tokens - 1 }).eq('user_id', userId);
         }
-    }
-
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      }
     });
 
-  } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+    // 7. Stream the Response to the UI through the Transformer
+    return new Response(anthropicResponse.body!.pipeThrough(transformStream), {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+      },
+    });
+
+  } catch (error: any) {
+    console.error("Qiraa Mind Error:", error);
+    return new Response(JSON.stringify({ error: error.message || "حدث خطأ داخلي في محرك قراءة." }), {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
