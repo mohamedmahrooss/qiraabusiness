@@ -891,8 +891,8 @@ const QiraaMindPage = () => {
           });
 
           if (resp.ok) break;
-        } catch {
-          if (attempt === 1) throw;
+        } catch (err) {
+          if (attempt === 1) throw err;
         }
 
         await new Promise((resolve) =>
@@ -1102,49 +1102,50 @@ const QiraaMindPage = () => {
                       )}
                     </div>
 
-                    <ReactMarkdown
-                      className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-headings:font-mono prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground"
-                      components={{
-                        h1: ({ node, ...props }) => (
-                          <h1
-                            className="text-lg font-bold text-primary mb-2 mt-4"
-                            {...props}
-                          />
-                        ),
-                        h2: ({ node, ...props }) => (
-                          <h2
-                            className="text-base font-bold text-foreground mb-2 mt-4"
-                            {...props}
-                          />
-                        ),
-                        h3: ({ node, ...props }) => (
-                          <h3
-                            className="text-sm font-bold text-foreground mb-2 mt-3"
-                            {...props}
-                          />
-                        ),
-                        ul: ({ node, ...props }) => (
-                          <ul
-                            className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70"
-                            {...props}
-                          />
-                        ),
-                        ol: ({ node, ...props }) => (
-                          <ol
-                            className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70"
-                            {...props}
-                          />
-                        ),
-                        p: ({ node, ...props }) => (
-                          <p
-                            className="mb-3 last:mb-0"
-                            {...props}
-                          />
-                        ),
-                      }}
-                    >
-                      {msg.content || "..."}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-headings:font-mono prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ node, ...props }) => (
+                            <h1
+                              className="text-lg font-bold text-primary mb-2 mt-4"
+                              {...props}
+                            />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2
+                              className="text-base font-bold text-foreground mb-2 mt-4"
+                              {...props}
+                            />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3
+                              className="text-sm font-bold text-foreground mb-2 mt-3"
+                              {...props}
+                            />
+                          ),
+                          ul: ({ node, ...props }) => (
+                            <ul
+                              className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70"
+                              {...props}
+                            />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol
+                              className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70"
+                              {...props}
+                            />
+                          ),
+                          p: ({ node, ...props }) => (
+                            <p
+                              className="mb-3 last:mb-0"
+                              {...props}
+                            />
+                          ),
+                        }}
+                      >
+                        {msg.content || "..."}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 )}
               </div>
