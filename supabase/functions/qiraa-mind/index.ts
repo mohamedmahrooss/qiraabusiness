@@ -97,8 +97,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "طلب غير مصرح به. يرجى تسجيل الدخول." }), { status: 401, headers: corsHeaders });
     }
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("QIRAA_MIND_ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("QIRAA_MIND_ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
