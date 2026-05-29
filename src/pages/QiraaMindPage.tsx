@@ -283,6 +283,9 @@ const QiraaMindPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // تمت الإضافة: متغير للتحكم في وضع التقرير المطول
+  const [isDeepDive, setIsDeepDive] = useState(false);
 
   const [connectionState, setConnectionState] = useState<
     "idle" | "connecting" | "streaming"
@@ -859,8 +862,10 @@ const QiraaMindPage = () => {
         );
       }
 
+      // تمت الإضافة: حقن المتغير is_deep_dive في الـ Body لإرساله للخادم
       const body: any = {
         messages: newMessages,
+        is_deep_dive: isDeepDive,
       };
 
       if (fileContent) {
@@ -891,8 +896,8 @@ const QiraaMindPage = () => {
           });
 
           if (resp.ok) break;
-        } catch (err) {
-          if (attempt === 1) throw err;
+        } catch {
+          if (attempt === 1) throw;
         }
 
         await new Promise((resolve) =>
@@ -1102,50 +1107,49 @@ const QiraaMindPage = () => {
                       )}
                     </div>
 
-                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-headings:font-mono prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground">
-                      <ReactMarkdown
-                        components={{
-                          h1: ({ node, ...props }) => (
-                            <h1
-                              className="text-lg font-bold text-primary mb-2 mt-4"
-                              {...props}
-                            />
-                          ),
-                          h2: ({ node, ...props }) => (
-                            <h2
-                              className="text-base font-bold text-foreground mb-2 mt-4"
-                              {...props}
-                            />
-                          ),
-                          h3: ({ node, ...props }) => (
-                            <h3
-                              className="text-sm font-bold text-foreground mb-2 mt-3"
-                              {...props}
-                            />
-                          ),
-                          ul: ({ node, ...props }) => (
-                            <ul
-                              className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70"
-                              {...props}
-                            />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol
-                              className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70"
-                              {...props}
-                            />
-                          ),
-                          p: ({ node, ...props }) => (
-                            <p
-                              className="mb-3 last:mb-0"
-                              {...props}
-                            />
-                          ),
-                        }}
-                      >
-                        {msg.content || "..."}
-                      </ReactMarkdown>
-                    </div>
+                    <ReactMarkdown
+                      className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-headings:font-mono prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground"
+                      components={{
+                        h1: ({ node, ...props }) => (
+                          <h1
+                            className="text-lg font-bold text-primary mb-2 mt-4"
+                            {...props}
+                          />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h2
+                            className="text-base font-bold text-foreground mb-2 mt-4"
+                            {...props}
+                          />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3
+                            className="text-sm font-bold text-foreground mb-2 mt-3"
+                            {...props}
+                          />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70"
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70"
+                            {...props}
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p
+                            className="mb-3 last:mb-0"
+                            {...props}
+                          />
+                        ),
+                      }}
+                    >
+                      {msg.content || "..."}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
@@ -1265,6 +1269,25 @@ const QiraaMindPage = () => {
                     ) : (
                       <Paperclip className="h-5 w-5" />
                     )}
+                  </button>
+
+                  {/* تمت الإضافة: زر (Toggle) مخصص لوضع التقرير المطول (Deep Dive) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsDeepDive(!isDeepDive)}
+                    disabled={isLoading}
+                    className={`flex-shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center transition-colors mb-0.5 disabled:opacity-30 ${
+                      isDeepDive
+                        ? "border-primary/50 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                    title={
+                      isRTL 
+                        ? "تفعيل/تعطيل وضع التقرير المطول (Deep Dive)" 
+                        : "Toggle Deep Dive Mode"
+                    }
+                  >
+                    <Sparkles className={`h-5 w-5 ${isDeepDive ? "animate-pulse" : ""}`} />
                   </button>
 
                   <textarea
