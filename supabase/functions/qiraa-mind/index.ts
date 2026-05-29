@@ -9,6 +9,7 @@ const corsHeaders = {
 
 type RetrievalIntent = {
   sectors: string[];
+  analytics_category: string | null; // تم إضافة حقل خاص لجدول التحليلات
   countries: string[];
   companies: string[];
   round_types: string[];
@@ -16,7 +17,7 @@ type RetrievalIntent = {
   strategic_intent: string[];
 };
 
-// 1. Market Ontology Layer (The VC to Database Bridge)
+// 1. Market Ontology Layer
 const MARKET_ONTOLOGY: Record<string, string[]> = {
   "fintech": ["fintech", "financial technology", "payments", "banking", "wealthtech", "insurtech", "regtech", "تقنية مالية", "التقنية المالية", "مدفوعات"],
   "enterprise software": ["enterprise software", "b2b saas", "vertical saas", "erp infra", "workflow tools", "saas", "hrtech", "martech", "govtech", "legal", "برمجيات الأعمال", "b2b"],
@@ -37,7 +38,33 @@ const MARKET_ONTOLOGY: Record<string, string[]> = {
   "miscellaneous": ["dating", "jobs recruitment", "kids", "marketing", "sports", "engineering and manufacturing equipment", "ip tech"]
 };
 
-// 2. Sovereign Country Normalization
+// 2. Analytics Strict Categories (Hardcoded UUIDs for Zero-Latency)
+// تنبيه: استبدل الأصفار بالـ UUIDs الحقيقية الموجودة في جدول categories لديك
+const ANALYTICS_CATEGORIES: Record<string, string> = {
+  "Retail Industry": "07d27d24-4eaa-49c7-88c1-5b512e4a61fa",
+  "PropTech": "6a66f87f-f8f5-48be-9ba4-d05fdbdc1635",
+  "Logistics": "0abece92-8243-4e8d-9aef-909dc7259aaf",
+  "AI": "6c6b2ea8-a73d-4ffd-b4f4-501ab7af49a9",
+  "AgriTech": "71918f55-cdd8-4e22-adac-89e4bebec992",
+  "MobilityTech": "5894b58d-159a-4cc4-a8c7-58ceb9a33441",
+  "ClimateTech": "5516d8a4-3835-485d-801c-fa1835e98d9b",
+  "Cybersecurity": "3cc21b75-f24c-4e86-8ee9-75d1f4c18f9b",
+  "entert. & Gaming": "20ffdaba-db7f-4049-9218-82dc8b9478db",
+  "HealthTech": "05c17be0-a5af-42ac-866b-a69ae928b125",
+  "GovTech": "3f61374d-a591-4c41-a3c1-9b235374f381",
+  "HRTech": "766c56df-4be4-4461-bfe3-a09891ce2397",
+  "MarTech": "8d17294e-bca6-4442-b87a-96f75cec8c84",
+  "EdTech": "96c81072-dfa9-4ef6-acc4-9ca72ebd5f11",
+  "FoodTech": "908e0f03-05e3-43db-9952-57fef8d90d16",
+  "Biotechnology": "6d2d2136-be74-4e9d-97c1-fc53c79bed2c",
+  "ComTech": "6bb71d63-3510-4622-b1dc-5a994d0790b3",
+  "SpaceTech": "e42cc2f2-9c99-45ea-b87b-cd6cf0e06304",
+  "IP Tech": "6388e598-30db-44e1-9a4e-877e4555046b",
+  "TravelTech": "bb5fee41-8f44-46d1-bfc5-992d2c0fd402",
+  "Fintech": "f66d73cd-ccee-4596-8bab-67950621ae66"
+};
+
+// 3. Sovereign Country Normalization
 const COUNTRY_ALIASES: Record<string, string[]> = {
   "saudi arabia": ["saudi arabia", "ksa", "saudi", "السعودية", "المملكة", "المملكة العربية السعودية"],
   "egypt": ["egypt", "مصر", "جمهورية مصر العربية"],
@@ -70,7 +97,6 @@ function resolveOntology(inputs: string[], mapping: Record<string, string[]>): s
   return [...resolved];
 }
 
-// 3. Smart Fallback Extraction 
 function extractCoreKeywords(message: string): string[] {
   const stopWords = ["اريد", "أريد", "ابدا", "أبدأ", "بناء", "على", "عن", "كيف", "ماذا", "هل", "شركة", "قطاع", "استثمار", "صندوق", "تمويل", "جولات", "في", "من", "الى", "إلى", "التي", "الذي", "بناءً", "أحدث", "هناك", "ماهي", "ما", "هي", "أفضل", "افضل"];
   return message.split(/\s+/)
@@ -93,36 +119,12 @@ function buildOrConditions(fields: string[], values: string[]): string | null {
   return conditions.length > 0 ? conditions.join(",") : null;
 }
 
-function compressContext(analytics: any[], companies: any[], transactions: any[]) {
-  const topFundingRounds = [...transactions]
-    .sort((a, b) => (b.round_amount_usd || 0) - (a.round_amount_usd || 0))
-    .slice(0, 5);
-
-  const dominantCountries = [...new Set(companies.map((c) => c.country).filter(Boolean))].slice(0, 10);
-  const dominantSectors = [...new Set(companies.map((c) => c.sector_main).filter(Boolean))].slice(0, 10);
-  const emergingPatterns = analytics.map((a) => a.title_ar).filter(Boolean).slice(0, 10);
-
-  return {
-    strategic_summary: {
-      total_market_signals: analytics.length,
-      total_companies_detected: companies.length,
-      total_transactions_detected: transactions.length,
-    },
-    dominant_countries: dominantCountries,
-    dominant_sectors: dominantSectors,
-    critical_transactions: topFundingRounds,
-    emerging_patterns: emergingPatterns,
-    raw_market_intelligence: analytics.slice(0, 10), 
-    raw_companies: companies.slice(0, 10),
-    raw_transactions: transactions.slice(0, 15),
-  };
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    // تم إضافة is_deep_dive لالتقاط حالة التقرير المطول من الواجهة
+    const { messages, is_deep_dive } = await req.json();
     const userToken = req.headers.get("x-auth-token");
 
     if (!userToken) {
@@ -171,14 +173,20 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    // 4. Intent Extraction using Claude-Opus-4-7
+    const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
+
+    // 4. Intent Extraction (Updated to force specific analytics category)
     const extractionPrompt = `أنت محرك استخراج استخبارات سوقية احترافي لمنصة قراءة.
 قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
+
+هام جداً بخصوص "analytics_category": يجب أن تختار قطاعاً واحداً فقط من هذه القائمة الحرفية المحددة (إذا لم تجد ما يطابق، اترك الحقل null):
+[${categoriesList}]
 
 رسالة المستخدم: "${latestUserMessage}"
 
 المخرج المطلوب:
 {
+  "analytics_category": "اسم القطاع من القائمة أو null",
   "sectors": ["قطاع 1"],
   "countries": ["دولة 1"],
   "companies": ["شركة 1"],
@@ -187,7 +195,7 @@ serve(async (req) => {
   "strategic_intent": ["النية 1"]
 }`;
 
-    let extractedData: RetrievalIntent = { sectors: [], countries: [], companies: [], round_types: [], temporal_filters: [], strategic_intent: [] };
+    let extractedData: RetrievalIntent = { analytics_category: null, sectors: [], countries: [], companies: [], round_types: [], temporal_filters: [], strategic_intent: [] };
 
     try {
       const extractionResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -211,76 +219,116 @@ serve(async (req) => {
         const rawContent = aiJson.content?.[0]?.text || "";
         const cleanJson = rawContent.replace(/\x60{3}json\n?|\x60{3}/gi, "").trim();
         extractedData = JSON.parse(cleanJson);
-      } else {
-        console.error("Extraction API Error:", await extractionResponse.text());
       }
     } catch (err) {
       console.warn("Extraction Parsing Failed:", err);
     }
 
-    // 5. Ontology Application
     const resolvedSectors = resolveOntology(extractedData.sectors || [], MARKET_ONTOLOGY);
     const resolvedCountries = resolveOntology(extractedData.countries || [], COUNTRY_ALIASES);
-    
     let coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
     
-    // Smart Fallback Activation
     if (coreSearchTerms.length === 0) {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
 
-        // 6. Database Query Execution
-    let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country").order("updated_at", { ascending: false }).limit(15);
-    let companiesQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(15);
-    let transactionsQuery = querySupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(20);
+    // 5. Query Partitioning (Even Distribution Logic & Deep Dive Toggle)
+    // التعديل هنا: تبديل القيم ديناميكياً بناءً على إشارة is_deep_dive
+    const MAX_ANALYTICS = is_deep_dive ? 20 : 10;
+    const MAX_COMPANIES = is_deep_dive ? 25 : 10;
+    const MAX_TRANSACTIONS = is_deep_dive ? 20 : 15;
 
-    const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
-    const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
-    const transactionsConditions = buildOrConditions(["sector_main", "company_name", "investors"], coreSearchTerms);
+    const targetCountries = resolvedCountries.length > 0 ? resolvedCountries : ["global"];
+    const numCountries = targetCountries.length;
+    
+    // حساب نصيب كل دولة بالمناصفة (مع جبرها للأعلى لضمان عدم نقص البيانات)
+    const analyticsPerCountry = Math.ceil(MAX_ANALYTICS / numCountries);
+    const companiesPerCountry = Math.ceil(MAX_COMPANIES / numCountries);
+    const transactionsPerCountry = Math.ceil(MAX_TRANSACTIONS / numCountries);
 
-    if (analyticsConditions) analyticsQuery = analyticsQuery.or(analyticsConditions);
-    if (companiesConditions) companiesQuery = companiesQuery.or(companiesConditions);
-    if (transactionsConditions) transactionsQuery = transactionsQuery.or(transactionsConditions);
+    let allAnalytics: any[] = [];
+    let allCompanies: any[] = [];
+    let allTransactions: any[] = [];
 
-    // Strict Geography Filtering
-    if (resolvedCountries.length > 0) {
-      const countryConditions = buildOrConditions(["country"], resolvedCountries);
-      if (countryConditions) {
-        analyticsQuery = analyticsQuery.or(countryConditions);
-        companiesQuery = companiesQuery.or(countryConditions);
-        transactionsQuery = transactionsQuery.or(countryConditions);
+    // جلب UUID الخاص بالتحليلات إذا تم استخراجه بنجاح
+    const analyticsCategoryId = extractedData.analytics_category ? ANALYTICS_CATEGORIES[extractedData.analytics_category] : null;
+
+    // تشغيل استعلامات موازية لكل دولة لضمان المناصفة الجغرافية المطلقة
+    const queryPromises = targetCountries.map(async (countryKey) => {
+      // بناء شروط الشركات والصفقات
+      const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
+      const transactionsConditions = buildOrConditions(["sector_main", "company_name", "investors"], coreSearchTerms);
+
+      // بناء استعلام التحليلات (يعتمد على الـ UUID إذا وجد، وإلا يعود للبحث النصي)
+      let aQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
+      if (countryKey !== "global") aQuery = aQuery.ilike("country", `%${countryKey}%`);
+      
+      if (analyticsCategoryId) {
+        aQuery = aQuery.eq("category", analyticsCategoryId);
+      } else {
+        const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
+        if (analyticsConditions) aQuery = aQuery.or(analyticsConditions);
       }
-    }
 
-    const [analyticsRes, companiesRes, transactionsRes] = await Promise.all([analyticsQuery, companiesQuery, transactionsQuery]);
+      // بناء استعلام الشركات
+      let cQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
+      if (countryKey !== "global") cQuery = cQuery.ilike("country", `%${countryKey}%`);
+      if (companiesConditions) cQuery = cQuery.or(companiesConditions);
+
+      // بناء استعلام الصفقات
+      let tQuery = querySupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
+      if (countryKey !== "global") tQuery = tQuery.ilike("country", `%${countryKey}%`);
+      if (transactionsConditions) tQuery = tQuery.or(transactionsConditions);
+
+      const [aRes, cRes, tRes] = await Promise.all([aQuery, cQuery, tQuery]);
+      
+      return {
+        analytics: aRes.data || [],
+        companies: cRes.data || [],
+        transactions: tRes.data || []
+      };
+    });
+
+    const resultsArray = await Promise.all(queryPromises);
+
+    // تجميع النتائج من جميع الدول
+    resultsArray.forEach(res => {
+      allAnalytics.push(...res.analytics);
+      allCompanies.push(...res.companies);
+      allTransactions.push(...res.transactions);
+    });
 
     console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
     console.log(JSON.stringify({
       rawExtraction: extractedData,
-      resolvedSectors: resolvedSectors,
-      resolvedCountries: resolvedCountries,
-      coreSearchTerms: coreSearchTerms,
-      analyticsConditions,
-      companiesConditions,
-      transactionsConditions
+      isDeepDive: !!is_deep_dive,
+      analyticsUUID: analyticsCategoryId,
+      targetCountries: targetCountries,
+      limitsPerCountry: { analytics: analyticsPerCountry, companies: companiesPerCountry, transactions: transactionsPerCountry }
     }, null, 2));
 
     console.log("\n=== 🟢 QIRAA MIND DB RESULTS ===");
     console.log(JSON.stringify({
-      analyticsCount: analyticsRes.data?.length || 0,
-      companiesCount: companiesRes.data?.length || 0,
-      transactionsCount: transactionsRes.data?.length || 0
+      analyticsCount: allAnalytics.length,
+      companiesCount: allCompanies.length,
+      transactionsCount: allTransactions.length
     }, null, 2));
 
-    const compressedContext = compressContext(analyticsRes.data || [], companiesRes.data || [], transactionsRes.data || []);
+    // 6. حقن البيانات الخام (Raw Injection) بدلاً من الضغط الغبي
+    // نمرر المخرجات كاملة للنموذج ليلتقط هو الأنماط بذكائه الخارق
+    const rawContext = {
+      raw_market_intelligence: allAnalytics.slice(0, MAX_ANALYTICS), 
+      raw_companies: allCompanies.slice(0, MAX_COMPANIES),
+      raw_transactions: allTransactions.slice(0, MAX_TRANSACTIONS),
+    };
 
-    // 8. Sovereign Anti-Hallucination & Alpha Generation Prompt
+    // 7. Sovereign Anti-Hallucination & Alpha Generation Prompt
     const systemPrompt = `أنت "عقل قراءة" (QIRAA Mind).
 أنت لست مساعداً آلياً؛ أنت "كبير المستشارين الاستراتيجيين" ومحرك استخبارات سيادي متخصص بأسواق الشرق الأوسط و شمال افريقيا.
 عملاؤك هم (General Partners) في صناديق الاستثمار الجريء (VCs)، و الرؤساء التنفيذيين و رواد الاعمال وصناع القرار الحكوميين. لغتك يجب أن تكون حادة، تنفيذية، شديدة الثقة، وخالية من أي تردد.
 
 <market_intelligence>
-${JSON.stringify(compressedContext)}
+${JSON.stringify(rawContext)}
 </market_intelligence>
 
 قواعد سيادية صارمة لتوليد الـ (Alpha) ومكافحة الهلوسة:
@@ -296,7 +344,7 @@ ${JSON.stringify(compressedContext)}
    - التحليل التشريحي (عبر نقاط حادة وجدول مقارنة).
    - مناورة الدخول (Entry Arbitrage): كيف يستغل الـ VC هذه المعطيات اليوم (خطوات عملية، هيكلة، استحواذ).`;
 
-    // 9. Response Generation Call
+    // 8. Response Generation Call
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -306,7 +354,8 @@ ${JSON.stringify(compressedContext)}
       },
       body: JSON.stringify({
         model: "claude-opus-4-7", 
-        max_tokens: 2500, 
+        // التعديل هنا: تحديد الاستخدام العادي بـ 2000 توكن والتقرير المطول بـ 4096 توكن
+        max_tokens: is_deep_dive ? 4096 : 2000, 
         system: systemPrompt,
         messages,
         stream: true,
@@ -318,7 +367,6 @@ ${JSON.stringify(compressedContext)}
       throw new Error(`Anthropic API Error: ${err}`);
     }
 
-    // 10. Secure Streaming & Token Deduction
     const transformStream = new TransformStream({
       transform(chunk, controller) {
         controller.enqueue(chunk);
