@@ -130,7 +130,7 @@ serve(async (req) => {
     }
     userProfile = profile;
 
-    // ج- تطبيق بوابات الدفع والصلاحيات (لغير المديرين فقط)
+    // 3. Feature Gate & Token Gatekeeping
     if (!isAdmin) {
       if (profile.has_qiraa_mind !== true) {
         return new Response(JSON.stringify({ error: "خاصية عقل قراءة غير مفعلة لحسابك. يرجى ترقية باقتك." }), { status: 403, headers: corsHeaders });
