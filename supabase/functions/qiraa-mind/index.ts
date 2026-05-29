@@ -70,7 +70,7 @@ function resolveOntology(inputs: string[], mapping: Record<string, string[]>): s
   return [...resolved];
 }
 
-// 3. Smart Fallback Extraction (Destroying the dumb 3-word logic)
+// 3. Smart Fallback Extraction 
 function extractCoreKeywords(message: string): string[] {
   const stopWords = ["اريد", "أريد", "ابدا", "أبدأ", "بناء", "على", "عن", "كيف", "ماذا", "هل", "شركة", "قطاع", "استثمار", "صندوق", "تمويل", "جولات", "في", "من", "الى", "إلى", "التي", "الذي", "بناءً", "أحدث", "هناك", "ماهي", "ما", "هي", "أفضل", "افضل"];
   return message.split(/\s+/)
@@ -78,7 +78,7 @@ function extractCoreKeywords(message: string): string[] {
     .filter(w => {
       if (stopWords.includes(w)) return false;
       const isEnglish = /^[a-zA-Z]+$/.test(w);
-      return isEnglish || w.length > 3; // Keep English words OR Arabic words > 3 chars
+      return isEnglish || w.length > 3; 
     });
 }
 
@@ -171,7 +171,7 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    // 4. Intent Extraction using Claude-Opus-4-7 (Replacing OpenRouter)
+    // 4. Intent Extraction using Claude-Opus-4.7
     const extractionPrompt = `أنت محرك استخراج استخبارات سوقية احترافي لمنصة قراءة.
 قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
 
@@ -198,7 +198,7 @@ serve(async (req) => {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-opus-4-7", // النموذج السيادي القوي للاستخراج
+          model: "claude-opus-4.7",
           max_tokens: 1000,
           system: "أنت تعمل كمستخرج بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف.",
           messages: [{ role: "user", content: extractionPrompt }],
@@ -209,9 +209,7 @@ serve(async (req) => {
       if (extractionResponse.ok) {
         const aiJson = await extractionResponse.json();
         const rawContent = aiJson.content?.[0]?.text || "";
-        // Clean markdown backticks if Claude accidentally includes them
-        const cleanJson = rawContent.replace(/```json\n?|
-```/g, "").trim();
+        const cleanJson = rawContent.replace(/\x60{3}json\n?|\x60{3}/gi, "").trim();
         extractedData = JSON.parse(cleanJson);
       } else {
         console.error("Extraction API Error:", await extractionResponse.text());
@@ -226,13 +224,13 @@ serve(async (req) => {
     
     let coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
     
-    // Smart Fallback Activation (if AI extracted nothing)
+    // Smart Fallback Activation
     if (coreSearchTerms.length === 0) {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
 
     // 6. Database Query Execution
-    let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name)").order("updated_at", { ascending: false }).limit(15);
+    let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country").order("updated_at", { ascending: false }).limit(15);
     let companiesQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(15);
     let transactionsQuery = querySupabase.from("qiraa_transactions").select("company_name, round_type, round_amount_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(20);
 
@@ -256,7 +254,6 @@ serve(async (req) => {
 
     const [analyticsRes, companiesRes, transactionsRes] = await Promise.all([analyticsQuery, companiesQuery, transactionsQuery]);
 
-    // 7. --- OBSERVABILITY LAYER (Diagnostic Probes) ---
     console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
     console.log(JSON.stringify({
       rawExtraction: extractedData,
@@ -274,7 +271,6 @@ serve(async (req) => {
       companiesCount: companiesRes.data?.length || 0,
       transactionsCount: transactionsRes.data?.length || 0
     }, null, 2));
-    // ---------------------------------------------------
 
     const compressedContext = compressContext(analyticsRes.data || [], companiesRes.data || [], transactionsRes.data || []);
 
@@ -291,7 +287,7 @@ ${JSON.stringify(compressedContext)}
 2- مصدر وحيد: استنتاجاتك يجب أن تكون مدعومة حصرياً ومنطقياً بالبيانات الموجودة داخل قسم <market_intelligence> فقط.
 3- إعلان العجز: إذا كانت البيانات المرفقة لا تحتوي على إجابة شافية لسؤال المستخدم، قل حرفياً: "بناءً على التحديثات اللحظية في محرك قراءة، لا تتوافر معلومات دقيقة حول هذا القطاع حالياً، يرجى توسيع نطاق البحث."
 4- لغة المال: استخدم لغة تنفيذية احترافية، حادة، خالية من الحشو والاعتذارات.
-5- هيكل الإجابة: قدم الإجابة مهيكلة (الملخص التنفيذي، التحركات الرئيسية، الاستنتاج الاستراتيجي).
+5- هيكل الإجابة: قدم الإجابة مهيكلة (الملخص التنفيذي، التحركات الرئيسية، الاست الاستراتيجي).
 6- لا تذكر أبداً للمستخدم أنك تعتمد على "بيانات مرفقة"، بل تصرف كأنك تمتلكها.`;
 
     // 9. Response Generation Call
@@ -303,7 +299,7 @@ ${JSON.stringify(compressedContext)}
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-opus-4-7", // محرك التوليد القوي
+        model: "claude-opus-4.7", 
         max_tokens: 2500, 
         system: systemPrompt,
         messages,
