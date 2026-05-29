@@ -229,10 +229,10 @@ serve(async (req) => {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
 
-    // 6. Database Query Execution
+        // 6. Database Query Execution
     let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country").order("updated_at", { ascending: false }).limit(15);
-    let companiesQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(15);
-    let transactionsQuery = querySupabase.from("qiraa_transactions").select("company_name, round_type, round_amount_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(20);
+    let companiesQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(15);
+    let transactionsQuery = querySupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(20);
 
     const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
     const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
