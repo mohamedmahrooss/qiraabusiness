@@ -171,7 +171,7 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    // 4. Intent Extraction using Claude-Opus-4.7
+    // 4. Intent Extraction using Claude-Opus-4-7
     const extractionPrompt = `أنت محرك استخراج استخبارات سوقية احترافي لمنصة قراءة.
 قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
 
@@ -198,7 +198,7 @@ serve(async (req) => {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-opus-4.7",
+          model: "claude-opus-4-7",
           max_tokens: 1000,
           system: "أنت تعمل كمستخرج بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف.",
           messages: [{ role: "user", content: extractionPrompt }],
@@ -299,7 +299,7 @@ ${JSON.stringify(compressedContext)}
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-opus-4.7", 
+        model: "claude-opus-4-7", 
         max_tokens: 2500, 
         system: systemPrompt,
         messages,
