@@ -283,9 +283,6 @@ const QiraaMindPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
-  // تمت الإضافة: متغير للتحكم في وضع التقرير المطول
-  const [isDeepDive, setIsDeepDive] = useState(false);
 
   const [connectionState, setConnectionState] = useState<
     "idle" | "connecting" | "streaming"
@@ -862,10 +859,8 @@ const QiraaMindPage = () => {
         );
       }
 
-      // تمت الإضافة: حقن المتغير is_deep_dive في الـ Body لإرساله للخادم
       const body: any = {
         messages: newMessages,
-        is_deep_dive: isDeepDive,
       };
 
       if (fileContent) {
@@ -1269,25 +1264,6 @@ const QiraaMindPage = () => {
                     ) : (
                       <Paperclip className="h-5 w-5" />
                     )}
-                  </button>
-
-                  {/* تمت الإضافة: زر (Toggle) مخصص لوضع التقرير المطول (Deep Dive) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsDeepDive(!isDeepDive)}
-                    disabled={isLoading}
-                    className={`flex-shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center transition-colors mb-0.5 disabled:opacity-30 ${
-                      isDeepDive
-                        ? "border-primary/50 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    }`}
-                    title={
-                      isRTL 
-                        ? "تفعيل/تعطيل وضع التقرير المطول (Deep Dive)" 
-                        : "Toggle Deep Dive Mode"
-                    }
-                  >
-                    <Sparkles className={`h-5 w-5 ${isDeepDive ? "animate-pulse" : ""}`} />
                   </button>
 
                   <textarea
