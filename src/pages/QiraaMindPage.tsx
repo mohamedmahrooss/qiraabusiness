@@ -891,8 +891,8 @@ const QiraaMindPage = () => {
           });
 
           if (resp.ok) break;
-        } catch {
-          if (attempt === 1) throw;
+        } catch (err) {
+          if (attempt === 1) throw err;
         }
 
         await new Promise((resolve) =>
