@@ -16,36 +16,70 @@ type RetrievalIntent = {
   strategic_intent: string[];
 };
 
-// Canonical Sector Mapping Engine (لحل مشاكل تعدد اللغات والمرادفات)
-const SECTOR_ALIASES: Record<string, string[]> = {
-  fintech: ["fintech", "financial technology", "payments", "banking", "wallet", "digital banking", "payment gateway", "تقنية مالية", "التقنية المالية", "مدفوعات", "محفظة رقمية", "بنك رقمي", "تكنولوجيا مالية"],
-  ecommerce: ["ecommerce", "e-commerce", "marketplace", "online retail", "تجارة إلكترونية", "متجر إلكتروني", "ماركت بليس"],
-  healthtech: ["healthtech", "digital health", "telemedicine", "تقنية صحية", "الصحة الرقمية", "تكنولوجيا صحية"],
-  edtech: ["edtech", "education technology", "learning platform", "تقنية تعليم", "تعليم إلكتروني"],
-  agritech: ["agritech", "agriculture technology", "تقنية زراعية", "تكنولوجيا الزراعة"],
-  proptech: ["proptech", "property technology", "real estate tech", "تقنية عقارية", "تكنولوجيا العقارات"],
+// 1. Market Ontology Layer (The VC to Database Bridge)
+const MARKET_ONTOLOGY: Record<string, string[]> = {
+  "fintech": ["fintech", "financial technology", "payments", "banking", "wealthtech", "insurtech", "regtech", "تقنية مالية", "التقنية المالية", "مدفوعات"],
+  "enterprise software": ["enterprise software", "b2b saas", "vertical saas", "erp infra", "workflow tools", "saas", "hrtech", "martech", "govtech", "legal", "برمجيات الأعمال", "b2b"],
+  "healthtech": ["health", "healthtech", "biotechnology", "digital health", "تقنية صحية", "الصحة الرقمية", "طبية"],
+  "edtech": ["education", "edtech", "learning platform", "تقنية تعليم", "تعليم إلكتروني"],
+  "transportation & logistics": ["transportation", "logistics", "mobilitytech", "supply chain", "نقل", "لوجستيات", "سلاسل الإمداد"],
+  "retail & ecommerce": ["retail industry", "ecommerce", "e-commerce", "marketplace", "consumer electronics", "fashion", "تجارة إلكترونية", "تجزئة"],
+  "proptech": ["real estate", "proptech", "home living", "تقنية عقارية", "عقارات"],
+  "agritech & foodtech": ["food", "foodtech", "agritech", "تكنولوجيا الغذاء", "تكنولوجيا زراعية", "أغذية", "زراعة"],
+  "ai & deeptech": ["ai", "artificial intelligence", "robotics", "semiconductors", "ذكاء اصطناعي", "تعلم الآلة", "deep tech"],
+  "media & gaming": ["media", "entert. & gaming", "gaming", "music", "event tech", "إعلام", "ألعاب", "ترفيه"],
+  "climate & energy": ["energy", "climatetech", "chemicals", "طاقة", "تكنولوجيا المناخ", "كيماويات"],
+  "cybersecurity": ["security", "cybersecurity", "أمن سيبراني", "حماية"],
+  "telecom & infrastructure": ["telecom", "comtech", "hosting", "اتصالات", "استضافة"],
+  "spacetech": ["space", "spacetech", "فضاء"],
+  "traveltech": ["travel", "traveltech", "سياحة", "سفر"],
+  "wellness beauty": ["wellness beauty", "تجميل", "صحة وعناية"],
+  "miscellaneous": ["dating", "jobs recruitment", "kids", "marketing", "sports", "engineering and manufacturing equipment", "ip tech"]
+};
+
+// 2. Sovereign Country Normalization
+const COUNTRY_ALIASES: Record<string, string[]> = {
+  "saudi arabia": ["saudi arabia", "ksa", "saudi", "السعودية", "المملكة", "المملكة العربية السعودية"],
+  "egypt": ["egypt", "مصر", "جمهورية مصر العربية"],
+  "uae": ["uae", "united arab emirates", "emirates", "الإمارات", "الامارات", "الامارات العربية المتحدة"],
+  "jordan": ["jordan", "الأردن", "الاردن"],
+  "morocco": ["morocco", "المغرب"],
+  "kuwait": ["kuwait", "الكويت"]
 };
 
 function normalizeText(text: string): string {
   return text.toLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").trim();
 }
 
-function resolveSectorAliases(inputSectors: string[]): string[] {
+function resolveOntology(inputs: string[], mapping: Record<string, string[]>): string[] {
+  if (!inputs || inputs.length === 0) return [];
   const resolved = new Set<string>();
-  for (const sector of inputSectors) {
-    const normalizedSector = normalizeText(sector);
-    let matchedInCanonical = false;
-    for (const [canonical, aliases] of Object.entries(SECTOR_ALIASES)) {
-      const matched = aliases.some((alias) => normalizeText(alias) === normalizedSector);
-      if (matched) {
+  for (const input of inputs) {
+    const normalizedInput = normalizeText(input);
+    let matched = false;
+    for (const [canonical, aliases] of Object.entries(mapping)) {
+      const isMatch = aliases.some((alias) => normalizedInput.includes(normalizeText(alias)));
+      if (isMatch) {
         aliases.forEach((a) => resolved.add(a));
         resolved.add(canonical);
-        matchedInCanonical = true;
+        matched = true;
       }
     }
-    if (!matchedInCanonical) resolved.add(sector);
+    if (!matched) resolved.add(input);
   }
   return [...resolved];
+}
+
+// 3. Smart Fallback Extraction (Destroying the dumb 3-word logic)
+function extractCoreKeywords(message: string): string[] {
+  const stopWords = ["اريد", "أريد", "ابدا", "أبدأ", "بناء", "على", "عن", "كيف", "ماذا", "هل", "شركة", "قطاع", "استثمار", "صندوق", "تمويل", "جولات", "في", "من", "الى", "إلى", "التي", "الذي", "بناءً", "أحدث", "هناك", "ماهي", "ما", "هي", "أفضل", "افضل"];
+  return message.split(/\s+/)
+    .map(w => normalizeText(w))
+    .filter(w => {
+      if (stopWords.includes(w)) return false;
+      const isEnglish = /^[a-zA-Z]+$/.test(w);
+      return isEnglish || w.length > 3; // Keep English words OR Arabic words > 3 chars
+    });
 }
 
 function buildOrConditions(fields: string[], values: string[]): string | null {
@@ -59,7 +93,6 @@ function buildOrConditions(fields: string[], values: string[]): string | null {
   return conditions.length > 0 ? conditions.join(",") : null;
 }
 
-// Context Compression Layer (يجمع ويضغط البيانات بدون قص النصوص الأساسية للتحليلات)
 function compressContext(analytics: any[], companies: any[], transactions: any[]) {
   const topFundingRounds = [...transactions]
     .sort((a, b) => (b.round_amount_usd || 0) - (a.round_amount_usd || 0))
@@ -79,7 +112,6 @@ function compressContext(analytics: any[], companies: any[], transactions: any[]
     dominant_sectors: dominantSectors,
     critical_transactions: topFundingRounds,
     emerging_patterns: emergingPatterns,
-    // نحتفظ بالنص الكامل content_ar لأهم 10 تحليلات كحد أقصى لضمان عدم ضياع السياق
     raw_market_intelligence: analytics.slice(0, 10), 
     raw_companies: companies.slice(0, 10),
     raw_transactions: transactions.slice(0, 15),
@@ -104,7 +136,6 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // 1. Dual-Client Architecture (فصل الصلاحيات الأمني)
     const querySupabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${userToken}` } },
     });
@@ -114,7 +145,6 @@ serve(async (req) => {
     let isAdmin = false;
     let userProfile: any = null;
 
-    // 2. Authentication & Secure Role Check
     const { data: { user }, error: authError } = await adminSupabase.auth.getUser(userToken);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "فشل التحقق من هوية المستخدم." }), { status: 401, headers: corsHeaders });
@@ -130,7 +160,6 @@ serve(async (req) => {
     }
     userProfile = profile;
 
-    // 3. Feature Gate & Token Gatekeeping
     if (!isAdmin) {
       if (profile.has_qiraa_mind !== true) {
         return new Response(JSON.stringify({ error: "خاصية عقل قراءة غير مفعلة لحسابك. يرجى ترقية باقتك." }), { status: 403, headers: corsHeaders });
@@ -142,26 +171,15 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    // 4. Intelligence Extraction Engine
-    const openRouterKeysStr = Deno.env.get("OPENROUTER_KEYS");
-    if (!openRouterKeysStr) throw new Error("OPENROUTER_KEYS are not configured");
-    const openRouterKeys = openRouterKeysStr.split(",");
-    const activeOpenRouterKey = openRouterKeys[Math.floor(Math.random() * openRouterKeys.length)];
-
+    // 4. Intent Extraction using Claude-Opus-4-7 (Replacing OpenRouter)
     const extractionPrompt = `أنت محرك استخراج استخبارات سوقية احترافي لمنصة قراءة.
-قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة.
-
-قواعد صارمة:
-1- أرجع JSON فقط.
-2- ممنوع أي Markdown.
-3- استنتج القطاع والدولة والنية الاستراتيجية حتى لو لم تذكر نصاً.
-4- إذا لم توجد قيمة ملموسة، استخدم مصفوفة فارغة [].
+قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
 
 رسالة المستخدم: "${latestUserMessage}"
 
 المخرج المطلوب:
 {
-  "sectors": ["قطاع 1", "قطاع 2"],
+  "sectors": ["قطاع 1"],
   "countries": ["دولة 1"],
   "companies": ["شركة 1"],
   "round_types": ["نوع 1"],
@@ -172,52 +190,63 @@ serve(async (req) => {
     let extractedData: RetrievalIntent = { sectors: [], countries: [], companies: [], round_types: [], temporal_filters: [], strategic_intent: [] };
 
     try {
-      const openRouterRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const extractionResponse = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { Authorization: `Bearer ${activeOpenRouterKey}`, "Content-Type": "application/json" },
+        headers: {
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({
-          model: "openrouter/free",
+          model: "claude-opus-4-7", // النموذج السيادي القوي للاستخراج
+          max_tokens: 1000,
+          system: "أنت تعمل كمستخرج بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف.",
           messages: [{ role: "user", content: extractionPrompt }],
           temperature: 0,
         }),
       });
 
-      if (openRouterRes.ok) {
-        const aiJson = await openRouterRes.json();
-        const rawContent = aiJson.choices?.[0]?.message?.content || "";
-        const cleanJson = rawContent.replace(/```json\n?|```/g, "").trim();
+      if (extractionResponse.ok) {
+        const aiJson = await extractionResponse.json();
+        const rawContent = aiJson.content?.[0]?.text || "";
+        // Clean markdown backticks if Claude accidentally includes them
+        const cleanJson = rawContent.replace(/```json\n?|
+```/g, "").trim();
         extractedData = JSON.parse(cleanJson);
+      } else {
+        console.error("Extraction API Error:", await extractionResponse.text());
       }
     } catch (err) {
-      console.warn("Extraction Engine Failed, using fallback. Error:", err);
+      console.warn("Extraction Parsing Failed:", err);
     }
 
-    // 5. Normalization & Dynamic Query Builders
-    const resolvedSectors = resolveSectorAliases(extractedData.sectors || []);
-    const coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
+    // 5. Ontology Application
+    const resolvedSectors = resolveOntology(extractedData.sectors || [], MARKET_ONTOLOGY);
+    const resolvedCountries = resolveOntology(extractedData.countries || [], COUNTRY_ALIASES);
     
-    // Fallback: If AI failed completely to extract sectors or companies, use simple words from prompt
+    let coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
+    
+    // Smart Fallback Activation (if AI extracted nothing)
     if (coreSearchTerms.length === 0) {
-        const fallbackWords = latestUserMessage.split(' ').slice(0, 3).filter((w: string) => w.length > 3);
-        coreSearchTerms.push(...fallbackWords);
+        coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
 
-    let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country").order("updated_at", { ascending: false }).limit(15);
-    const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
-    if (analyticsConditions) analyticsQuery = analyticsQuery.or(analyticsConditions);
-
+    // 6. Database Query Execution
+    let analyticsQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name)").order("updated_at", { ascending: false }).limit(15);
     let companiesQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(15);
-    const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
-    if (companiesConditions) companiesQuery = companiesQuery.or(companiesConditions);
-
     let transactionsQuery = querySupabase.from("qiraa_transactions").select("company_name, round_type, round_amount_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(20);
+
+    const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
+    const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
     const transactionsConditions = buildOrConditions(["sector_main", "company_name", "investors"], coreSearchTerms);
+
+    if (analyticsConditions) analyticsQuery = analyticsQuery.or(analyticsConditions);
+    if (companiesConditions) companiesQuery = companiesQuery.or(companiesConditions);
     if (transactionsConditions) transactionsQuery = transactionsQuery.or(transactionsConditions);
 
-    // Apply strict Country and Round Filters if extracted
-    const extractedCountries = extractedData.countries || [];
-    if (extractedCountries.length > 0) {
-      const countryConditions = buildOrConditions(["country"], extractedCountries);
+    // Strict Geography Filtering
+    if (resolvedCountries.length > 0) {
+      const countryConditions = buildOrConditions(["country"], resolvedCountries);
       if (countryConditions) {
         analyticsQuery = analyticsQuery.or(countryConditions);
         companiesQuery = companiesQuery.or(countryConditions);
@@ -225,18 +254,31 @@ serve(async (req) => {
       }
     }
 
-    const extractedRounds = extractedData.round_types || [];
-    if (extractedRounds.length > 0) {
-      const roundConditions = buildOrConditions(["round_type"], extractedRounds);
-      if (roundConditions) transactionsQuery = transactionsQuery.or(roundConditions);
-    }
-
     const [analyticsRes, companiesRes, transactionsRes] = await Promise.all([analyticsQuery, companiesQuery, transactionsQuery]);
 
-    // 6. Context Compression
+    // 7. --- OBSERVABILITY LAYER (Diagnostic Probes) ---
+    console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
+    console.log(JSON.stringify({
+      rawExtraction: extractedData,
+      resolvedSectors: resolvedSectors,
+      resolvedCountries: resolvedCountries,
+      coreSearchTerms: coreSearchTerms,
+      analyticsConditions,
+      companiesConditions,
+      transactionsConditions
+    }, null, 2));
+
+    console.log("\n=== 🟢 QIRAA MIND DB RESULTS ===");
+    console.log(JSON.stringify({
+      analyticsCount: analyticsRes.data?.length || 0,
+      companiesCount: companiesRes.data?.length || 0,
+      transactionsCount: transactionsRes.data?.length || 0
+    }, null, 2));
+    // ---------------------------------------------------
+
     const compressedContext = compressContext(analyticsRes.data || [], companiesRes.data || [], transactionsRes.data || []);
 
-    // 7. Sovereign Anti-Hallucination Prompt
+    // 8. Sovereign Anti-Hallucination Prompt
     const systemPrompt = `أنت "عقل قراءة" (QIRAA Mind).
 أنت محرك ذكاء أسواق سيادي متخصص بأسواق الشرق الأوسط وشمال أفريقيا، مصمم لخدمة صناع القرار والـ VCs.
 
@@ -252,7 +294,7 @@ ${JSON.stringify(compressedContext)}
 5- هيكل الإجابة: قدم الإجابة مهيكلة (الملخص التنفيذي، التحركات الرئيسية، الاستنتاج الاستراتيجي).
 6- لا تذكر أبداً للمستخدم أنك تعتمد على "بيانات مرفقة"، بل تصرف كأنك تمتلكها.`;
 
-    // 8. Direct Call to Anthropic API
+    // 9. Response Generation Call
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -261,8 +303,8 @@ ${JSON.stringify(compressedContext)}
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-opus-4-7",
-        max_tokens: 2500, // مساحة كافية للتحليلات العميقة
+        model: "claude-opus-4-7", // محرك التوليد القوي
+        max_tokens: 2500, 
         system: systemPrompt,
         messages,
         stream: true,
@@ -274,13 +316,12 @@ ${JSON.stringify(compressedContext)}
       throw new Error(`Anthropic API Error: ${err}`);
     }
 
-    // 9. Streaming & Bulletproof Token Deduction
+    // 10. Secure Streaming & Token Deduction
     const transformStream = new TransformStream({
       transform(chunk, controller) {
         controller.enqueue(chunk);
       },
       async flush() {
-        // الخصم يحدث هنا فقط: ضمان وصول البيانات بالكامل للعميل ونجاح المحادثة بنسبة 100%
         if (userId && !isAdmin && userProfile) {
           await adminSupabase
             .from("profiles")
