@@ -484,7 +484,7 @@ serve(async (req) => {
     let extractedText = "";
 
     const anthropicApiKey = Deno.env.get(
-      "ANTHROPIC_API_KEY"
+      "QIRAA_MIND_ANTHROPIC_API_KEY"
     );
 
     if (
