@@ -1,3 +1,5 @@
+هذا الكود هو سقطة معمارية
+
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
