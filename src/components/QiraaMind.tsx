@@ -32,6 +32,10 @@ const QiraaMind = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  
+  // تمت الإضافة: حالة زر التقرير المطول
+  const [isDeepDive, setIsDeepDive] = useState(false);
+
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "streaming">("idle");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -163,7 +167,8 @@ const QiraaMind = () => {
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           "x-auth-token": session.access_token,
         },
-        body: JSON.stringify({ messages: updatedMessages, user_file }),
+        // تمت الإضافة: حقن is_deep_dive لإرسال حالة الزر إلى الخادم
+        body: JSON.stringify({ messages: updatedMessages, user_file, is_deep_dive: isDeepDive }),
       });
 
       setAttachedFile(null);
@@ -404,6 +409,21 @@ const QiraaMind = () => {
               title={isRTL ? "إرفاق ملف" : "Attach file"}
             >
               <Paperclip className="h-4 w-4" />
+            </Button>
+
+            {/* تمت الإضافة: زر Deep Dive النصي فقط بجوار زر المشبك */}
+            <Button
+              type="button"
+              variant="outline"
+              className={`flex-shrink-0 transition-all border-border font-medium px-3 ${
+                isDeepDive 
+                  ? 'bg-primary/10 text-primary border-primary/50' 
+                  : 'hover:bg-primary/10 hover:text-primary text-muted-foreground'
+              }`}
+              onClick={() => setIsDeepDive(!isDeepDive)}
+              title={isRTL ? "تفعيل/تعطيل التقرير المطول" : "Toggle Deep Dive Mode"}
+            >
+              Deep Dive
             </Button>
 
             <Button
