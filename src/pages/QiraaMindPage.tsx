@@ -431,13 +431,13 @@ const QiraaMindPage = () => {
     { label: "مصر vs السعودية", query: "قارن بين بيئة الشركات الناشئة في مصر والسعودية", icon: Globe },
     { label: "أبرز صفقات التكنولوجيا الزراعية", query: "ما هي أبرز صفقات التكنولوجيا الزراعية في الشرق الأوسط و شمال افريقيا؟", icon: Leaf },
     { label: "نظرة عامة على التكنولوجيا المالية", query: "قدم نظرة عامة على قطاع التكنولوجيا المالية في الشرق الأوسط و شمال افريقيا", icon: Zap },
-    { label: "نظرة عامة على تكنولوجيا المناخ في المغرب", query: "قدم نظرة عامة على قطاع تكنولوجيا المناخ في المغرب", icon: environment },
+    { label: "نظرة عامة على تكنولوجيا المناخ في المغرب", query: "قدم نظرة عامة على قطاع تكنولوجيا المناخ في المغرب", icon: Leaf },
   ] : [
     { label: "Analyze Q1 Trends", query: "Analyze Q1 investment trends across MENA", icon: TrendingUp },
     { label: "Egypt vs Saudi Arabia", query: "Compare startup environments in Egypt vs Saudi Arabia", icon: Globe },
     { label: "Top AgriTech Deals", query: "What are the top AgriTech deals in the region?", icon: Leaf },
     { label: "FinTech Overview", query: "Provide an overview of the MENA FinTech sector", icon: Zap },
-    { label: "Climate Tech Overview in Morocco", query: "Provide an overview of Morocco Climate Tech sector", icon: environment },
+    { label: "Climate Tech Overview in Morocco", query: "Provide an overview of Morocco Climate Tech sector", icon: Leaf },
   ];
 
   return (
