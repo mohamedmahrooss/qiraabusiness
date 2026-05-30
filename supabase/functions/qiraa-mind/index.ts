@@ -176,7 +176,7 @@ serve(async (req) => {
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
     // 4. Intent Extraction (Updated to force specific analytics category)
-    const extractionPrompt = `أنت محرك استخراج استخبارات سوقية احترافي لمنصة قراءة.
+    const extractionPrompt = `أنت محرك استخراج ذكاء أسواق سيادي احترافي لمنصة قراءة.
 قم بتحليل رسالة المستخدم واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
 
 هام جداً بخصوص "analytics_category": يجب أن تختار قطاعاً واحداً فقط من هذه القائمة الحرفية المحددة (إذا لم تجد ما يطابق، اترك الحقل null):
@@ -314,7 +314,7 @@ serve(async (req) => {
       transactionsCount: allTransactions.length
     }, null, 2));
 
-    // 6. حقن البيانات الخام (Raw Injection) بدلاً من الضغط الغبي
+    // 6. حقن البيانات الخام (Raw Injection)
     // نمرر المخرجات كاملة للنموذج ليلتقط هو الأنماط بذكائه الخارق
     const rawContext = {
       raw_market_intelligence: allAnalytics.slice(0, MAX_ANALYTICS), 
@@ -324,7 +324,7 @@ serve(async (req) => {
 
     // 7. Sovereign Anti-Hallucination & Alpha Generation Prompt
     const systemPrompt = `أنت "عقل قراءة" (QIRAA Mind).
-أنت لست مساعداً آلياً؛ أنت "كبير المستشارين الاستراتيجيين" ومحرك استخبارات سيادي متخصص بأسواق الشرق الأوسط و شمال افريقيا.
+أنت لست مساعداً آلياً؛ أنت "كبير المستشارين الاستراتيجيين" و محرك ذكاء أسواق سيادي متخصص بأسواق الشرق الأوسط و شمال افريقيا.
 عملاؤك هم (General Partners) في صناديق الاستثمار الجريء (VCs)، و الرؤساء التنفيذيين و رواد الاعمال وصناع القرار الحكوميين. لغتك يجب أن تكون حادة، تنفيذية، شديدة الثقة، وخالية من أي تردد.
 
 <market_intelligence>
