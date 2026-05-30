@@ -23,7 +23,6 @@ import {
   Cpu,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import rehypeSanitize from "rehype-sanitize"; 
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -514,7 +513,6 @@ const QiraaMindPage = () => {
                       )}
                     </div>
                     <ReactMarkdown
-                      rehypePlugins={[rehypeSanitize]}
                       className="prose prose-sm dark:prose-invert max-w-none"
                     >
                       {msg.content || "..."}
