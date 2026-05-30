@@ -482,8 +482,8 @@ const QiraaMindPage = () => {
 
   const hasMessages = messages.length > 0;
   const powerQueries = [
-    { label: "Analyze Q4 Trends", query: "Analyze Q4 investment trends across MENA", icon: TrendingUp },
-    { label: "Egypt vs KSA", query: "Compare startup environments in Egypt vs Saudi Arabia", icon: Globe },
+    { label: "Analyze Q1 Trends", query: "Analyze Q1 investment trends across MENA", icon: TrendingUp },
+    { label: "Egypt vs Saudi Arabia", query: "Compare startup environments in Egypt vs Saudi Arabia", icon: Globe },
     { label: "Top AgriTech Deals", query: "What are the top AgriTech deals in the region?", icon: Leaf },
     { label: "FinTech Overview", query: "Provide an overview of the MENA FinTech sector", icon: Zap },
   ];
