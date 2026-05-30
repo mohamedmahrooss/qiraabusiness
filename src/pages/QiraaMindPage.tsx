@@ -425,23 +425,23 @@ const QiraaMindPage = () => {
       abortControllerRef.current = new AbortController();
       let resp: Response | null = null;
       for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          resp = await fetch(CHAT_URL, {
-            method: "POST",
-            signal: abortControllerRef.current.signal,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              "x-auth-token": session.access_token,
-            },
-            body: JSON.stringify(body),
-          });
-          if (resp.ok) break;
-        } catch {
-          if (attempt === 1) throw;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+  try {
+    resp = await fetch(CHAT_URL, {
+      method: "POST",
+      signal: abortControllerRef.current.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        "x-auth-token": session.access_token,
+      },
+      body: JSON.stringify(body),
+    });
+    if (resp.ok) break;
+  } catch (err) {
+    if (attempt === 1) throw err;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+}
 
       if (!resp || !resp.ok) {
         const errData = await resp?.json().catch(() => ({}));
