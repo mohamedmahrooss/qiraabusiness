@@ -9,9 +9,8 @@ import {
   Globe,
   Leaf,
   Sprout,
-  CreditCard,
-  Wallet,
-  Earth,
+  SaudiRiyal,
+  SunSnow,
   Copy,
   Check,
   Brain,
@@ -23,7 +22,7 @@ import {
   Activity,
   Database,
   Radar,
-} from "lucide-react"; // تم إزالة Mic
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -434,14 +433,14 @@ const QiraaMindPage = () => {
     { label: "تحليل اتجاهات Q1", query: "قم بتحليل اتجاهات الاستثمار في الربع الأول في منطقة الشرق الأوسط و شمال أفريقيا", icon: TrendingUp },
     { label: "مصر vs السعودية", query: "قارن بين بيئة الشركات الناشئة في مصر والسعودية", icon: Globe },
     { label: "أبرز صفقات التكنولوجيا الزراعية", query: "ما هي أبرز صفقات التكنولوجيا الزراعية في الشرق الأوسط و شمال افريقيا؟", icon: Leaf },
-    { label: "نظرة عامة على التكنولوجيا المالية", query: "قدم نظرة عامة على قطاع التكنولوجيا المالية في الشرق الأوسط و شمال افريقيا", icon: Wallet },
-    { label: "نظرة عامة على تكنولوجيا المناخ في المغرب", query: "قدم نظرة عامة على قطاع تكنولوجيا المناخ في المغرب", icon: Earth },
+    { label: "نظرة عامة على التكنولوجيا المالية", query: "قدم نظرة عامة على قطاع التكنولوجيا المالية في الشرق الأوسط و شمال افريقيا", icon: SaudiRiyal },
+    { label: "نظرة عامة على تكنولوجيا المناخ في المغرب", query: "قدم نظرة عامة على قطاع تكنولوجيا المناخ في المغرب", icon: SunSnow },
   ] : [
     { label: "Analyze Q1 Trends", query: "Analyze Q1 investment trends across MENA", icon: TrendingUp },
     { label: "Egypt vs Saudi Arabia", query: "Compare startup environments in Egypt vs Saudi Arabia", icon: Globe },
     { label: "Top AgriTech Deals", query: "What are the top AgriTech deals in the region?", icon: Leaf },
-    { label: "FinTech Overview", query: "Provide an overview of the MENA FinTech sector", icon: Wallet },
-    { label: "Climate Tech Overview in Morocco", query: "Provide an overview of Morocco Climate Tech sector", icon: Earth },
+    { label: "FinTech Overview", query: "Provide an overview of the MENA FinTech sector", icon: SaudiRiyal },
+    { label: "Climate Tech Overview in Morocco", query: "Provide an overview of Morocco Climate Tech sector", icon: SunSnow },
   ];
 
   return (
