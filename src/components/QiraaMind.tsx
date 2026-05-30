@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon, Activity, Sparkles } from "lucide-react";
+import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon, Activity } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,10 +32,6 @@ const QiraaMind = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  
-  // تمت الإضافة: حالة زر التقرير المطول (Deep Dive)
-  const [isDeepDive, setIsDeepDive] = useState(false);
-  
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "streaming">("idle");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -167,8 +163,7 @@ const QiraaMind = () => {
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           "x-auth-token": session.access_token,
         },
-        // تمت الإضافة: حقن is_deep_dive ضمن البيانات المرسلة للخادم
-        body: JSON.stringify({ messages: updatedMessages, user_file, is_deep_dive: isDeepDive }),
+        body: JSON.stringify({ messages: updatedMessages, user_file }),
       });
 
       setAttachedFile(null);
@@ -411,22 +406,6 @@ const QiraaMind = () => {
               <Paperclip className="h-4 w-4" />
             </Button>
 
-            {/* تمت الإضافة: زر تفعيل التقرير المطول (Deep Dive) */}
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className={`flex-shrink-0 transition-all border-border ${
-                isDeepDive 
-                  ? 'bg-primary/10 text-primary border-primary/50' 
-                  : 'hover:bg-primary/10 hover:text-primary'
-              }`}
-              onClick={() => setIsDeepDive(!isDeepDive)}
-              title={isRTL ? "تفعيل/تعطيل التقرير المطول (Deep Dive)" : "Toggle Deep Dive Mode"}
-            >
-              <Sparkles className={`h-4 w-4 ${isDeepDive ? 'animate-pulse' : ''}`} />
-            </Button>
-
             <Button
               type="button"
               variant={isRecording ? "destructive" : "outline"}
@@ -465,7 +444,7 @@ const QiraaMind = () => {
               <span>
                 {connectionState === "connecting"
                   ? isRTL ? "الاتصال بمحرك قراءة المركزي..." : "Connecting to QIRAA Engine..."
-                  : isRTL ? "جاري بث التحليل الاستراتيجي..." : "Streaming strategic intelligence..."}
+                  : isRTL ? "جاري بث التحليل الاستراتيجي اللحظي..." : "Streaming strategic intelligence..."}
               </span>
             </div>
           )}
