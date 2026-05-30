@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon, Activity } from "lucide-react";
+import { Send, Brain, Loader2, Bot, User, Mic, Paperclip, X, File as FileIcon, Activity, Sparkles } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,10 @@ const QiraaMind = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  
+  // تمت الإضافة: حالة زر التقرير المطول (Deep Dive)
+  const [isDeepDive, setIsDeepDive] = useState(false);
+  
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "streaming">("idle");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -163,7 +167,8 @@ const QiraaMind = () => {
           "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           "x-auth-token": session.access_token,
         },
-        body: JSON.stringify({ messages: updatedMessages, user_file }),
+        // تمت الإضافة: حقن is_deep_dive ضمن البيانات المرسلة للخادم
+        body: JSON.stringify({ messages: updatedMessages, user_file, is_deep_dive: isDeepDive }),
       });
 
       setAttachedFile(null);
@@ -304,22 +309,21 @@ const QiraaMind = () => {
               }`}>
                 {msg.role === "assistant" ? (
                   // B2B Professional Markdown Rendering
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({node, ...props}) => <h1 className="text-lg font-bold text-primary mb-2 mt-4" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-base font-bold text-foreground mb-2 mt-4" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-sm font-bold text-foreground mb-2 mt-3" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70" {...props} />,
-                        ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70" {...props} />,
-                        li: ({node, ...props}) => <li className="text-sm" {...props} />,
-                        p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-semibold text-primary" {...props} />,
-                      }}
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
-                  </div>
+                  <ReactMarkdown 
+                    className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:border prose-pre:border-border"
+                    components={{
+                      h1: ({node, ...props}) => <h1 className="text-lg font-bold text-primary mb-2 mt-4" {...props} />,
+                      h2: ({node, ...props}) => <h2 className="text-base font-bold text-foreground mb-2 mt-4" {...props} />,
+                      h3: ({node, ...props}) => <h3 className="text-sm font-bold text-foreground mb-2 mt-3" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4 space-y-1 marker:text-primary/70" {...props} />,
+                      ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4 space-y-1 marker:text-primary/70" {...props} />,
+                      li: ({node, ...props}) => <li className="text-sm" {...props} />,
+                      p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
+                      strong: ({node, ...props}) => <strong className="font-semibold text-primary" {...props} />,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
                 ) : (
                   <span className="whitespace-pre-wrap">{msg.content}</span>
                 )}
@@ -407,6 +411,22 @@ const QiraaMind = () => {
               <Paperclip className="h-4 w-4" />
             </Button>
 
+            {/* تمت الإضافة: زر تفعيل التقرير المطول (Deep Dive) */}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={`flex-shrink-0 transition-all border-border ${
+                isDeepDive 
+                  ? 'bg-primary/10 text-primary border-primary/50' 
+                  : 'hover:bg-primary/10 hover:text-primary'
+              }`}
+              onClick={() => setIsDeepDive(!isDeepDive)}
+              title={isRTL ? "تفعيل/تعطيل التقرير المطول (Deep Dive)" : "Toggle Deep Dive Mode"}
+            >
+              <Sparkles className={`h-4 w-4 ${isDeepDive ? 'animate-pulse' : ''}`} />
+            </Button>
+
             <Button
               type="button"
               variant={isRecording ? "destructive" : "outline"}
@@ -445,7 +465,7 @@ const QiraaMind = () => {
               <span>
                 {connectionState === "connecting"
                   ? isRTL ? "الاتصال بمحرك قراءة المركزي..." : "Connecting to QIRAA Engine..."
-                  : isRTL ? "جاري بث التحليل الاستراتيجي اللحظي..." : "Streaming strategic intelligence..."}
+                  : isRTL ? "جاري بث التحليل الاستراتيجي..." : "Streaming strategic intelligence..."}
               </span>
             </div>
           )}
