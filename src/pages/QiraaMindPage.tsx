@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,15 +13,13 @@ import {
   Brain,
   Shield,
   ArrowUp,
-  Mic,
   X,
   FileText,
   Paperclip,
   Activity,
   Database,
   Radar,
-  Cpu,
-} from "lucide-react";
+} from "lucide-react"; // تم إزالة Mic
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -59,9 +57,9 @@ const QiraaMindLanding = ({
   const features = isRTL
     ? [
         { icon: Brain, title: "محرك ذكاء الأسواق السيادي", desc: "تحليل استراتيجي لحظي مبني على بيانات الأسواق المباشرة في منطقة الشرق الأوسط وشمال أفريقيا" },
-        { icon: Shield, title: "منظومة مضادة للهلوسة", desc: "الإجابات مدعومة حصرياً بإشارات الأسواق اللحظية وبيانات منصة قراءة" },
+        { icon: Shield, title: "منظومة مضادة للهلوسة", desc: "إجاباتك مدعومة حصرياً بإشارات الأسواق اللحظية و بيانات قراءة" },
         { icon: Database, title: "تحليل تدفقات رأس المال", desc: "تتبع جولات التمويل والمستثمرين واتجاهات رأس المال لحظياً" },
-        { icon: Radar, title: "استشارات تنفيذية احترافية", desc: "موجزات استخباراتية مهيكلة لصناع القرار والمستثمرين" },
+        { icon: Radar, title: "استشارات تنفيذية احترافية", desc: "موجزات ذكاء اسواق مهيكلة لصناع القرار والمستثمرين" },
       ]
     : [
         { icon: Brain, title: "Sovereign Market Intelligence Engine", desc: "Realtime strategic analysis built on live MENA market intelligence" },
@@ -76,7 +74,7 @@ const QiraaMindLanding = ({
         <div className="inline-flex items-center gap-2 border border-primary/20 rounded-full px-4 py-1.5 mb-6 bg-primary/5">
           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span className="text-primary text-xs font-mono tracking-wider uppercase">
-            {isRTL ? "محرك استخبارات الأسواق السيادي" : "SOVEREIGN MARKET INTELLIGENCE ENGINE"}
+            {isRTL ? "محرك ذكاء الأسواق السيادي" : "SOVEREIGN MARKET INTELLIGENCE ENGINE"}
           </span>
         </div>
         <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-5 tracking-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -117,42 +115,7 @@ const QiraaMindLanding = ({
   );
 };
 
-const useVoiceInput = (language: string) => {
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const recognitionRef = useRef<any>(null);
-
-  const startListening = useCallback(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return false;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.lang = language === "ar" ? "ar-SA" : "en-US";
-    
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
-      let finalTranscript = "";
-      for (let i = 0; i < event.results.length; i++) {
-        finalTranscript += event.results[i][0].transcript;
-      }
-      setTranscript(finalTranscript);
-    };
-    recognitionRef.current = recognition;
-    recognition.start();
-    return true;
-  }, [language]);
-
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) recognitionRef.current.stop();
-    setIsListening(false);
-  }, []);
-
-  return { isListening, transcript, startListening, stopListening, setTranscript };
-};
+// تم اجتثاث دالة useVoiceInput بالكامل من هنا
 
 async function readFileAsText(file: File): Promise<string> {
   const textTypes = ["text/plain", "text/csv", "text/markdown", "application/json"];
@@ -172,7 +135,7 @@ async function readFileAsText(file: File): Promise<string> {
 }
 
 const QiraaMindPage = () => {
-  const { isRTL, language } = useLanguage();
+  const { isRTL } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -183,7 +146,7 @@ const QiraaMindPage = () => {
   const [isDeepDive, setIsDeepDive] = useState(false);
   const [connectionState, setConnectionState] = useState<"idle" | "connecting" | "streaming">("idle");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // تمت الإضافة: حالة الصلاحية
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [attachedFileContent, setAttachedFileContent] = useState("");
   const [isReadingFile, setIsReadingFile] = useState(false);
@@ -198,19 +161,12 @@ const QiraaMindPage = () => {
   const streamFlushIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pendingChunkRef = useRef("");
 
-  const { isListening, transcript, startListening, stopListening, setTranscript } = useVoiceInput(language);
-
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) abortControllerRef.current.abort();
       if (streamFlushIntervalRef.current) clearInterval(streamFlushIntervalRef.current);
-      stopListening();
     };
-  }, [stopListening]);
-
-  useEffect(() => {
-    if (transcript) setInput(transcript);
-  }, [transcript]);
+  }, []);
 
   useEffect(() => {
     if (outputRef.current) outputRef.current.scrollTop = outputRef.current.scrollHeight;
@@ -223,7 +179,6 @@ const QiraaMindPage = () => {
     }
   }, [input]);
 
-  // تمت الإضافة: فحص الصلاحية وحالة التسجيل المدمجة
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -264,20 +219,6 @@ const QiraaMindPage = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const handleMicClick = () => {
-    if (isListening) stopListening();
-    else {
-      const supported = startListening();
-      if (!supported) {
-        toast({
-          title: isRTL ? "غير مدعوم" : "Not Supported",
-          description: isRTL ? "المتصفح لا يدعم التعرف على الصوت" : "Speech recognition is not supported",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   const handleFileSelect = async (file: File) => {
     if (file.size > MAX_FILE_SIZE) {
       toast({
@@ -299,6 +240,12 @@ const QiraaMindPage = () => {
     } finally {
       setIsReadingFile(false);
     }
+  };
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null);
+    setAttachedFileContent("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const appendAssistantChunk = useCallback((chunk: string) => {
@@ -392,8 +339,6 @@ const QiraaMindPage = () => {
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
-    if (isListening) stopListening();
-    setTranscript("");
 
     const userMessage: Message = { role: "user", content: messageText };
     const newMessages = [...messages, userMessage];
@@ -424,23 +369,23 @@ const QiraaMindPage = () => {
       abortControllerRef.current = new AbortController();
       let resp: Response | null = null;
       for (let attempt = 0; attempt < 2; attempt++) {
-  try {
-    resp = await fetch(CHAT_URL, {
-      method: "POST",
-      signal: abortControllerRef.current.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        "x-auth-token": session.access_token,
-      },
-      body: JSON.stringify(body),
-    });
-    if (resp.ok) break;
-  } catch (err) {
-    if (attempt === 1) throw err;
-  }
-  await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
-}
+        try {
+          resp = await fetch(CHAT_URL, {
+            method: "POST",
+            signal: abortControllerRef.current.signal,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              "x-auth-token": session.access_token,
+            },
+            body: JSON.stringify(body),
+          });
+          if (resp.ok) break;
+        } catch (err) {
+          if (attempt === 1) throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
 
       if (!resp || !resp.ok) {
         const errData = await resp?.json().catch(() => ({}));
@@ -467,7 +412,6 @@ const QiraaMindPage = () => {
     return <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  // المعالجة الهندسية המدمجة: إظهار المكون الخارجي بناءً على التسجيل والصلاحية
   if (!isAuthenticated || !hasAccess) {
     return (
       <QiraaMindLanding 
@@ -480,11 +424,20 @@ const QiraaMindPage = () => {
   }
 
   const hasMessages = messages.length > 0;
-  const powerQueries = [
+  
+  // معالجة الترجمة للأزرار السفلية المقترحة
+  const powerQueries = isRTL ? [
+    { label: "تحليل اتجاهات Q1", query: "قم بتحليل اتجاهات الاستثمار في الربع الأول في منطقة الشرق الأوسط و شمال أفريقيا", icon: TrendingUp },
+    { label: "مصر vs السعودية", query: "قارن بين بيئة الشركات الناشئة في مصر والسعودية", icon: Globe },
+    { label: "أبرز صفقات التكنولوجيا الزراعية", query: "ما هي أبرز صفقات التكنولوجيا الزراعية في الشرق الأوسط و شمال افريقيا؟", icon: Leaf },
+    { label: "نظرة عامة على التكنولوجيا المالية", query: "قدم نظرة عامة على قطاع التكنولوجيا المالية في الشرق الأوسط و شمال افريقيا", icon: Zap },
+    { label: "نظرة عامة على تكنولوجيا المناخ في المغرب", query: "قدم نظرة عامة على قطاع تكنولوجيا المناخ في المغرب", icon: environment },
+  ] : [
     { label: "Analyze Q1 Trends", query: "Analyze Q1 investment trends across MENA", icon: TrendingUp },
     { label: "Egypt vs Saudi Arabia", query: "Compare startup environments in Egypt vs Saudi Arabia", icon: Globe },
     { label: "Top AgriTech Deals", query: "What are the top AgriTech deals in the region?", icon: Leaf },
     { label: "FinTech Overview", query: "Provide an overview of the MENA FinTech sector", icon: Zap },
+    { label: "Climate Tech Overview in Morocco", query: "Provide an overview of Morocco Climate Tech sector", icon: environment },
   ];
 
   return (
@@ -551,43 +504,36 @@ const QiraaMindPage = () => {
                   <Paperclip className="h-5 w-5" />
                 </button>
 
-                {/* زر Deep Dive */}
+                {/* زر Deep Dive مع معالجة الترجمة */}
                 <button
                   type="button"
                   onClick={() => setIsDeepDive(!isDeepDive)}
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-all ${
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-all whitespace-nowrap ${
                     isDeepDive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
-                  title="Deep Dive Mode"
+                  title={isRTL ? "تفعيل وضع التحليل العميق" : "Deep Dive Mode"}
                 >
-                  Deep Dive
+                  {isRTL ? "تحليل عميق" : "Deep Dive"}
                 </button>
 
-                {/* مربع النص */}
+                {/* مربع النص مع معالجة الترجمة */}
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                  placeholder="Ask QIRAA"
+                  placeholder={isRTL ? "اسأل عقل قراءة عن الإستثمار أو القطاعات أو الأعمال..." : "Ask QIRAA MIND about Investing or sectors or Businesses..."}
                   rows={1}
                   className="flex-1 bg-transparent text-foreground placeholder-muted-foreground text-sm outline-none resize-none max-h-[150px]"
                 />
 
-                {/* زر المايكروفون */}
-                <button
-                  type="button"
-                  onClick={handleMicClick}
-                  className={`p-1 transition-colors ${isListening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <Mic className="h-5 w-5" />
-                </button>
+                {/* تم إزالة زر الميكروفون من هنا */}
 
                 {/* زر الإرسال */}
                 <button
                   type="submit"
                   disabled={isLoading || (!input.trim() && !attachedFile)}
-                  className="bg-muted-foreground/20 hover:bg-primary hover:text-primary-foreground text-foreground w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30"
+                  className="bg-muted-foreground/20 hover:bg-primary hover:text-primary-foreground text-foreground w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-30 flex-shrink-0"
                 >
                   {isLoading && !isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                 </button>
