@@ -24,6 +24,7 @@ import {
   Radar,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -469,7 +470,8 @@ const QiraaMindPage = () => {
                       )}
                     </div>
                     <ReactMarkdown
-                      className="prose prose-sm dark:prose-invert max-w-none"
+                      remarkPlugins={[remarkGfm]}
+                      className="prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:border prose-td:border prose-th:bg-muted/50 prose-th:p-3 prose-td:p-3"
                     >
                       {msg.content || "..."}
                     </ReactMarkdown>
