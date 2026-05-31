@@ -173,6 +173,14 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
+    // 1. [نقطة تفتيش المستخدم الخام] - تسجيل سؤال المستخدم النقي قبل أي معالجة
+    console.log(JSON.stringify({
+      trace_id: "QIRAA_RAW_USER_QUERY",
+      timestamp: new Date().toISOString(),
+      user_query: latestUserMessage,
+      is_deep_dive_active: !!is_deep_dive
+    }));
+
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
     // 4. Intent Extraction (Updated to force specific analytics category)
@@ -223,6 +231,13 @@ serve(async (req) => {
     } catch (err) {
       console.warn("Extraction Parsing Failed:", err);
     }
+
+    // 2. [نقطة تفتيش النية] - تسجيل النية المستخرجة
+    console.log(JSON.stringify({
+      trace_id: "QIRAA_INTENT_TRACE",
+      timestamp: new Date().toISOString(),
+      extracted_intent: extractedData
+    }));
 
     const resolvedSectors = resolveOntology(extractedData.sectors || [], MARKET_ONTOLOGY);
     const resolvedCountries = resolveOntology(extractedData.countries || [], COUNTRY_ALIASES);
@@ -314,6 +329,33 @@ serve(async (req) => {
       transactionsCount: allTransactions.length
     }, null, 2));
 
+    // 3. [نقطة تفتيش استرجاع البيانات - RAG]
+    console.log(`[QIRAA_RAG_FETCH] Successfully retrieved ${allAnalytics.length + allCompanies.length + allTransactions.length} strategic chunks from database.`);
+    
+    allAnalytics.slice(0, MAX_ANALYTICS).forEach((doc, index) => {
+      console.log(JSON.stringify({
+        trace_id: `QIRAA_RAG_CHUNK_ANALYTICS_${index + 1}`,
+        metadata: { title: doc.title_ar, country: doc.country },
+        extracted_content: doc.content_ar
+      }));
+    });
+    
+    allCompanies.slice(0, MAX_COMPANIES).forEach((doc, index) => {
+      console.log(JSON.stringify({
+        trace_id: `QIRAA_RAG_CHUNK_COMPANY_${index + 1}`,
+        metadata: { name: doc.name, sector: doc.sector_main, country: doc.country },
+        extracted_content: doc.description
+      }));
+    });
+    
+    allTransactions.slice(0, MAX_TRANSACTIONS).forEach((doc, index) => {
+      console.log(JSON.stringify({
+        trace_id: `QIRAA_RAG_CHUNK_TRANSACTION_${index + 1}`,
+        metadata: { company: doc.company_name, amount: doc.round_amount_usd, date: `${doc.round_year}-${doc.round_month}` },
+        extracted_content: `Round Type: ${doc.round_type}, Investors: ${doc.investors}`
+      }));
+    });
+
     // 6. حقن البيانات الخام (Raw Injection)
     // نمرر المخرجات كاملة للنموذج ليلتقط هو الأنماط بذكائه الخارق
     const rawContext = {
@@ -350,6 +392,15 @@ ${JSON.stringify(rawContext)}
   2. آليات التنفيذ العضوية (Organic Execution Mechanics): لا تكتفِ بتشخيص حالة السوق. بناءً على كثافة الإشارات في البيانات، أطلق العنان لذكائك التحليلي لاقتراح "آليات تنفيذ" تكتيكية للمستثمرين و الشركات و الرؤساء التنفيذيين و رواد الاعمال. وظّف هذه الآليات بمرونة داخل نسيج تحليلك متى ما كانت البيانات تدعم ذلك، دون التقيد بهياكل أو أمثلة أو أقسام جامدة مفروضة مسبقاً.
   3. منع البتر الاستراتيجي (Anti-Truncation Directive): لديك مساحة محددة للمخرجات. يجب عليك هندسة طول الرد، وتيرة السرد، وتكثيف الأفكار بذكاء حاد لضمان أن تكتمل رسالتك التحليلية واستنتاجاتك (إشارة القرار) بشكل قاطع ومغلق تماماً قبل انتهاء الحد الأقصى. يُحظر عليك بتر أي فكرة أو التوقف في منتصف الجملة. إذا شعرت باقتراب الحد، قم بإغلاق التحليل بخلاصة استراتيجية مركزة
   4. معادلات الاستثمار الجريء (VC Mental Models & Hooks): رغم الكثافة المعرفية المطلوبة في صلب المخرجات، يجب عليك دائماً تلخيص الفجوة الاستثمارية أو المراجحة في "معادلة استثمارية مباشرة وحادة" سهلة التذكر والاقتباس. اجعل هذه المعادلة هي المرتكز الأساسي للأطروحة.`;
+
+    // 4. [نقطة تفتيش الحمولة المتجهة إلى Claude Opus] - أرشفة الحجم الفعلي ونوع النموذج
+    console.log(JSON.stringify({
+      trace_id: "QIRAA_FINAL_PAYLOAD",
+      model_target: "claude-opus-4-7",
+      max_tokens_configured: is_deep_dive ? 4096 : 2000,
+      context_length_chars: systemPrompt.length,
+    }));
+
     // 8. Response Generation Call
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
