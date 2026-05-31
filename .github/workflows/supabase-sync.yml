@@ -1,0 +1,40 @@
+name: Auto Sync Supabase Schema to Lovable
+
+on:
+  schedule:
+    # سيقوم الروبوت بالعمل تلقائياً كل ساعة (يمكن تعديلها)
+    - cron: '0 * * * *'
+  workflow_dispatch: # يسمح لك بتشغيلها يدوياً بضغطة زر إذا كنت مستعجلاً
+
+jobs:
+  sync-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Pull Latest Schema
+        run: supabase db pull
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Commit and Push to Lovable
+        run: |
+          git config --global user.name "QIRAA DevOps Bot"
+          git config --global user.email "bot@qiraa.io"
+          git add supabase/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-sync: Fetched latest database schema from Supabase" && git push)
