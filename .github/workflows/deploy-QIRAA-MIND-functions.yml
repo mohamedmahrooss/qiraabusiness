@@ -1,0 +1,27 @@
+name: Deploy Edge Functions to Supabase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # هذا الفخ البرمجي يضمن أن الروبوت لن يعمل إلا إذا تم تعديل ملف داخل مجلد الدوال فقط
+      - 'supabase/functions/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 🚀 Deploy qiraa-mind Edge Function
+        run: supabase functions deploy qiraa-mind --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
