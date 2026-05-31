@@ -118,7 +118,7 @@ function buildOrConditions(fields: string[], values: string[]): string | null {
   }
   return conditions.length > 0 ? conditions.join(",") : null;
 }
-// CI Status Reset: Infrastructure synchronized successfully
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
