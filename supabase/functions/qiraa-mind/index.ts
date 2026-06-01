@@ -316,6 +316,11 @@ serve(async (req) => {
 
       const [aRes, cRes, tRes] = await Promise.all([aQuery, cQuery, tQuery]);
       
+      // 📍 نظام مراقبة أخطاء قاعدة البيانات الصامتة (سيظهر في السجلات فوراً)
+      if (aRes.error) console.error(`🚨 Analytics DB Error for ${countryKey}:`, aRes.error.message, aRes.error.hint);
+      if (cRes.error) console.error(`🚨 Companies DB Error for ${countryKey}:`, cRes.error.message, cRes.error.hint);
+      if (tRes.error) console.error(`🚨 Transactions DB Error for ${countryKey}:`, tRes.error.message, tRes.error.hint);
+      
       return {
         analytics: aRes.data || [],
         companies: cRes.data || [],
