@@ -347,6 +347,15 @@ serve(async (req) => {
       }
     }));
 
+    // NEW LOGGING: تسجيل المحتوى الفعلي الكامل للسجلات المسترجعة
+    console.log(JSON.stringify({
+      trace_id: "CHECKPOINT_3_5_FULL_DATA",
+      timestamp: new Date().toISOString(),
+      analytics_full_data: allAnalytics,
+      companies_full_data: allCompanies,
+      transactions_full_data: allTransactions
+    }));
+
     console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
     console.log(JSON.stringify({
       targetCountriesKeys: targetCountries,
