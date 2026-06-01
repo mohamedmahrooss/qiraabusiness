@@ -1,42 +1,52 @@
-name: Auto Sync Supabase Schema to Lovable
+name: 🔄 Auto Sync Supabase Schema to Lovable
 
 on:
   schedule:
-    # يعمل تلقائياً كل 10 دقائق
     - cron: '*/10 * * * *'
-  workflow_dispatch: # للتشغيل اليدوي
+  workflow_dispatch:
 
 jobs:
   sync-schema:
     runs-on: ubuntu-latest
-    # التحديث 1: إعلان الصلاحية السيادية للروبوت بالكتابة وتجاوز الرفض
     permissions:
       contents: write 
-    
-    # التحديث 2: إغلاق تحذير Node.js 20 الإجباري من GitHub
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
 
     steps:
-      - name: Checkout Repository
+      - name: 📦 Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 
 
-      - name: Setup Supabase CLI
+      - name: 🛠️ Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Link Supabase Project
+      - name: 🔗 Link Supabase Project
         run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          CI: true # إجبار النظام على العمل بصمت بدون طلبات تفاعلية
+          CI: true
 
-      - name: Pull Latest Schema
-        run: supabase db pull
+      - name: ⬇️ Pull Latest Schema (With Ghost-Error Handler)
+        run: |
+          set +e
+          OUTPUT=$(supabase db pull 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          
+          # 🛡️ هندسة اعتراض الأخطاء: تجاوز خطأ CLI إذا كان السبب هو تطابق البيانات
+          if [ $EXIT_CODE -ne 0 ]; then
+            if echo "$OUTPUT" | grep -q "No schema changes found"; then
+              echo "✅ No schema changes detected. Supabase CLI ghost-error intercepted. Proceeding gracefully."
+              exit 0
+            else
+              echo "❌ Real connection error occurred."
+              exit $EXIT_CODE
+            fi
+          fi
+          set -e
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -47,13 +57,12 @@ jobs:
           git config --global user.name "QIRAA DevOps Bot"
           git config --global user.email "bot@qiraa.io"
           
-          # التحديث 3: حصر التتبع في خريطة الجداول فقط لمنع حلقات الرفع اللانهائية
+          git pull origin main --rebase
           git add supabase/migrations/
           
-          # التحديث 4: هيكل برمجي صلب يمنع خروج (Exit Code 1) عندما لا توجد تغييرات
-          if ! git diff --staged --quiet; then
-            git commit -m "Auto-sync: Fetched latest database schema from Supabase"
-            git push
+          if git diff-index --quiet HEAD; then
+            echo "No files to commit. Repository is perfectly synced."
           else
-            echo "No schema changes detected. Everything is up to date."
+            git commit -m "Auto-sync: Fetched latest database schema from Supabase"
+            git push origin main
           fi
