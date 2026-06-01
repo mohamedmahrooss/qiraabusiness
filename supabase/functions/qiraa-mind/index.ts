@@ -12,6 +12,8 @@ type RetrievalIntent = {
   analytics_category: string | null;
   countries: string[];
   companies: string[];
+  companies_sector_main: string[]; // التعديل 2: خانة القطاع الرئيسي للشركات
+  transactions_sector_main: string[]; // التعديل 3: خانة القطاع الرئيسي للصفقات
   round_types: string[];
   temporal_filters: string[];
   strategic_intent: string[];
@@ -164,6 +166,9 @@ serve(async (req) => {
     }));
 
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
+    
+    // التعديلات 2 و 3: تحديد قائمة القطاعات الرئيسية المسموح بها حصراً
+    const MAIN_SECTORS_LIST_STRING = "chemicals, consumer electronics, dating, education, energy, engineering and manufacturing equipment, enterprise software, event tech, fashion, fintech, food, gaming, health, home living, hosting, jobs recruitment, kids, legal, marketing, media, music, real estate, robotics, security, semiconductors, space, sports, telecom, transportation, travel, wellness beauty";
 
     // التعديل الجوهري: توجيه الذكاء الاصطناعي لتوحيد أسماء الدول تلقائياً
     const extractionPrompt = `أنت محرك استنتاج دلالي (Semantic Inference Engine) لمنصة ذكاء أسواق سيادية.
@@ -172,6 +177,10 @@ serve(async (req) => {
 
 [تعليمات هامة جداً لأسماء الدول]:
 عند استخراج أسماء الدول، قم دائماً بترجمتها وتوحيدها إلى الاسم الإنجليزي القياسي (مثل: Egypt, Saudi Arabia, UAE) مهما كانت اللغة أو الصيغة أو الاختصار الذي كتب به المستخدم (مثل: مصر، المملكة، KSA).
+
+[تعليمات هامة للقطاعات الرئيسية]:
+يجب أن تستنتج القطاعات الرئيسية لجدول الشركات وجدول الصفقات وتضعها في الخانات المخصصة (companies_sector_main و transactions_sector_main) حصراً من هذه القائمة الدقيقة:
+[${MAIN_SECTORS_LIST_STRING}]
 
 قواعد الاستنتاج لـ "analytics_category":
 بناءً على الفهم الدلالي، اختر القطاع الرئيسي "الأقرب" معمارياً من هذه القائمة:
@@ -183,12 +192,14 @@ serve(async (req) => {
   "sectors": ["قائمة بكافة القطاعات الفرعية أو الرئيسية المستنتجة من السؤال"],
   "countries": ["قائمة بكافة الدول والأسواق المذكورة أو المستنتجة بعد التوحيد للإنجليزية"],
   "companies": ["قائمة بأسماء الشركات"],
+  "companies_sector_main": ["قائمة القطاعات الرئيسية المستنتجة لجدول الشركات مأخوذة حصراً من القائمة المحددة"],
+  "transactions_sector_main": ["قائمة القطاعات الرئيسية المستنتجة لجدول الصفقات مأخوذة حصراً من القائمة المحددة"],
   "round_types": ["أنواع جولات التمويل المذكورة"],
   "temporal_filters": ["النطاقات الزمنية المذكورة"],
   "strategic_intent": ["النية الاستراتيجية أو الهدف من السؤال"]
 }`;
 
-    let extractedData: RetrievalIntent = { analytics_category: null, sectors: [], countries: [], companies: [], round_types: [], temporal_filters: [], strategic_intent: [] };
+    let extractedData: RetrievalIntent = { analytics_category: null, sectors: [], countries: [], companies: [], companies_sector_main: [], transactions_sector_main: [], round_types: [], temporal_filters: [], strategic_intent: [] };
 
     try {
       const extractionResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -270,7 +281,7 @@ serve(async (req) => {
       if (tAr) transCondsArr.push(tAr);
       const transactionsConditions = transCondsArr.length > 0 ? transCondsArr.join(",") : null;
 
-      // بناء استعلام سريع ومباشر على الدولة المعيارية
+      // بناء استعلام سريع ومباشر على الدولة المعيارية لجدول التحليلات
       let aQuery = adminSupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
       if (countryKey !== "global") aQuery = aQuery.ilike("country", `%${countryKey}%`);
       
@@ -281,12 +292,26 @@ serve(async (req) => {
         if (analyticsConditions) aQuery = aQuery.or(analyticsConditions);
       }
 
+      // بناء استعلام الشركات - التعديل 1: البحث إلزاما بالدولة / التعديل 2: فلترة sector_main
       let cQuery = adminSupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
       if (countryKey !== "global") cQuery = cQuery.ilike("country", `%${countryKey}%`);
+      
+      if (extractedData.companies_sector_main && extractedData.companies_sector_main.length > 0) {
+        const compSectorMainConds = extractedData.companies_sector_main.map(s => `sector_main.ilike.%${s}%`).join(",");
+        cQuery = cQuery.or(compSectorMainConds);
+      }
+      
       if (companiesConditions) cQuery = cQuery.or(companiesConditions);
 
+      // بناء استعلام الصفقات - التعديل 1: البحث إلزاما بالدولة / التعديل 3: فلترة sector_main
       let tQuery = adminSupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
       if (countryKey !== "global") tQuery = tQuery.ilike("country", `%${countryKey}%`);
+      
+      if (extractedData.transactions_sector_main && extractedData.transactions_sector_main.length > 0) {
+        const transSectorMainConds = extractedData.transactions_sector_main.map(s => `sector_main.ilike.%${s}%`).join(",");
+        tQuery = tQuery.or(transSectorMainConds);
+      }
+      
       if (transactionsConditions) tQuery = tQuery.or(transactionsConditions);
 
       const [aRes, cRes, tRes] = await Promise.all([aQuery, cQuery, tQuery]);
