@@ -119,8 +119,6 @@ const QiraaMindLanding = ({
   );
 };
 
-// تم اجتثاث دالة useVoiceInput بالكامل من هنا
-
 async function readFileAsText(file: File): Promise<string> {
   const textTypes = ["text/plain", "text/csv", "text/markdown", "application/json"];
   if (textTypes.some((t) => file.type.startsWith(t) || file.type === t)) {
@@ -429,7 +427,6 @@ const QiraaMindPage = () => {
 
   const hasMessages = messages.length > 0;
   
-  // معالجة الترجمة للأزرار السفلية المقترحة
   const powerQueries = isRTL ? [
     { label: "تحليل اتجاهات Q1", query: "قم بتحليل اتجاهات الاستثمار في الربع الأول في منطقة الشرق الأوسط و شمال أفريقيا", icon: TrendingUp },
     { label: "مصر vs السعودية", query: "قارن بين بيئة الشركات الناشئة في مصر والسعودية", icon: Globe },
@@ -469,9 +466,15 @@ const QiraaMindPage = () => {
                         </button>
                       )}
                     </div>
-                    <ReactMarkdown
+                    <ReactMarkdown 
                       remarkPlugins={[remarkGfm]}
-                      className="prose prose-sm dark:prose-invert max-w-none prose-table:border-collapse prose-th:border prose-td:border prose-th:bg-muted/50 prose-th:p-3 prose-td:p-3"
+                      className="prose prose-sm dark:prose-invert max-w-none"
+                      components={{
+                        table: ({node, ...props}) => <table className="min-w-full divide-y divide-gray-300 border border-gray-300 my-6 shadow-sm rounded-lg overflow-hidden" {...props} />,
+                        thead: ({node, ...props}) => <thead className="bg-gray-100" {...props} />,
+                        th: ({node, ...props}) => <th className="px-4 py-3 text-right text-sm font-bold text-gray-800 border-b border-gray-300 bg-gray-50" {...props} />,
+                        td: ({node, ...props}) => <td className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200" {...props} />,
+                      }}
                     >
                       {msg.content || "..."}
                     </ReactMarkdown>
@@ -531,8 +534,6 @@ const QiraaMindPage = () => {
                   rows={1}
                   className="flex-1 bg-transparent text-foreground placeholder-muted-foreground text-sm outline-none resize-none max-h-[150px]"
                 />
-
-                {/* تم إزالة زر الميكروفون من هنا */}
 
                 {/* زر الإرسال */}
                 <button
