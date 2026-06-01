@@ -17,7 +17,6 @@ type RetrievalIntent = {
   strategic_intent: string[];
 };
 
-// 1. Market Ontology Layer
 const MARKET_ONTOLOGY: Record<string, string[]> = {
   "fintech": ["fintech", "financial technology", "payments", "banking", "wealthtech", "insurtech", "regtech", "تقنية مالية", "التقنية المالية", "مدفوعات"],
   "enterprise software": ["enterprise software", "b2b saas", "vertical saas", "erp infra", "workflow tools", "saas", "hrtech", "martech", "govtech", "legal", "برمجيات الأعمال", "b2b"],
@@ -38,7 +37,6 @@ const MARKET_ONTOLOGY: Record<string, string[]> = {
   "miscellaneous": ["dating", "jobs recruitment", "kids", "marketing", "sports", "engineering and manufacturing equipment", "ip tech"]
 };
 
-// 2. Analytics Strict Categories (Hardcoded UUIDs for Zero-Latency)
 const ANALYTICS_CATEGORIES: Record<string, string> = {
   "Retail Industry": "07d27d24-4eaa-49c7-88c1-5b512e4a61fa",
   "PropTech": "6a66f87f-f8f5-48be-9ba4-d05fdbdc1635",
@@ -63,15 +61,7 @@ const ANALYTICS_CATEGORIES: Record<string, string> = {
   "Fintech": "f66d73cd-ccee-4596-8bab-67950621ae66"
 };
 
-// 3. Sovereign Country Normalization
-const COUNTRY_ALIASES: Record<string, string[]> = {
-  "saudi arabia": ["saudi arabia", "ksa", "saudi", "السعودية", "المملكة", "المملكة العربية السعودية"],
-  "egypt": ["egypt", "مصر", "جمهورية مصر العربية"],
-  "uae": ["uae", "united arab emirates", "emirates", "الإمارات", "الامارات", "الامارات العربية المتحدة"],
-  "jordan": ["jordan", "الأردن", "الاردن"],
-  "morocco": ["morocco", "المغرب"],
-  "kuwait": ["kuwait", "الكويت"]
-};
+// تم التخلص تماماً من مصفوفة COUNTRY_ALIASES ودالة getCanonicalCountries
 
 function normalizeText(text: string): string {
   return text.toLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").trim();
@@ -84,8 +74,7 @@ function resolveOntology(inputs: string[], mapping: Record<string, string[]>): s
     const normalizedInput = normalizeText(input);
     let matched = false;
     for (const [canonical, aliases] of Object.entries(mapping)) {
-      const isMatch = aliases.some((alias) => normalizedInput.includes(normalizeText(alias)));
-      if (isMatch) {
+      if (aliases.some((alias) => normalizedInput.includes(normalizeText(alias)))) {
         aliases.forEach((a) => resolved.add(a));
         resolved.add(canonical);
         matched = true;
@@ -103,7 +92,7 @@ function extractCoreKeywords(message: string): string[] {
     .filter(w => {
       if (stopWords.includes(w)) return false;
       const isEnglish = /^[a-zA-Z]+$/.test(w);
-      return isEnglish || w.length > 3; 
+      return isEnglish || w.length >= 3; 
     });
 }
 
@@ -133,10 +122,7 @@ serve(async (req) => {
     if (!ANTHROPIC_API_KEY) throw new Error("QIRAA_MIND_ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    // استخدام Service Role Key بدلاً من Anon Key لتجاوز الـ RLS في جلب البيانات السيادية
     const supabaseServiceKey = Deno.env.get("QIRAA_ADMIN_KEY")!;
-    
-    // محرك البحث السيادي يعمل الآن بصلاحيات Admin لضمان جلب الشركات والصفقات
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let userId: string | null = null;
@@ -169,19 +155,15 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    console.log(JSON.stringify({
-      trace_id: "QIRAA_RAW_USER_QUERY",
-      timestamp: new Date().toISOString(),
-      user_query: latestUserMessage,
-      is_deep_dive_active: !!is_deep_dive
-    }));
-
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
-// 4. Semantic Intent Extraction (بناءً على التعديل الجديد)
+    // التعديل الجوهري: توجيه الذكاء الاصطناعي لتوحيد أسماء الدول تلقائياً
     const extractionPrompt = `أنت محرك استنتاج دلالي (Semantic Inference Engine) لمنصة ذكاء أسواق سيادية.
 مهمتك هي قراءة سياق المحادثة بدقة، واستنتاج الأبعاد الاستثمارية، القطاعات الجغرافية، والشركات المقصودة كصيغة JSON فقط.
 أنت تعمل كمحرك استنتاج وإرجاع بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف يمثل استنتاجك العميق.
+
+[تعليمات هامة جداً لأسماء الدول]:
+عند استخراج أسماء الدول، قم دائماً بترجمتها وتوحيدها إلى الاسم الإنجليزي القياسي (مثل: Egypt, Saudi Arabia, UAE) مهما كانت اللغة أو الصيغة أو الاختصار الذي كتب به المستخدم (مثل: مصر، المملكة، KSA).
 
 قواعد الاستنتاج لـ "analytics_category":
 بناءً على الفهم الدلالي، اختر القطاع الرئيسي "الأقرب" معمارياً من هذه القائمة:
@@ -191,7 +173,7 @@ serve(async (req) => {
 {
   "analytics_category": "القطاع الأقرب من القائمة المرفقة أعلاه أو null",
   "sectors": ["قائمة بكافة القطاعات الفرعية أو الرئيسية المستنتجة من السؤال"],
-  "countries": ["قائمة بكافة الدول والأسواق المذكورة أو المستنتجة"],
+  "countries": ["قائمة بكافة الدول والأسواق المذكورة أو المستنتجة بعد التوحيد للإنجليزية"],
   "companies": ["قائمة بأسماء الشركات"],
   "round_types": ["أنواع جولات التمويل المذكورة"],
   "temporal_filters": ["النطاقات الزمنية المذكورة"],
@@ -211,9 +193,9 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "claude-sonnet-4-6", 
           max_tokens: 1000,
-          system: extractionPrompt, // تم وضع البرومبت الشامل هنا
-          messages: messages,       // تم تمرير المحادثة بالكامل هنا
-          temperature: 0            // ضرورية جداً لمنع الهلوسة خارج الـ JSON
+          system: extractionPrompt, 
+          messages: messages,       
+          temperature: 0            
         }),
       });
 
@@ -230,16 +212,8 @@ serve(async (req) => {
       console.error("🚨 Network/Parsing Error during Extraction:", err);
     }
 
-    console.log(JSON.stringify({
-      trace_id: "QIRAA_INTENT_TRACE",
-      timestamp: new Date().toISOString(),
-      extracted_intent: extractedData
-    }));
-
     const resolvedSectors = resolveOntology(extractedData.sectors || [], MARKET_ONTOLOGY);
-    const resolvedCountries = resolveOntology(extractedData.countries || [], COUNTRY_ALIASES);
     let coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
-    
     if (coreSearchTerms.length === 0) {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
@@ -247,13 +221,14 @@ serve(async (req) => {
     const englishTerms = coreSearchTerms.filter(w => /[a-zA-Z]/.test(w));
     const arabicTerms = coreSearchTerms.filter(w => !/[a-zA-Z]/.test(w));
 
+    // الاعتماد المباشر على مخرجات الذكاء الاصطناعي كقيمة معيارية
+    const targetCountries = (extractedData.countries && extractedData.countries.length > 0) ? extractedData.countries : ["global"];
+    const numCountries = targetCountries.length;
+    
     const MAX_ANALYTICS = is_deep_dive ? 20 : 10;
     const MAX_COMPANIES = is_deep_dive ? 25 : 10;
     const MAX_TRANSACTIONS = is_deep_dive ? 20 : 15;
 
-    const targetCountries = resolvedCountries.length > 0 ? resolvedCountries : ["global"];
-    const numCountries = targetCountries.length;
-    
     const analyticsPerCountry = Math.ceil(MAX_ANALYTICS / numCountries);
     const companiesPerCountry = Math.ceil(MAX_COMPANIES / numCountries);
     const transactionsPerCountry = Math.ceil(MAX_TRANSACTIONS / numCountries);
@@ -280,6 +255,7 @@ serve(async (req) => {
       if (tAr) transCondsArr.push(tAr);
       const transactionsConditions = transCondsArr.length > 0 ? transCondsArr.join(",") : null;
 
+      // بناء استعلام سريع ومباشر على الدولة المعيارية
       let aQuery = adminSupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
       if (countryKey !== "global") aQuery = aQuery.ilike("country", `%${countryKey}%`);
       
@@ -317,45 +293,9 @@ serve(async (req) => {
 
     console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
     console.log(JSON.stringify({
-      rawExtraction: extractedData,
-      isDeepDive: !!is_deep_dive,
-      analyticsUUID: analyticsCategoryId,
-      targetCountries: targetCountries,
+      targetCountriesKeys: targetCountries,
       limitsPerCountry: { analytics: analyticsPerCountry, companies: companiesPerCountry, transactions: transactionsPerCountry }
     }, null, 2));
-
-    console.log("\n=== 🟢 QIRAA MIND DB RESULTS ===");
-    console.log(JSON.stringify({
-      analyticsCount: allAnalytics.length,
-      companiesCount: allCompanies.length,
-      transactionsCount: allTransactions.length
-    }, null, 2));
-
-    console.log(`[QIRAA_RAG_FETCH] Successfully retrieved ${allAnalytics.length + allCompanies.length + allTransactions.length} strategic chunks from database.`);
-    
-    allAnalytics.slice(0, MAX_ANALYTICS).forEach((doc, index) => {
-      console.log(JSON.stringify({
-        trace_id: `QIRAA_RAG_CHUNK_ANALYTICS_${index + 1}`,
-        metadata: { title: doc.title_ar, country: doc.country },
-        extracted_content: doc.content_ar
-      }));
-    });
-    
-    allCompanies.slice(0, MAX_COMPANIES).forEach((doc, index) => {
-      console.log(JSON.stringify({
-        trace_id: `QIRAA_RAG_CHUNK_COMPANY_${index + 1}`,
-        metadata: { name: doc.name, sector: doc.sector_main, country: doc.country },
-        extracted_content: doc.description
-      }));
-    });
-    
-    allTransactions.slice(0, MAX_TRANSACTIONS).forEach((doc, index) => {
-      console.log(JSON.stringify({
-        trace_id: `QIRAA_RAG_CHUNK_TRANSACTION_${index + 1}`,
-        metadata: { company: doc.company_name, amount: doc.round_amount_usd, date: `${doc.round_year}-${doc.round_month}` },
-        extracted_content: `Round Type: ${doc.round_type}, Investors: ${doc.investors}`
-      }));
-    });
 
     const rawContext = {
       raw_market_intelligence: allAnalytics.slice(0, MAX_ANALYTICS), 
@@ -378,13 +318,7 @@ ${JSON.stringify(rawContext)}
 3- حظر الإيموجي (STRICT NO EMOJIS): يُمنع منعاً باتاً استخدام أي إيموجي.
 4- استخدم التنقيط (Bullets) مثل (-) أو (*) فقط.
 5- حظر الجمل الدفاعية: يُمنع نهائياً استخدام أي عبارات إخلاء مسؤولية مثل "هذه ليست نصيحة استثمارية" أو "الاستنتاجات تقديرية". أنت محرك سيادي يبيع الثقة، تحدث كجهة إصدار تشريعي.
-6- إجبارية الجداول (Data Tables): إذا طلب المستخدم مقارنة بين دولتين أو قطاعين، **يجب** أن ترسم جدولاً باحترافية عالية. استخدم التنسيق القياسي الصارم لجداول Markdown (Strict GFM Tables) مع استخدام الأعمدة الفاصلة (|) والصفوف التنسيقية (|---|---|---|). يُمنع السرد العشوائي. حافظ على اختصار النصوص داخل الخلايا لضمان وضوح الواجهة. مثال للنسق الإجباري:
-| المحور | [القطاع/الدولة الأولى] | [القطاع/الدولة الثانية] |
-|---|---|---|
-| كثافة رأس المال | [القيمة] | [القيمة] |
-| التقييمات | [القيمة] | [القيمة] |
-| الفرص | [القيمة] | [القيمة] |
-| المخاطر | [القيمة] | [القيمة] |
+6- إجبارية الجداول (Data Tables): إذا طلب المستخدم مقارنة بين دولتين أو قطاعين، **يجب** أن ترسم جدولاً باحترافية عالية. استخدم التنسيق القياسي الصارم لجداول Markdown (Strict GFM Tables) مع استخدام الأعمدة الفاصلة (|) والصفوف التنسيقية (|---|---|---|).
 7- معالجة الفراغ بذكاء (Data Vacuum): إذا لم تجد بيانات كافية عن قطاع معين في البيانات المرفقة، لا تعتذر ولا تقل "لا تتوافر معلومات". بل صُغها كـ "فراغ استثماري استراتيجي" (Strategic Vacuum) أو "نقص اختراق" (Underpenetration)، وضع توصية حول كيفية استغلال هذا الفراغ استثمارياً.
 8- هيكل الإجابة التنفيذي:
    - جملة واحدة قاتلة وقابلة للاقتباس تلخص الفرصة.
@@ -392,18 +326,8 @@ ${JSON.stringify(rawContext)}
    - مناورة الدخول (Entry Arbitrage): كيف يستغل الـ VC هذه المعطيات اليوم (خطوات عملية، هيكلة، استحواذ).
    - استراتيجية الخروج( Exit Scinario)
 9- [تعليمات هندسة المخرجات الاستراتيجية - حرج جداً]:
-  1. الكثافة المعرفية (Cognitive Density): حافظ على أقصى درجات الكثافة المعرفية والمؤسسية في تحليلك. استخدم لغة صناديق التحوط (Hedge Funds) اذا كان السؤال خاص بذلك ، وهندسة رأس المال الجريء (VC)، و لغة الشركات الناشئة و المؤسسين اذا كان السؤال خاص بشركة ناشئة او مؤسس. هذا التحليل موجه لنخبة صناع القرار الذين يدفعون المال مقابل العمق.
-  2. آليات التنفيذ العضوية (Organic Execution Mechanics): لا تكتفِ بتشخيص حالة السوق. بناءً على كثافة الإشارات في البيانات، أطلق العنان لذكائك التحليلي لاقتراح "آليات تنفيذ" تكتيكية للمستثمرين و الشركات و الرؤساء التنفيذيين و رواد الاعمال. وظّف هذه الآليات بمرونة داخل نسيج تحليلك متى ما كانت البيانات تدعم ذلك، دون التقيد بهياكل أو أمثلة أو أقسام جامدة مفروضة مسبقاً.
-  3. يجب ان لا يتجاوز الحد عن 1950 توكن
-  4. منع البتر الاستراتيجي (Anti-Truncation Directive): لديك مساحة محددة للمخرجات. يجب عليك هندسة طول الرد، وتيرة السرد، وتكثيف الأفكار بذكاء حاد لضمان أن تكتمل رسالتك التحليلية واستنتاجاتك (إشارة القرار) بشكل قاطع ومغلق تماماً قبل انتهاء الحد الأقصى. يُحظر عليك بتر أي فكرة أو التوقف في منتصف الجملة. إذا شعرت باقتراب الحد، قم بإغلاق التحليل بخلاصة استراتيجية مركزة
-  5. معادلات الاستثمار الجريء (VC Mental Models & Hooks): رغم الكثافة المعرفية المطلوبة في صلب المخرجات، يجب عليك دائماً تلخيص الفجوة الاستثمارية أو المراجحة في "معادلة استثمارية مباشرة وحادة" سهلة التذكر والاقتباس. اجعل هذه المعادلة هي المرتكز الأساسي للأطروحة.`;
-
-    console.log(JSON.stringify({
-      trace_id: "QIRAA_FINAL_PAYLOAD",
-      model_target: "claude-opus-4-7",
-      max_tokens_configured: is_deep_dive ? 4096 : 2000,
-      context_length_chars: systemPrompt.length,
-    }));
+  - الكثافة المعرفية (Cognitive Density): حافظ على أقصى درجات الكثافة. هذا التحليل موجه لنخبة صناع القرار الذين يدفعون المال مقابل العمق.
+  - منع البتر الاستراتيجي (Anti-Truncation Directive): يجب عليك هندسة طول الرد بذكاء حاد لضمان أن تكتمل رسالتك التحليلية واستنتاجاتك بشكل قاطع ومغلق تماماً. يُحظر عليك بتر أي فكرة. أغلق التحليل بخلاصة استراتيجية مركزة في حدود 1500 كلمة كحد أقصى.`;
 
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -414,7 +338,7 @@ ${JSON.stringify(rawContext)}
       },
       body: JSON.stringify({
         model: "claude-opus-4-7", 
-        max_tokens: is_deep_dive ? 4096 : 2000, 
+        max_tokens: is_deep_dive ? 4096 : 2500,
         system: systemPrompt,
         messages,
         stream: true,
