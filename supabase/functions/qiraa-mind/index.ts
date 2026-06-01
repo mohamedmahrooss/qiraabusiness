@@ -9,7 +9,7 @@ const corsHeaders = {
 
 type RetrievalIntent = {
   sectors: string[];
-  analytics_category: string | null; // تم إضافة حقل خاص لجدول التحليلات
+  analytics_category: string | null;
   countries: string[];
   companies: string[];
   round_types: string[];
@@ -39,7 +39,6 @@ const MARKET_ONTOLOGY: Record<string, string[]> = {
 };
 
 // 2. Analytics Strict Categories (Hardcoded UUIDs for Zero-Latency)
-// تنبيه: استبدل الأصفار بالـ UUIDs الحقيقية الموجودة في جدول categories لديك
 const ANALYTICS_CATEGORIES: Record<string, string> = {
   "Retail Industry": "07d27d24-4eaa-49c7-88c1-5b512e4a61fa",
   "PropTech": "6a66f87f-f8f5-48be-9ba4-d05fdbdc1635",
@@ -123,7 +122,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // تم إضافة is_deep_dive لالتقاط حالة التقرير المطول من الواجهة
     const { messages, is_deep_dive } = await req.json();
     const userToken = req.headers.get("x-auth-token");
 
@@ -135,12 +133,10 @@ serve(async (req) => {
     if (!ANTHROPIC_API_KEY) throw new Error("QIRAA_MIND_ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    const querySupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${userToken}` } },
-    });
+    // استخدام Service Role Key بدلاً من Anon Key لتجاوز الـ RLS في جلب البيانات السيادية
+    const supabaseServiceKey = Deno.env.get("QIRAA_ADMIN_KEY")!;
+    
+    // محرك البحث السيادي يعمل الآن بصلاحيات Admin لضمان جلب الشركات والصفقات
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let userId: string | null = null;
@@ -173,7 +169,6 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
-    // 1. [نقطة تفتيش المستخدم الخام] - تسجيل سؤال المستخدم النقي قبل أي معالجة
     console.log(JSON.stringify({
       trace_id: "QIRAA_RAW_USER_QUERY",
       timestamp: new Date().toISOString(),
@@ -183,24 +178,25 @@ serve(async (req) => {
 
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
-    // 4. Intent Extraction (Updated to force specific analytics category)
-    const extractionPrompt = `أنت محرك استخراج ذكاء أسواق سيادي احترافي لمنصة قراءة.
-قم بتحليل رسالة المستخدم واستنتج واستخراج العناصر التالية بدقة شديدة كصيغة JSON فقط.
+    // 4. Semantic Intent Extraction (تم توسيع البرومبت ليكون محرك استنتاج دلالي)
+    const extractionPrompt = `أنت محرك استنتاج دلالي (Semantic Inference Engine) لمنصة ذكاء أسواق سيادية.
+مهمتك هي قراءة رسالة المستخدم بعمق، واستنتاج الأبعاد الاستثمارية، القطاعات الجغرافية، والشركات المقصودة كصيغة JSON فقط.
 
-هام جداً بخصوص "analytics_category": يجب أن تختار القطاعات المستنتجه و المستخرجة من هذه القائمة الحرفية المحددة (إذا لم تجد ما يطابق، اترك الحقل null):
+قواعد الاستنتاج لـ "analytics_category":
+بناءً على الفهم الدلالي لسؤال المستخدم، اختر القطاع الرئيسي "الأقرب" معمارياً من هذه القائمة. لا يشترط التطابق الحرفي، استخدم ذكاءك لربط المعنى (مثال: التقنية المالية = Fintech). إذا لم تجد أي ارتباط منطقي، اتركه null.
 [${categoriesList}]
 
 رسالة المستخدم: "${latestUserMessage}"
 
-المخرج المطلوب:
+أخرج JSON فقط بالهيكل التالي:
 {
-  "analytics_category": "اسم القطاع من القائمة أو null",
-  "sectors": ["قطاع 1"],
-  "countries": ["دولة 1"],
-  "companies": ["شركة 1"],
-  "round_types": ["نوع 1"],
-  "temporal_filters": ["فلتر زمني"],
-  "strategic_intent": ["النية 1"]
+  "analytics_category": "القطاع الأقرب من القائمة المرفقة أعلاه أو null",
+  "sectors": ["قائمة بكافة القطاعات الفرعية أو الرئيسية المستنتجة من السؤال"],
+  "countries": ["قائمة بكافة الدول والأسواق المذكورة أو المستنتجة"],
+  "companies": ["قائمة بأسماء الشركات"],
+  "round_types": ["أنواع جولات التمويل المذكورة"],
+  "temporal_filters": ["النطاقات الزمنية المذكورة"],
+  "strategic_intent": ["النية الاستراتيجية أو الهدف من السؤال"]
 }`;
 
     let extractedData: RetrievalIntent = { analytics_category: null, sectors: [], countries: [], companies: [], round_types: [], temporal_filters: [], strategic_intent: [] };
@@ -216,7 +212,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "claude-opus-4-7",
           max_tokens: 1000,
-          system: "أنت تعمل كمستخرج بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف.",
+          system: "أنت تعمل كمحرك استنتاج وإرجاع بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف يمثل استنتاجك العميق.",
           messages: [{ role: "user", content: extractionPrompt }],
           temperature: 0,
         }),
@@ -232,7 +228,6 @@ serve(async (req) => {
       console.warn("Extraction Parsing Failed:", err);
     }
 
-    // 2. [نقطة تفتيش النية] - تسجيل النية المستخرجة
     console.log(JSON.stringify({
       trace_id: "QIRAA_INTENT_TRACE",
       timestamp: new Date().toISOString(),
@@ -247,8 +242,6 @@ serve(async (req) => {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
 
-    // 5. Query Partitioning (Even Distribution Logic & Deep Dive Toggle)
-    // التعديل هنا: تبديل القيم ديناميكياً بناءً على إشارة is_deep_dive
     const MAX_ANALYTICS = is_deep_dive ? 20 : 10;
     const MAX_COMPANIES = is_deep_dive ? 25 : 10;
     const MAX_TRANSACTIONS = is_deep_dive ? 20 : 15;
@@ -256,7 +249,6 @@ serve(async (req) => {
     const targetCountries = resolvedCountries.length > 0 ? resolvedCountries : ["global"];
     const numCountries = targetCountries.length;
     
-    // حساب نصيب كل دولة بالمناصفة (مع جبرها للأعلى لضمان عدم نقص البيانات)
     const analyticsPerCountry = Math.ceil(MAX_ANALYTICS / numCountries);
     const companiesPerCountry = Math.ceil(MAX_COMPANIES / numCountries);
     const transactionsPerCountry = Math.ceil(MAX_TRANSACTIONS / numCountries);
@@ -265,33 +257,31 @@ serve(async (req) => {
     let allCompanies: any[] = [];
     let allTransactions: any[] = [];
 
-    // جلب UUID الخاص بالتحليلات إذا تم استخراجه بنجاح
     const analyticsCategoryId = extractedData.analytics_category ? ANALYTICS_CATEGORIES[extractedData.analytics_category] : null;
 
-    // تشغيل استعلامات موازية لكل دولة لضمان المناصفة الجغرافية المطلقة
     const queryPromises = targetCountries.map(async (countryKey) => {
-      // بناء شروط الشركات والصفقات
       const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
       const transactionsConditions = buildOrConditions(["sector_main", "company_name", "investors"], coreSearchTerms);
 
-      // بناء استعلام التحليلات (يعتمد على الـ UUID إذا وجد، وإلا يعود للبحث النصي)
-      let aQuery = querySupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
+      // تعديل 1: استخدام adminSupabase لتجاوز RLS
+      let aQuery = adminSupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
       if (countryKey !== "global") aQuery = aQuery.ilike("country", `%${countryKey}%`);
       
       if (analyticsCategoryId) {
-        aQuery = aQuery.eq("category", analyticsCategoryId);
+        // تعديل 2: البحث باستخدام category_id بدلاً من category
+        aQuery = aQuery.eq("category_id", analyticsCategoryId);
       } else {
         const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
         if (analyticsConditions) aQuery = aQuery.or(analyticsConditions);
       }
 
-      // بناء استعلام الشركات
-      let cQuery = querySupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
+      // تعديل 3: استخدام adminSupabase لجدول الشركات لتجاوز RLS وجلب البيانات بنجاح
+      let cQuery = adminSupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
       if (countryKey !== "global") cQuery = cQuery.ilike("country", `%${countryKey}%`);
       if (companiesConditions) cQuery = cQuery.or(companiesConditions);
 
-      // بناء استعلام الصفقات
-      let tQuery = querySupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
+      // تعديل 4: استخدام adminSupabase لجدول الصفقات لتجاوز RLS وجلب البيانات بنجاح
+      let tQuery = adminSupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
       if (countryKey !== "global") tQuery = tQuery.ilike("country", `%${countryKey}%`);
       if (transactionsConditions) tQuery = tQuery.or(transactionsConditions);
 
@@ -306,7 +296,6 @@ serve(async (req) => {
 
     const resultsArray = await Promise.all(queryPromises);
 
-    // تجميع النتائج من جميع الدول
     resultsArray.forEach(res => {
       allAnalytics.push(...res.analytics);
       allCompanies.push(...res.companies);
@@ -329,7 +318,6 @@ serve(async (req) => {
       transactionsCount: allTransactions.length
     }, null, 2));
 
-    // 3. [نقطة تفتيش استرجاع البيانات - RAG]
     console.log(`[QIRAA_RAG_FETCH] Successfully retrieved ${allAnalytics.length + allCompanies.length + allTransactions.length} strategic chunks from database.`);
     
     allAnalytics.slice(0, MAX_ANALYTICS).forEach((doc, index) => {
@@ -356,15 +344,12 @@ serve(async (req) => {
       }));
     });
 
-    // 6. حقن البيانات الخام (Raw Injection)
-    // نمرر المخرجات كاملة للنموذج ليلتقط هو الأنماط بذكائه الخارق
     const rawContext = {
       raw_market_intelligence: allAnalytics.slice(0, MAX_ANALYTICS), 
       raw_companies: allCompanies.slice(0, MAX_COMPANIES),
       raw_transactions: allTransactions.slice(0, MAX_TRANSACTIONS),
     };
 
-    // 7. Sovereign Anti-Hallucination & Alpha Generation Prompt
     const systemPrompt = `أنت "عقل قراءة" (QIRAA Mind).
 أنت لست مساعداً آلياً؛ أنت "كبير المستشارين الاستراتيجيين" و محرك ذكاء أسواق سيادي متخصص بأسواق الشرق الأوسط و شمال افريقيا.
 عملاؤك هم (General Partners) في صناديق الاستثمار الجريء (VCs)، و الرؤساء التنفيذيين و رواد الاعمال وصناع القرار الحكوميين. لغتك يجب أن تكون حادة، تنفيذية، شديدة الثقة، وخالية من أي تردد.
@@ -393,7 +378,6 @@ ${JSON.stringify(rawContext)}
   3. منع البتر الاستراتيجي (Anti-Truncation Directive): لديك مساحة محددة للمخرجات. يجب عليك هندسة طول الرد، وتيرة السرد، وتكثيف الأفكار بذكاء حاد لضمان أن تكتمل رسالتك التحليلية واستنتاجاتك (إشارة القرار) بشكل قاطع ومغلق تماماً قبل انتهاء الحد الأقصى. يُحظر عليك بتر أي فكرة أو التوقف في منتصف الجملة. إذا شعرت باقتراب الحد، قم بإغلاق التحليل بخلاصة استراتيجية مركزة
   4. معادلات الاستثمار الجريء (VC Mental Models & Hooks): رغم الكثافة المعرفية المطلوبة في صلب المخرجات، يجب عليك دائماً تلخيص الفجوة الاستثمارية أو المراجحة في "معادلة استثمارية مباشرة وحادة" سهلة التذكر والاقتباس. اجعل هذه المعادلة هي المرتكز الأساسي للأطروحة.`;
 
-    // 4. [نقطة تفتيش الحمولة المتجهة إلى Claude Opus] - أرشفة الحجم الفعلي ونوع النموذج
     console.log(JSON.stringify({
       trace_id: "QIRAA_FINAL_PAYLOAD",
       model_target: "claude-opus-4-7",
@@ -401,7 +385,6 @@ ${JSON.stringify(rawContext)}
       context_length_chars: systemPrompt.length,
     }));
 
-    // 8. Response Generation Call
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -411,7 +394,6 @@ ${JSON.stringify(rawContext)}
       },
       body: JSON.stringify({
         model: "claude-opus-4-7", 
-        // التعديل هنا: تحديد الاستخدام العادي بـ 2000 توكن والتقرير المطول بـ 4096 توكن
         max_tokens: is_deep_dive ? 4096 : 2000, 
         system: systemPrompt,
         messages,
