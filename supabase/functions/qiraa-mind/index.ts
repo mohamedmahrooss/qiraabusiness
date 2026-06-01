@@ -155,6 +155,14 @@ serve(async (req) => {
 
     const latestUserMessage = messages.filter((m: any) => m.role === "user").pop()?.content || "";
 
+    // 📍 نقطة التفتيش الأولى: استلام سؤال المستخدم
+    console.log(JSON.stringify({
+      trace_id: "CHECKPOINT_1_RAW_USER_QUERY",
+      timestamp: new Date().toISOString(),
+      user_query: latestUserMessage,
+      is_deep_dive_active: !!is_deep_dive
+    }));
+
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
     // التعديل الجوهري: توجيه الذكاء الاصطناعي لتوحيد أسماء الدول تلقائياً
@@ -211,6 +219,13 @@ serve(async (req) => {
     } catch (err) {
       console.error("🚨 Network/Parsing Error during Extraction:", err);
     }
+
+    // 📍 نقطة التفتيش الثانية: مخرجات الاستنتاج الدلالي
+    console.log(JSON.stringify({
+      trace_id: "CHECKPOINT_2_EXTRACTED_INTENT",
+      timestamp: new Date().toISOString(),
+      extracted_intent: extractedData
+    }));
 
     const resolvedSectors = resolveOntology(extractedData.sectors || [], MARKET_ONTOLOGY);
     let coreSearchTerms = [...resolvedSectors, ...(extractedData.companies || [])];
@@ -291,6 +306,17 @@ serve(async (req) => {
       allTransactions.push(...res.transactions);
     });
 
+    // 📍 نقطة التفتيش الثالثة: حصيلة البحث في قاعدة البيانات
+    console.log(JSON.stringify({
+      trace_id: "CHECKPOINT_3_DB_RESULTS",
+      timestamp: new Date().toISOString(),
+      retrieved_counts: {
+        analytics: allAnalytics.length,
+        companies: allCompanies.length,
+        transactions: allTransactions.length
+      }
+    }));
+
     console.log("\n=== 🔴 QIRAA MIND EXTRACTION DIAGNOSTICS ===");
     console.log(JSON.stringify({
       targetCountriesKeys: targetCountries,
@@ -328,6 +354,15 @@ ${JSON.stringify(rawContext)}
 9- [تعليمات هندسة المخرجات الاستراتيجية - حرج جداً]:
   - الكثافة المعرفية (Cognitive Density): حافظ على أقصى درجات الكثافة. هذا التحليل موجه لنخبة صناع القرار الذين يدفعون المال مقابل العمق.
   - منع البتر الاستراتيجي (Anti-Truncation Directive): يجب عليك هندسة طول الرد بذكاء حاد لضمان أن تكتمل رسالتك التحليلية واستنتاجاتك بشكل قاطع ومغلق تماماً. يُحظر عليك بتر أي فكرة. أغلق التحليل بخلاصة استراتيجية مركزة في حدود 1500 كلمة كحد أقصى.`;
+
+    // 📍 نقطة التفتيش الرابعة: الحمولة النهائية للنموذج (Payload)
+    console.log(JSON.stringify({
+      trace_id: "CHECKPOINT_4_FINAL_PAYLOAD",
+      timestamp: new Date().toISOString(),
+      model_target: "claude-opus-4-7",
+      max_tokens_configured: is_deep_dive ? 4096 : 2500,
+      context_length_chars: systemPrompt.length
+    }));
 
     const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
