@@ -178,15 +178,14 @@ serve(async (req) => {
 
     const categoriesList = Object.keys(ANALYTICS_CATEGORIES).join(", ");
 
-    // 4. Semantic Intent Extraction (تم توسيع البرومبت ليكون محرك استنتاج دلالي)
+// 4. Semantic Intent Extraction (بناءً على التعديل الجديد)
     const extractionPrompt = `أنت محرك استنتاج دلالي (Semantic Inference Engine) لمنصة ذكاء أسواق سيادية.
-مهمتك هي قراءة رسالة المستخدم بعمق، واستنتاج الأبعاد الاستثمارية، القطاعات الجغرافية، والشركات المقصودة كصيغة JSON فقط.
+مهمتك هي قراءة سياق المحادثة بدقة، واستنتاج الأبعاد الاستثمارية، القطاعات الجغرافية، والشركات المقصودة كصيغة JSON فقط.
+أنت تعمل كمحرك استنتاج وإرجاع بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف يمثل استنتاجك العميق.
 
 قواعد الاستنتاج لـ "analytics_category":
-بناءً على الفهم الدلالي لسؤال المستخدم، اختر القطاع الرئيسي "الأقرب" معمارياً من هذه القائمة. لا يشترط التطابق الحرفي، استخدم ذكاءك لربط المعنى (مثال: التقنية المالية = Fintech). إذا لم تجد أي ارتباط منطقي، اتركه null.
+بناءً على الفهم الدلالي، اختر القطاع الرئيسي "الأقرب" معمارياً من هذه القائمة:
 [${categoriesList}]
-
-رسالة المستخدم: "${latestUserMessage}"
 
 أخرج JSON فقط بالهيكل التالي:
 {
@@ -210,11 +209,11 @@ serve(async (req) => {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-opus-4-7",
+          model: "claude-sonnet-4-6", 
           max_tokens: 1000,
-          system: "أنت تعمل كمحرك استنتاج وإرجاع بيانات JSON فقط. لا تقم بإرجاع أي نصوص، مقدمات، أو تنسيقات Markdown. أرجع كائن JSON نظيف يمثل استنتاجك العميق.",
-          messages: [{ role: "user", content: extractionPrompt }],
-          temperature: 0,
+          system: extractionPrompt, // تم وضع البرومبت الشامل هنا
+          messages: messages,       // تم تمرير المحادثة بالكامل هنا
+          temperature: 0            // ضرورية جداً لمنع الهلوسة خارج الـ JSON
         }),
       });
 
@@ -223,9 +222,12 @@ serve(async (req) => {
         const rawContent = aiJson.content?.[0]?.text || "";
         const cleanJson = rawContent.replace(/\x60{3}json\n?|\x60{3}/gi, "").trim();
         extractedData = JSON.parse(cleanJson);
+      } else {
+        const errorBody = await extractionResponse.text();
+        console.error("🚨 Anthropic API Rejected Extraction:", errorBody);
       }
     } catch (err) {
-      console.warn("Extraction Parsing Failed:", err);
+      console.error("🚨 Network/Parsing Error during Extraction:", err);
     }
 
     console.log(JSON.stringify({
@@ -241,6 +243,9 @@ serve(async (req) => {
     if (coreSearchTerms.length === 0) {
         coreSearchTerms = extractCoreKeywords(latestUserMessage);
     }
+
+    const englishTerms = coreSearchTerms.filter(w => /[a-zA-Z]/.test(w));
+    const arabicTerms = coreSearchTerms.filter(w => !/[a-zA-Z]/.test(w));
 
     const MAX_ANALYTICS = is_deep_dive ? 20 : 10;
     const MAX_COMPANIES = is_deep_dive ? 25 : 10;
@@ -260,27 +265,35 @@ serve(async (req) => {
     const analyticsCategoryId = extractedData.analytics_category ? ANALYTICS_CATEGORIES[extractedData.analytics_category] : null;
 
     const queryPromises = targetCountries.map(async (countryKey) => {
-      const companiesConditions = buildOrConditions(["sector_main", "name", "tags", "description"], coreSearchTerms);
-      const transactionsConditions = buildOrConditions(["sector_main", "company_name", "investors"], coreSearchTerms);
+      
+      const compCondsArr: string[] = [];
+      const cEng = buildOrConditions(["sector_main", "name", "tags"], englishTerms);
+      if (cEng) compCondsArr.push(cEng);
+      const cAr = buildOrConditions(["tags"], arabicTerms);
+      if (cAr) compCondsArr.push(cAr);
+      const companiesConditions = compCondsArr.length > 0 ? compCondsArr.join(",") : null;
 
-      // تعديل 1: استخدام adminSupabase لتجاوز RLS
+      const transCondsArr: string[] = [];
+      const tEng = buildOrConditions(["sector_main", "company_name", "investors"], englishTerms);
+      if (tEng) transCondsArr.push(tEng);
+      const tAr = buildOrConditions(["investors"], arabicTerms);
+      if (tAr) transCondsArr.push(tAr);
+      const transactionsConditions = transCondsArr.length > 0 ? transCondsArr.join(",") : null;
+
       let aQuery = adminSupabase.from("analytics").select("title_ar, content_ar, updated_at, country, categories(name_en)").order("updated_at", { ascending: false }).limit(analyticsPerCountry);
       if (countryKey !== "global") aQuery = aQuery.ilike("country", `%${countryKey}%`);
       
       if (analyticsCategoryId) {
-        // تعديل 2: البحث باستخدام category_id بدلاً من category
         aQuery = aQuery.eq("category_id", analyticsCategoryId);
       } else {
         const analyticsConditions = buildOrConditions(["content_ar", "title_ar"], coreSearchTerms);
         if (analyticsConditions) aQuery = aQuery.or(analyticsConditions);
       }
 
-      // تعديل 3: استخدام adminSupabase لجدول الشركات لتجاوز RLS وجلب البيانات بنجاح
       let cQuery = adminSupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, founded_year, employee_range, revenue_estimate, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
       if (countryKey !== "global") cQuery = cQuery.ilike("country", `%${countryKey}%`);
       if (companiesConditions) cQuery = cQuery.or(companiesConditions);
 
-      // تعديل 4: استخدام adminSupabase لجدول الصفقات لتجاوز RLS وجلب البيانات بنجاح
       let tQuery = adminSupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_type, transaction_type, lead_investor, valuation_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
       if (countryKey !== "global") tQuery = tQuery.ilike("country", `%${countryKey}%`);
       if (transactionsConditions) tQuery = tQuery.or(transactionsConditions);
@@ -365,11 +378,17 @@ ${JSON.stringify(rawContext)}
 3- حظر الإيموجي (STRICT NO EMOJIS): يُمنع منعاً باتاً استخدام أي إيموجي.
 4- استخدم التنقيط (Bullets) مثل (-) أو (*) فقط.
 5- حظر الجمل الدفاعية: يُمنع نهائياً استخدام أي عبارات إخلاء مسؤولية مثل "هذه ليست نصيحة استثمارية" أو "الاستنتاجات تقديرية". أنت محرك سيادي يبيع الثقة، تحدث كجهة إصدار تشريعي.
-6- إجبارية الجداول (Data Tables): إذا طلب المستخدم مقارنة بين دولتين أو قطاعين، **يجب** أن ترسم جدول (Markdown Table) يوضح (كثافة رأس المال، التقييمات، الفرص، المخاطر) بناءً على الإشارات.
+6- إجبارية الجداول (Data Tables): إذا طلب المستخدم مقارنة بين دولتين أو قطاعين، **يجب** أن ترسم جدولاً باحترافية عالية. استخدم التنسيق القياسي الصارم لجداول Markdown (Strict GFM Tables) مع استخدام الأعمدة الفاصلة (|) والصفوف التنسيقية (|---|---|---|). يُمنع السرد العشوائي. حافظ على اختصار النصوص داخل الخلايا لضمان وضوح الواجهة. مثال للنسق الإجباري:
+| المحور | [القطاع/الدولة الأولى] | [القطاع/الدولة الثانية] |
+|---|---|---|
+| كثافة رأس المال | [القيمة] | [القيمة] |
+| التقييمات | [القيمة] | [القيمة] |
+| الفرص | [القيمة] | [القيمة] |
+| المخاطر | [القيمة] | [القيمة] |
 7- معالجة الفراغ بذكاء (Data Vacuum): إذا لم تجد بيانات كافية عن قطاع معين في البيانات المرفقة، لا تعتذر ولا تقل "لا تتوافر معلومات". بل صُغها كـ "فراغ استثماري استراتيجي" (Strategic Vacuum) أو "نقص اختراق" (Underpenetration)، وضع توصية حول كيفية استغلال هذا الفراغ استثمارياً.
 8- هيكل الإجابة التنفيذي:
    - جملة واحدة قاتلة وقابلة للاقتباس تلخص الفرصة.
-   - تحليلك و تشريحك (عبر نقاط حادة وجدول مقارنة).
+   - تحليلك و تشريحك (عبر نقاط حادة وجدول مقارنة مبني بـ Markdown صارم).
    - مناورة الدخول (Entry Arbitrage): كيف يستغل الـ VC هذه المعطيات اليوم (خطوات عملية، هيكلة، استحواذ).
    - استراتيجية الخروج( Exit Scinario)
 9- [تعليمات هندسة المخرجات الاستراتيجية - حرج جداً]:
