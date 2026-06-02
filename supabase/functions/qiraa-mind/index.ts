@@ -293,7 +293,7 @@ serve(async (req) => {
       }
 
       // بناء استعلام الشركات - التعديل 1: البحث إلزاما بالدولة / التعديل 2: فلترة sector_main
-      let cQuery = adminSupabase.from("qiraa_companies").select("name, description, sector_main, country, valuation_min_usd, valuation_max_usd, total_funding_usd, growth_stage, launch_year, client_focus, income_streams, employees_range, growth_rate").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
+      let cQuery = adminSupabase.from("qiraa_companies").select("name, description, sector_main, sectors_sub, company_status, country, valuation_min_usd, valuation_max_usd, valuation_source_round, total_funding_usd, growth_stage, launch_year, client_focus, income_streams, employees_range, investors_list").order("total_funding_usd", { ascending: false }).limit(companiesPerCountry);
       if (countryKey !== "global") cQuery = cQuery.ilike("country", `%${countryKey}%`);
       
       if (extractedData.companies_sector_main && extractedData.companies_sector_main.length > 0) {
@@ -304,7 +304,7 @@ serve(async (req) => {
       if (companiesConditions) cQuery = cQuery.or(companiesConditions);
 
       // بناء استعلام الصفقات - التعديل 1: البحث إلزاما بالدولة / التعديل 3: فلترة sector_main
-      let tQuery = adminSupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_types, transaction_type, round_currency").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
+      let tQuery = adminSupabase.from("qiraa_transactions").select("company_name, sector_main, sectors_sub, round_type, round_amount_usd, round_currency, growth_stage, valuation_min_usd, valuation_max_usd, total_funding_usd, investors, country, round_year, round_month, investor_types, transaction_type").order("round_year", { ascending: false }).order("round_month", { ascending: false }).limit(transactionsPerCountry);
       if (countryKey !== "global") tQuery = tQuery.ilike("country", `%${countryKey}%`);
       
       if (extractedData.transactions_sector_main && extractedData.transactions_sector_main.length > 0) {
