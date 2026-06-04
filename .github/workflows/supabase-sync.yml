@@ -5,6 +5,10 @@ on:
     - cron: '*/10 * * * *'
   workflow_dispatch:
 
+env:
+  # 🛡️ إخماد الإنذار المزعج وإجبار الخادم على استخدام Node.js 24
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   sync-schema:
     runs-on: ubuntu-latest
@@ -15,6 +19,7 @@ jobs:
       - name: 📦 Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: main # 🛡️ تحديد الفرع صراحة لتجنب خطأ 128 (Detached HEAD)
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 
 
@@ -57,12 +62,15 @@ jobs:
           git config --global user.name "QIRAA DevOps Bot"
           git config --global user.email "bot@qiraa.io"
           
-          git pull origin main --rebase
-          git add supabase/migrations/
+          # 🛡️ التصحيح الهندسي: إضافة الملفات والتحقق منها "قبل" السحب والدمج
+          git add supabase/migrations/ || true
           
           if git diff-index --quiet HEAD; then
-            echo "No files to commit. Repository is perfectly synced."
+            echo "✅ No files to commit. Repository is perfectly synced."
           else
             git commit -m "Auto-sync: Fetched latest database schema from Supabase"
+            
+            # 🛡️ الآن بيئة العمل نظيفة، يمكن عمل rebase بأمان تام دون خطأ 128
+            git pull origin main --rebase
             git push origin main
           fi
