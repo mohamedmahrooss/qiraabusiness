@@ -336,16 +336,20 @@ serve(async (req) => {
       allTransactions.push(...res.transactions);
     });
 
-    // 📍 نقطة التفتيش الثالثة: حصيلة البحث في قاعدة البيانات
-    console.log(JSON.stringify({
-      trace_id: "CHECKPOINT_3_DB_RESULTS",
-      timestamp: new Date().toISOString(),
-      retrieved_counts: {
-        analytics: allAnalytics.length,
-        companies: allCompanies.length,
-        transactions: allTransactions.length
-      }
-    }));
+    // 📍 نقطة التفتيش الثالثة: فحص عينات البيانات المسحوبة
+console.log(JSON.stringify({
+  trace_id: "CHECKPOINT_3_DB_RESULTS",
+  timestamp: new Date().toISOString(),
+  retrieved_counts: {
+    analytics: allAnalytics.length,
+    companies: allCompanies.length,
+    transactions: allTransactions.length
+  },
+  data_peek: {
+    companies_found: allCompanies.map(c => c.name),
+    transactions_found: allTransactions.map(t => ({ company: t.company_name, amount: t.round_amount_usd }))
+  }
+}));
 
     // NEW LOGGING: تسجيل المحتوى الفعلي الكامل للسجلات المسترجعة
     console.log(JSON.stringify({
