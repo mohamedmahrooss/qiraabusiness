@@ -62,15 +62,16 @@ jobs:
           git config --global user.name "QIRAA DevOps Bot"
           git config --global user.email "bot@qiraa.io"
           
-          # 🛡️ التصحيح الهندسي: إضافة الملفات والتحقق منها "قبل" السحب والدمج
-          git add supabase/migrations/ || true
+          # 🛡️ التصحيح الهندسي: إضافة كافة التعديلات التي أجراها Supabase (git add .)
+          git add .
           
-          if git diff-index --quiet HEAD; then
+          # 🛡️ فحص ما إذا كانت هناك ملفات فعلية تم إدراجها (Staged) وجاهزة للـ Commit
+          if git diff --staged --quiet; then
             echo "✅ No files to commit. Repository is perfectly synced."
           else
             git commit -m "Auto-sync: Fetched latest database schema from Supabase"
             
-            # 🛡️ الآن بيئة العمل نظيفة، يمكن عمل rebase بأمان تام دون خطأ 128
+            # 🛡️ الآن بيئة العمل نظيفة، يمكن عمل rebase بأمان تام دون أخطاء
             git pull origin main --rebase
             git push origin main
           fi
