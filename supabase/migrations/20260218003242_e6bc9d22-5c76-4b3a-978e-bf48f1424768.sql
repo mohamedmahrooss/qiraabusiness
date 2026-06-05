@@ -1,7 +1,7 @@
 
 -- Create storage bucket for QIRAA knowledge base
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('qiraa-knowledge-base', 'qiraa-knowledge-base', false)
+INSERT INTO storage.buckets (id, name) 
+VALUES ('qiraa-knowledge-base', 'qiraa-knowledge-base',)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies: admins can manage files
