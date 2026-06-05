@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  # 🛡️ إخماد الإنذار المزعج وإجبار الخادم على استخدام Node.js 24
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  GIT_TERMINAL_PROMPT: 0
 
 jobs:
   sync-schema:
@@ -19,32 +19,44 @@ jobs:
       - name: 📦 Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: main # 🛡️ تحديد الفرع صراحة لتجنب خطأ 128 (Detached HEAD)
+          ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 
 
+      - name: 🗄️ Cache Supabase CLI
+        id: cache-supabase
+        uses: actions/cache@v4
+        with:
+          path: /opt/hostedtoolcache/supabase
+          # 🛡️ تحديث مفتاح الخزنة ليتطابق مع الجيل الثاني
+          key: ${{ runner.os }}-supabase-cli-2.23.4
+
       - name: 🛠️ Setup Supabase CLI
+        if: steps.cache-supabase.outputs.cache-hit != 'true'
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # 🛡️ ترقية السلاح إلى أحدث نسخة مستقرة مدعومة
+          version: 2.23.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔗 Link Supabase Project
         run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           CI: true
 
-      - name: ⬇️ Pull Latest Schema (With Ghost-Error Handler)
+      - name: ⬇️ Pull Latest Schema
         run: |
           set +e
           OUTPUT=$(supabase db pull 2>&1)
           EXIT_CODE=$?
           echo "$OUTPUT"
           
-          # 🛡️ هندسة اعتراض الأخطاء: تجاوز خطأ CLI إذا كان السبب هو تطابق البيانات
           if [ $EXIT_CODE -ne 0 ]; then
             if echo "$OUTPUT" | grep -q "No schema changes found"; then
-              echo "✅ No schema changes detected. Supabase CLI ghost-error intercepted. Proceeding gracefully."
+              echo "✅ No schema changes detected. Proceeding gracefully."
               exit 0
             else
               echo "❌ Real connection error occurred."
@@ -62,16 +74,12 @@ jobs:
           git config --global user.name "QIRAA DevOps Bot"
           git config --global user.email "bot@qiraa.io"
           
-          # 🛡️ التصحيح الهندسي: إضافة كافة التعديلات التي أجراها Supabase (git add .)
           git add .
           
-          # 🛡️ فحص ما إذا كانت هناك ملفات فعلية تم إدراجها (Staged) وجاهزة للـ Commit
           if git diff --staged --quiet; then
             echo "✅ No files to commit. Repository is perfectly synced."
           else
             git commit -m "Auto-sync: Fetched latest database schema from Supabase"
-            
-            # 🛡️ الآن بيئة العمل نظيفة، يمكن عمل rebase بأمان تام دون أخطاء
             git pull origin main --rebase
             git push origin main
           fi
