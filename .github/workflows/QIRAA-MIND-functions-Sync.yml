@@ -1,5 +1,4 @@
 name: Deploy Edge Functions to Supabase
-
 on:
   push:
     branches:
@@ -8,44 +7,25 @@ on:
       # هذا الفخ البرمجي يضمن أن الروبوت لن يعمل إلا إذا تم تعديل ملف داخل مجلد الدوال فقط
       - 'supabase/functions/**'
   workflow_dispatch:
-
 env:
   # 🛡️ إخماد الإنذار المزعج وإجبار الخادم على استخدام Node.js 24
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # 🛡️ الحل السيادي: استدعاء التخزين المؤقت لمنع الـ Rate Limit وتسريع النشر
-      - name: 🗄️ Cache Supabase CLI
-        id: cache-supabase
-        uses: actions/cache@v4
-        with:
-          path: /opt/hostedtoolcache/supabase
-          key: ${{ runner.os }}-supabase-cli-2.23.4
-
+        uses: actions/checkout@v4        
       - name: Setup Supabase CLI
-        # 🛡️ لن يتصل بالإنترنت إذا وجد الأداة في الخزنة
-        if: steps.cache-supabase.outputs.cache-hit != 'true'
         uses: supabase/setup-cli@v1
         with:
-          # 🛡️ تثبيت النسخة لضمان الاستقرار (نفس نسخة ملف المزامنة)
-          version: 2.23.4
-        env:
-          # 🛡️ حقن التوكن الإجباري لمنع الحظر
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          version: 1.165.0
       # 🛡️ خطوة تحصينية: ربط المشروع قبل النشر لضمان الاتصال السليم (لمنع Exit code 1)
       - name: 🔗 Link Supabase Project
         run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           CI: true
-
       - name: Deploy qiraa-mind Edge Function
         run: supabase functions deploy qiraa-mind --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         env:
